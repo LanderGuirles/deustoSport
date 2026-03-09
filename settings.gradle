@@ -1,0 +1,4 @@
+rootProject.name = 'GRUPO8'
+
+include 'my-app'
+include 'my-webapp'
