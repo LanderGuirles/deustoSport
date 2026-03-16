@@ -33,6 +33,7 @@ dependencies {
 	implementation 'org.springframework.security:spring-security-crypto'
 	implementation 'jakarta.persistence:jakarta.persistence-api'
 	runtimeOnly 'org.postgresql:postgresql'
+	runtimeOnly 'com.h2database:h2'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testRuntimeOnly 'com.h2database:h2'
