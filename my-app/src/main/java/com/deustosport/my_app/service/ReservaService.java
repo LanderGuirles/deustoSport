@@ -47,8 +47,14 @@ public class ReservaService {
             throw new IllegalStateException("La pista seleccionada no está disponible para reservas.");
         }
 
+        if (duracionMinutos == null || duracionMinutos <= 0) {
+            throw new IllegalArgumentException("La duración de la reserva debe ser mayor que 0 minutos.");
+        }
+
         // 3. Calcular hora de fin
         LocalTime horaFin = horaInicio.plusMinutes(duracionMinutos);
+
+        validarHorarioInstalacion(pista, horaInicio, horaFin);
 
         // 4. Verificar conflictos de horario usando la query personalizada del repositorio
         // La query findConflictingReservations ya excluye las reservas canceladas
@@ -117,7 +123,35 @@ public class ReservaService {
      * Método auxiliar para consultar disponibilidad sin reservar
      */
     public boolean consultarDisponibilidad(Long pistaId, LocalDate fecha, LocalTime horaInicio, LocalTime horaFin) {
+        Pista pista = pistaRepository.findById(pistaId)
+                .orElseThrow(() -> new IllegalArgumentException("Pista no encontrada con ID: " + pistaId));
+
+        validarHorarioInstalacion(pista, horaInicio, horaFin);
+
         List<Reserva> conflictos = reservaRepository.findConflictingReservations(pistaId, fecha, horaInicio, horaFin);
         return conflictos.isEmpty();
+    }
+
+    private void validarHorarioInstalacion(Pista pista, LocalTime horaInicio, LocalTime horaFin) {
+        if (horaInicio == null || horaFin == null || !horaFin.isAfter(horaInicio)) {
+            throw new IllegalArgumentException("El rango horario de la reserva no es válido.");
+        }
+
+        if (pista.getInstalacion() == null) {
+            throw new IllegalStateException("La pista no tiene una instalación asociada.");
+        }
+
+        LocalTime horaApertura = pista.getInstalacion().getHoraApertura();
+        LocalTime horaCierre = pista.getInstalacion().getHoraCierre();
+
+        if (horaApertura == null || horaCierre == null || !horaCierre.isAfter(horaApertura)) {
+            throw new IllegalStateException("La instalación no tiene un horario general válido configurado.");
+        }
+
+        if (horaInicio.isBefore(horaApertura) || horaFin.isAfter(horaCierre)) {
+            throw new IllegalStateException(
+                    "La reserva debe estar dentro del horario general del polideportivo: "
+                            + horaApertura + " - " + horaCierre + ".");
+        }
     }
 }

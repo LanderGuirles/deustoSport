@@ -36,3 +36,21 @@ Para el otro módulo:
 ```powershell
 .\gradlew.bat :my-webapp:bootRun
 ```
+
+## Horario general del polideportivo
+
+El módulo `my-app` permite definir un horario general por instalación. Las reservas y las consultas de disponibilidad quedan bloqueadas fuera de esa franja.
+
+Endpoint:
+
+```http
+PUT /api/instalaciones/{instalacionId}/horario-general
+Content-Type: application/json
+
+{
+	"horaApertura": "08:00:00",
+	"horaCierre": "22:00:00"
+}
+```
+
+Si una reserva empieza antes de la apertura o termina después del cierre, la API responde con error y no la registra.

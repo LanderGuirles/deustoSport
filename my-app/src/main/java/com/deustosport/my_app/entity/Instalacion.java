@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,4 +29,10 @@ public class Instalacion {
 
     @Column(nullable = false, length = 200)
     private String direccion;
+
+    @Column(nullable = false)
+    private LocalTime horaApertura = LocalTime.of(8, 0);
+
+    @Column(nullable = false)
+    private LocalTime horaCierre = LocalTime.of(22, 0);
 }
