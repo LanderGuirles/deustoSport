@@ -29,16 +29,16 @@ public class DataInitializer implements CommandLineRunner {
 
         // Insertar usuarios
         jdbcTemplate.update(
-            "INSERT INTO usuarios (nombre_completo, email, telefono, activo) VALUES (?, ?, ?, ?)",
-            "Juan García", "juan@deustosport.com", "666111222", true
+            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo) VALUES (?, ?, ?, ?, ?)",
+            "Juan García", "juan@deustosport.com", "11111111A", "666111222", true
         );
         jdbcTemplate.update(
-            "INSERT INTO usuarios (nombre_completo, email, telefono, activo) VALUES (?, ?, ?, ?)",
-            "María López", "maria@deustosport.com", "666333444", true
+            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo) VALUES (?, ?, ?, ?, ?)",
+            "María López", "maria@deustosport.com", "22222222B", "666333444", true
         );
         jdbcTemplate.update(
-            "INSERT INTO usuarios (nombre_completo, email, telefono, activo) VALUES (?, ?, ?, ?)",
-            "Carlos Rodríguez", "carlos@deustosport.com", "666555666", true
+            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo) VALUES (?, ?, ?, ?, ?)",
+            "Carlos Rodríguez", "carlos@deustosport.com", "33333333C", "666555666", true
         );
 
         // Insertar credenciales con hash generado dinámicamente

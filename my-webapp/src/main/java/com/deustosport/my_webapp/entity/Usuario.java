@@ -29,6 +29,9 @@ public class Usuario {
     @Column(nullable = false, unique = true, length = 150)
     private String email;
 
+    @Column(unique = true, length = 20)
+    private String dni;
+
     @Column(length = 20)
     private String telefono;
 

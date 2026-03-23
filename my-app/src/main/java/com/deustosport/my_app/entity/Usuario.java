@@ -21,6 +21,9 @@ public class Usuario {
     @Column(nullable = false, unique = true, length = 150)
     private String email;
 
+    @Column(unique = true, length = 20)
+    private String dni;
+
     @Column(length = 20)
     private String telefono;
 
@@ -34,6 +37,15 @@ public class Usuario {
         this.id = id;
         this.nombreCompleto = nombreCompleto;
         this.email = email;
+        this.telefono = telefono;
+        this.activo = activo;
+    }
+
+    public Usuario(Long id, String nombreCompleto, String email, String dni, String telefono, boolean activo) {
+        this.id = id;
+        this.nombreCompleto = nombreCompleto;
+        this.email = email;
+        this.dni = dni;
         this.telefono = telefono;
         this.activo = activo;
     }
@@ -60,6 +72,14 @@ public class Usuario {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getDni() {
+        return dni;
+    }
+
+    public void setDni(String dni) {
+        this.dni = dni;
     }
 
     public String getTelefono() {

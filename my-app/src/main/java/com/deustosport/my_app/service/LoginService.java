@@ -39,11 +39,18 @@ public class LoginService {
                     "El email ya está registrado", false);
         }
 
+        String dni = solicitud.getDni() != null ? solicitud.getDni().trim() : null;
+        if (dni != null && !dni.isEmpty() && usuarioRepository.existsByDni(dni)) {
+            return new LoginResponse(null, null, solicitud.getEmail(),
+                    "El DNI ya está registrado", false);
+        }
+
         try {
             // Crear nuevo usuario
             Usuario nuevoUsuario = new Usuario();
             nuevoUsuario.setNombreCompleto(solicitud.getNombreCompleto());
             nuevoUsuario.setEmail(solicitud.getEmail());
+            nuevoUsuario.setDni(dni);
             nuevoUsuario.setTelefono(solicitud.getTelefono());
             nuevoUsuario.setActivo(true);
 

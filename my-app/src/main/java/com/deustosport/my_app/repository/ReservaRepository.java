@@ -16,6 +16,10 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
 
     List<Reserva> findByUsuarioId(Long usuarioId);
 
+    List<Reserva> findByUsuarioIdOrderByFechaReservaDescHoraInicioDesc(Long usuarioId);
+
+    long countByUsuarioId(Long usuarioId);
+
     List<Reserva> findByPistaId(Long pistaId);
 
     List<Reserva> findByEstado(EstadoReserva estado);

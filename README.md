@@ -54,3 +54,20 @@ Content-Type: application/json
 ```
 
 Si una reserva empieza antes de la apertura o termina después del cierre, la API responde con error y no la registra.
+
+## Panel de secretaría (búsqueda de usuarios)
+
+Se añadió un panel para atención en secretaría que permite filtrar usuarios por DNI y consultar sus reservas rápidamente.
+
+Panel web:
+
+```http
+GET /secretaria-panel.html
+```
+
+Endpoints usados por el panel:
+
+```http
+GET /api/secretaria/usuarios?dni=11111111A
+GET /api/secretaria/usuarios/{usuarioId}/reservas
+```
