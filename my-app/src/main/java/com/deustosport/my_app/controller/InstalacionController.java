@@ -35,7 +35,10 @@ public class InstalacionController {
                     instalacionId,
                     request.getHoraApertura(),
                     request.getHoraCierre());
+
+            // ¡Magia! Al devolver el objeto, Jackson usa los @JsonFormat de tu entidad
             return ResponseEntity.ok(instalacion);
+            
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
