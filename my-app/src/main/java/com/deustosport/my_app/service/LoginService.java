@@ -34,13 +34,15 @@ public class LoginService {
     @Transactional
     public LoginResponse registrarUsuario(RegistroRequest solicitud) {
         // Verificar si el email ya existe
-        if (usuarioRepository.existsByEmail(solicitud.getEmail())) {
+        String email = solicitud.getEmail().trim().toLowerCase();
+        String dni = solicitud.getDni().trim().toUpperCase();
+
+        if (usuarioRepository.existsByEmail(email)) {
             return new LoginResponse(null, null, solicitud.getEmail(),
                     "El email ya está registrado", false);
         }
 
-        String dni = solicitud.getDni() != null ? solicitud.getDni().trim() : null;
-        if (dni != null && !dni.isEmpty() && usuarioRepository.existsByDni(dni)) {
+        if (usuarioRepository.existsByDni(dni)) {
             return new LoginResponse(null, null, solicitud.getEmail(),
                     "El DNI ya está registrado", false);
         }
@@ -48,10 +50,10 @@ public class LoginService {
         try {
             // Crear nuevo usuario
             Usuario nuevoUsuario = new Usuario();
-            nuevoUsuario.setNombreCompleto(solicitud.getNombreCompleto());
-            nuevoUsuario.setEmail(solicitud.getEmail());
+            nuevoUsuario.setNombreCompleto(solicitud.getNombreCompleto().trim());
+            nuevoUsuario.setEmail(email);
             nuevoUsuario.setDni(dni);
-            nuevoUsuario.setTelefono(solicitud.getTelefono());
+            nuevoUsuario.setTelefono(solicitud.getTelefono() != null ? solicitud.getTelefono().trim() : null);
             nuevoUsuario.setActivo(true);
 
             Usuario usuarioGuardado = usuarioRepository.save(nuevoUsuario);

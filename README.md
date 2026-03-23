@@ -71,3 +71,30 @@ Endpoints usados por el panel:
 GET /api/secretaria/usuarios?dni=11111111A
 GET /api/secretaria/usuarios/{usuarioId}/reservas
 ```
+
+## Registro de usuario
+
+El proyecto permite crear cuentas nuevas por API y mediante formulario web.
+
+Formulario:
+
+```http
+GET /registro.html
+```
+
+Endpoint de alta:
+
+```http
+POST /api/auth/registro
+Content-Type: application/json
+
+{
+	"nombreCompleto": "Juan Garcia",
+	"email": "juan@email.com",
+	"dni": "12345678A",
+	"telefono": "666111222",
+	"password": "password123"
+}
+```
+
+Validaciones aplicadas: nombre obligatorio, email valido, DNI con formato `12345678A`, contrasena minima de 8 caracteres y telefono opcional de 9 a 15 digitos.
