@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -31,11 +32,10 @@ public class PistaController {
     }
 
     @GetMapping
-    @io.swagger.v3.oas.annotations.Operation(summary = "Listar todas las pistas", description = "Devuelve todas las pistas activas")
+    @io.swagger.v3.oas.annotations.Operation(summary = "Listar todas las pistas", description = "Devuelve todas las pistas")
     public ResponseEntity<java.util.List<PistaResponse>> listarTodas() {
         return ResponseEntity.ok(pistaService.obtenerTodasLasPistas());
     }
-
 
     @PostMapping
     @io.swagger.v3.oas.annotations.Operation(summary = "Añadir nueva pista", description = "Permite la creacion de nuevas pistas")
@@ -81,6 +81,17 @@ public class PistaController {
         try {
             pistaService.eliminarPista(pistaId);
             return ResponseEntity.ok("La pista con id: " + pistaId + " ha sido eliminada correctamente.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PatchMapping("/{pistaId}/bloquear")
+    @io.swagger.v3.oas.annotations.Operation(summary = "Bloquear pista", description = "Bloquea la pista cambiando su estado")
+    public ResponseEntity<?> bloquearPista(@PathVariable Long pistaId) {
+        try {
+            PistaResponse pistaBloqueada = pistaService.bloquearPista(pistaId);
+            return ResponseEntity.ok(pistaBloqueada);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }

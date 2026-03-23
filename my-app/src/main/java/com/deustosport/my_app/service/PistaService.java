@@ -22,6 +22,24 @@ public class PistaService {
         this.instalacionRepository = instalacionRepository;
     }
 
+
+    // metodo para mapear entity a dto para uso interno del service
+    private PistaResponse convertirPistaToDto(Pista pista) {
+        PistaResponse pistaResponseDto = new PistaResponse();
+        pistaResponseDto.setId(pista.getId());
+        pistaResponseDto.setNombre(pista.getNombre());
+        pistaResponseDto.setTipoDeporte(pista.getTipoDeporte());
+        pistaResponseDto.setMaxJugadores(pista.getMaxJugadores());
+        pistaResponseDto.setActiva(pista.isActiva());
+
+        if (pista.getInstalacion() != null) {
+            pistaResponseDto.setInstalacionId(pista.getInstalacion().getId());
+            pistaResponseDto.setInstalacionNombre(pista.getInstalacion().getNombre());
+        }
+
+        return pistaResponseDto;
+    }
+
     @Transactional
     public List<Pista> obtenerPistasPorInstalacionId(Long instalacionId){
         if (!instalacionRepository.existsById(instalacionId)) {
@@ -35,21 +53,8 @@ public class PistaService {
     public List<PistaResponse> obtenerTodasLasPistas() {
         List<Pista> pistas = pistaRepository.findAll();
 
-        return pistas.stream().map(pista -> {
-            PistaResponse dto = new PistaResponse();
-            dto.setId(pista.getId());
-            dto.setNombre(pista.getNombre());
-            dto.setTipoDeporte(pista.getTipoDeporte());
-            dto.setMaxJugadores(pista.getMaxJugadores());
-            dto.setActiva(pista.isActiva());
-
-            if (pista.getInstalacion() != null) {
-                dto.setInstalacionId(pista.getInstalacion().getId());
-                dto.setInstalacionNombre(pista.getInstalacion().getNombre());
-            }
-
-            return dto;
-        }).collect(Collectors.toList());
+        // transformar la lista de pistas a pistaDto
+        return pistas.stream().map(this::convertirPistaToDto).collect(Collectors.toList());
     }
 
 
@@ -103,19 +108,9 @@ public class PistaService {
         Pista pistaGuardada =  pistaRepository.save(pistaExistente);
 
         // pasamos a DTO para el controller
-        PistaResponse pistaResponseDto = new PistaResponse();
-        pistaResponseDto.setId(pistaGuardada.getId());
-        pistaResponseDto.setNombre(pistaGuardada.getNombre());
-        pistaResponseDto.setTipoDeporte(pistaGuardada.getTipoDeporte());
-        pistaResponseDto.setMaxJugadores(pistaGuardada.getMaxJugadores());
-        pistaResponseDto.setActiva(pistaGuardada.isActiva());
+        PistaResponse pistaDto = convertirPistaToDto(pistaGuardada);
 
-        if (pistaGuardada.getInstalacion() != null) {
-            pistaResponseDto.setInstalacionId(pistaGuardada.getInstalacion().getId());
-            pistaResponseDto.setInstalacionNombre(pistaGuardada.getInstalacion().getNombre());
-        }
-
-        return pistaResponseDto;
+        return pistaDto;
     }
 
 
@@ -131,5 +126,20 @@ public class PistaService {
         } catch (Exception e) {
             throw new RuntimeException("Error al eliminar la pista: Es posible que tenga reservas asociadas.");
         }
+    }
+
+
+    @Transactional
+    public PistaResponse bloquearPista(Long id) {
+        Pista pistaExistente = pistaRepository.findById(id).orElseThrow(() -> new RuntimeException("No se puede modificar: La pista con ID " + id + " no existe."));
+
+        pistaExistente.setActiva(false);
+
+        Pista pistaGuardada =  pistaRepository.save(pistaExistente);
+
+        // pasamos a DTO para el controller
+        PistaResponse pistaDto = convertirPistaToDto(pistaGuardada);
+
+        return pistaDto;
     }
 }
