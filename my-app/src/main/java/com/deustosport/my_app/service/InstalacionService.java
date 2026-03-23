@@ -15,6 +15,11 @@ public class InstalacionService {
         this.instalacionRepository = instalacionRepository;
     }
 
+    @Transactional(readOnly = true)
+    public boolean existeInstalacion(Long id) {
+        return instalacionRepository.existsById(id);
+    }
+
     @Transactional
     public Instalacion actualizarHorarioGeneral(Long instalacionId, LocalTime horaApertura, LocalTime horaCierre) {
         if (horaApertura == null || horaCierre == null) {
