@@ -7,10 +7,8 @@ import com.deustosport.my_app.enums.EstadoReserva;
 import com.deustosport.my_app.repository.PistaRepository;
 import com.deustosport.my_app.repository.ReservaRepository;
 import com.deustosport.my_app.repository.UsuarioRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -23,7 +21,6 @@ public class ReservaService {
     private final PistaRepository pistaRepository;
     private final UsuarioRepository usuarioRepository;
 
-    @Autowired
     public ReservaService(ReservaRepository reservaRepository, PistaRepository pistaRepository, UsuarioRepository usuarioRepository) {
         this.reservaRepository = reservaRepository;
         this.pistaRepository = pistaRepository;
