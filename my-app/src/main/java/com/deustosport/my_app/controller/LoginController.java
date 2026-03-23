@@ -7,6 +7,7 @@ import com.deustosport.my_app.dto.RegistroRequest;
 import com.deustosport.my_app.service.LoginService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,13 +28,7 @@ public class LoginController {
 
     @PostMapping("/registro")
     @Operation(summary = "Registrar nuevo usuario", description = "Crea una nueva cuenta de usuario con email y contraseña")
-    public ResponseEntity<LoginResponse> registro(@RequestBody RegistroRequest solicitud) {
-        if (solicitud.getEmail() == null || solicitud.getPassword() == null) {
-            return ResponseEntity.badRequest()
-                    .body(new LoginResponse(null, null, null,
-                            "Email y contraseña son requeridos", false));
-        }
-
+        public ResponseEntity<LoginResponse> registro(@Valid @RequestBody RegistroRequest solicitud) {
         LoginResponse response = loginService.registrarUsuario(solicitud);
         return response.isExitoso() ?
                 ResponseEntity.status(HttpStatus.CREATED).body(response) :
