@@ -7,6 +7,7 @@ import com.deustosport.my_app.entity.Instalacion;
 import com.deustosport.my_app.entity.Pista;
 import com.deustosport.my_app.repository.InstalacionRepository;
 import com.deustosport.my_app.repository.PistaRepository;
+import java.util.List;
 
 @Service
 public class PistaService {
@@ -44,5 +45,12 @@ public class PistaService {
         nuevaPista.setActiva(true);
 
         return pistaRepository.save(nuevaPista);
+    }
+
+    /**
+     * Obtiene todas las pistas activas.
+     */
+    public List<Pista> obtenerTodasLasPistas() {
+        return pistaRepository.findByActivaTrue();
     }
 }

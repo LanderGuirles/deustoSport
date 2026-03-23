@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
 
@@ -27,6 +28,14 @@ public class PistaController {
     public PistaController(PistaService pistaService){
         this.pistaService = pistaService;
     }
+
+    @GetMapping
+    @io.swagger.v3.oas.annotations.Operation(summary = "Listar todas las pistas", description = "Devuelve todas las pistas activas")
+    public ResponseEntity<java.util.List<Pista>> listarTodas() {
+        return ResponseEntity.ok(pistaService.obtenerTodasLasPistas());
+    }
+
+    
 
     @PostMapping
     public ResponseEntity<?> crearPista(@RequestBody PistaRequestDTO pistaDto){
