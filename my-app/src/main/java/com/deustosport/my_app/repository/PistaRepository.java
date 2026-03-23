@@ -10,6 +10,8 @@ import java.util.List;
 @Repository
 public interface PistaRepository extends JpaRepository<Pista, Long> {
 
+    boolean existsByNombreIgnoreCase(String nombre); 
+
     List<Pista> findByTipoDeporte(TipoDeporte tipoDeporte);
 
     List<Pista> findByInstalacionId(Long instalacionId);
