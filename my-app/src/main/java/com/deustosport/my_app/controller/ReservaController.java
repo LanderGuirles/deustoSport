@@ -1,6 +1,7 @@
 package com.deustosport.my_app.controller;
 
 import com.deustosport.my_app.dto.ReservaRequest;
+import com.deustosport.my_app.dto.ReservaResponse;
 import com.deustosport.my_app.entity.Reserva;
 import com.deustosport.my_app.service.ReservaService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,9 +44,25 @@ public class ReservaController {
                     request.getHoraInicio(),
                     duracion
             );
-            return ResponseEntity.ok(reserva);
-        } catch (Exception e) {
+
+            // mapeamos a dto para no devolver un entity
+            ReservaResponse reservaResponseDto = new ReservaResponse();
+            reservaResponseDto.setId(reserva.getId());
+            reservaResponseDto.setUsuarioId(reserva.getUsuario().getId());
+            reservaResponseDto.setPistaId(reserva.getPista().getId());
+            reservaResponseDto.setFecha(reserva.getFechaReserva());
+            reservaResponseDto.setHoraInicio(reserva.getHoraInicio());
+            reservaResponseDto.setHoraFin(reserva.getHoraFin());
+            reservaResponseDto.setPrecioTotal(reserva.getPrecioTotal());
+            reservaResponseDto.setEstado(reserva.getEstado());
+
+            return ResponseEntity.ok(reservaResponseDto);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            // Captura errores de negocio controlados (400 Bad Request)
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            // Captura errores inesperados (500 Internal Server Error)
+            return ResponseEntity.internalServerError().body(Map.of("error", "Ha ocurrido un error inesperado al procesar la reserva."));
         }
     }
 

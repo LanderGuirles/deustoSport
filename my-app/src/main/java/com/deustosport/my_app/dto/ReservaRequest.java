@@ -3,64 +3,24 @@ package com.deustosport.my_app.dto;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+
+@Data
 public class ReservaRequest {
     private Long usuarioId;
     private Long pistaId;
+
+    @Schema(type = "string", example = "2026-03-25", description = "Fecha de la reserva (yyyy-MM-dd)")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate fecha;
+
+    @Schema(type = "string", example = "10:00", description = "Hora de inicio (HH:mm)")
+    @JsonFormat(pattern = "HH:mm") 
     private LocalTime horaInicio;
+
+    @Schema(example = "60", description = "Duración en minutos (por defecto 60)")
     private Integer duracionMinutos;
-
-    // Constructor vacío
-    public ReservaRequest() {
-    }
-
-    // Constructor con campos
-    public ReservaRequest(Long usuarioId, Long pistaId, LocalDate fecha, LocalTime horaInicio, Integer duracionMinutos) {
-        this.usuarioId = usuarioId;
-        this.pistaId = pistaId;
-        this.fecha = fecha;
-        this.horaInicio = horaInicio;
-        this.duracionMinutos = duracionMinutos;
-    }
-
-    // Getters y Setters
-    public Long getUsuarioId() {
-        return usuarioId;
-    }
-
-    public void setUsuarioId(Long usuarioId) {
-        this.usuarioId = usuarioId;
-    }
-
-    public Long getPistaId() {
-        return pistaId;
-    }
-
-    public void setPistaId(Long pistaId) {
-        this.pistaId = pistaId;
-    }
-
-    public LocalDate getFecha() {
-        return fecha;
-    }
-
-    public void setFecha(LocalDate fecha) {
-        this.fecha = fecha;
-    }
-
-    public LocalTime getHoraInicio() {
-        return horaInicio;
-    }
-
-    public void setHoraInicio(LocalTime horaInicio) {
-        this.horaInicio = horaInicio;
-    }
-
-    public Integer getDuracionMinutos() {
-        return duracionMinutos;
-    }
-
-    public void setDuracionMinutos(Integer duracionMinutos) {
-        this.duracionMinutos = duracionMinutos;
-    }
 }

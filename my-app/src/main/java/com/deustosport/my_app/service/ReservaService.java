@@ -33,8 +33,10 @@ public class ReservaService {
     }
 
     @Transactional
-    public Reserva crearReserva(Long usuarioId, Long pistaId, LocalDate fecha,
-            LocalTime horaInicio, Integer duracionMinutos) {
+    public Reserva crearReserva(Long usuarioId, Long pistaId, LocalDate fecha, LocalTime horaInicio, Integer duracionMinutos) {
+        if (fecha.isBefore(LocalDate.now()) || (fecha.isEqual(LocalDate.now()) && horaInicio.isBefore(LocalTime.now()))) {
+            throw new IllegalArgumentException("No se pueden hacer reservas en fechas u horas pasadas.");
+        }
 
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con ID: " + usuarioId));
@@ -46,16 +48,15 @@ public class ReservaService {
             throw new IllegalStateException("La pista seleccionada no está disponible para reservas.");
         }
 
+        horaInicio = horaInicio.withSecond(0).withNano(0);
         LocalTime horaFin = horaInicio.plusMinutes(duracionMinutos);
 
-        List<Reserva> conflictos = reservaRepository.findConflictingReservations(
-                pistaId, fecha, horaInicio, horaFin);
+        List<Reserva> conflictos = reservaRepository.findConflictingReservations(pistaId, fecha, horaInicio, horaFin);
         if (!conflictos.isEmpty()) {
             throw new IllegalStateException("La pista ya está reservada en el horario seleccionado.");
         }
 
-        BigDecimal precioTotal = tarifaService.calcularPrecio(
-                pista.getTipoDeporte(), fecha, horaInicio, horaFin, usuario.isEsSocio());
+        BigDecimal precioTotal = tarifaService.calcularPrecio(pista.getTipoDeporte(), fecha, horaInicio, horaFin, usuario.isEsSocio());
 
         Reserva nuevaReserva = new Reserva();
         nuevaReserva.setUsuario(usuario);
