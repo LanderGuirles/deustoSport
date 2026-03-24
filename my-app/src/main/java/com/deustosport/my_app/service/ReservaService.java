@@ -1,5 +1,6 @@
 package com.deustosport.my_app.service;
 
+import com.deustosport.my_app.dto.ReservaResponse;
 import com.deustosport.my_app.entity.Pista;
 import com.deustosport.my_app.entity.Reserva;
 import com.deustosport.my_app.entity.Usuario;
@@ -71,8 +72,24 @@ public class ReservaService {
         return reservaRepository.save(nuevaReserva);
     }
 
-    public List<Reserva> obtenerMisReservas(Long usuarioId) {
-        return reservaRepository.findByUsuarioId(usuarioId);
+    public List<ReservaResponse> obtenerMisReservas(Long usuarioId) {
+        List<Reserva> reservas = reservaRepository.findByUsuarioId(usuarioId);
+
+        return reservas.stream() .map(reserva -> {
+            ReservaResponse dto = new ReservaResponse();
+            dto.setId(reserva.getId());
+            dto.setUsuarioId(reserva.getUsuario().getId());
+            dto.setPistaId(reserva.getPista() != null ? reserva.getPista().getId() : null);
+            dto.setPistaNombre(reserva.getPista() != null ? reserva.getPista().getNombre() : "Pista sin nombre");
+            dto.setTipoDeporte(reserva.getPista() != null ? reserva.getPista().getTipoDeporte() : null);
+            dto.setFechaReserva(reserva.getFechaReserva());
+            dto.setHoraInicio(reserva.getHoraInicio());
+            dto.setHoraFin(reserva.getHoraFin());
+            dto.setPrecioTotal(reserva.getPrecioTotal());
+            dto.setEstado(reserva.getEstado());
+            return dto;
+        })
+        .toList();
     }
 
     @Transactional

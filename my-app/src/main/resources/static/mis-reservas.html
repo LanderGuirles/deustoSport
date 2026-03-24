@@ -308,8 +308,8 @@
 
         function isPasada(reserva) {
             const now = new Date();
-            // Asume fechaReserva es DD-MM-YYYY y horaInicio es HH:MM:SS o HH:MM
-            const [day, month, year] = reserva.fechaReserva.split('-');
+            // YYYY-MM-DD
+            const [year, month, day] = reserva.fechaReserva.split('-');
             const [hour, minute] = reserva.horaInicio.split(':');
             
             const reservaDate = new Date(year, month - 1, day, hour, minute);
@@ -329,7 +329,7 @@
             } else if (currentFilter === 'canceladas') {
                 filtered = allReservas.filter(r => r.estado === 'CANCELADA');
             }
-            // 'todas' devuelve todo
+
 
             // Ordenar: Más recientes (futuras primero, luego pasadas desc)
             filtered.sort((a, b) => {
@@ -368,7 +368,7 @@
                 card.className = 'reserva-card';
                 card.innerHTML = `
                     <div class="reserva-info">
-                        <span class="pista-name">${reserva.pista ? reserva.pista.nombre : 'Pista Desconocida'} (${reserva.pista ? reserva.pista.tipoDeporte : ''})</span>
+                        <span class="pista-name">${reserva.pistaNombre || 'Pista sin nombre'} (${reserva.tipoDeporte || 'Deporte no especificado'})</span>
                         <div class="reserva-meta">
                             <div class="meta-item">📅 ${fecha}</div>
                             <div class="meta-item">⏰ ${reserva.horaInicio} - ${reserva.horaFin}</div>

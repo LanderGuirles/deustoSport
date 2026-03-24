@@ -50,7 +50,9 @@ public class ReservaController {
             reservaResponseDto.setId(reserva.getId());
             reservaResponseDto.setUsuarioId(reserva.getUsuario().getId());
             reservaResponseDto.setPistaId(reserva.getPista().getId());
-            reservaResponseDto.setFecha(reserva.getFechaReserva());
+            reservaResponseDto.setPistaNombre(reserva.getPista().getNombre());
+            reservaResponseDto.setTipoDeporte(reserva.getPista().getTipoDeporte());
+            reservaResponseDto.setFechaReserva(reserva.getFechaReserva());
             reservaResponseDto.setHoraInicio(reserva.getHoraInicio());
             reservaResponseDto.setHoraFin(reserva.getHoraFin());
             reservaResponseDto.setPrecioTotal(reserva.getPrecioTotal());
@@ -68,8 +70,8 @@ public class ReservaController {
 
     @GetMapping("/usuario/{usuarioId}")
     @Operation(summary = "Obtener mis reservas", description = "Devuelve el historial de reservas de un usuario")
-    public ResponseEntity<List<Reserva>> obtenerMisReservas(@PathVariable Long usuarioId) {
-        List<Reserva> reservas = reservaService.obtenerMisReservas(usuarioId);
+    public ResponseEntity<List<ReservaResponse>> obtenerMisReservas(@PathVariable Long usuarioId) {
+        List<ReservaResponse> reservas = reservaService.obtenerMisReservas(usuarioId);
         return ResponseEntity.ok(reservas);
     }
 
