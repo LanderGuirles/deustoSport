@@ -57,9 +57,10 @@ public class ReservaController {
     }
 
     @GetMapping("/usuario/{usuarioId}")
-    @Operation(summary = "Obtener mis reservas")
+    @Operation(summary = "Obtener mis reservas", description = "Devuelve el historial de reservas de un usuario")
     public ResponseEntity<List<ReservaResponse>> obtenerMisReservas(@PathVariable Long usuarioId) {
-        return ResponseEntity.ok(reservaService.obtenerMisReservas(usuarioId));
+        List<ReservaResponse> reservas = reservaService.obtenerMisReservas(usuarioId);
+        return ResponseEntity.ok(reservas);
     }
 
     @PostMapping("/{reservaId}/cancelar")

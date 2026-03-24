@@ -69,17 +69,31 @@ public class TarifaService {
     @Transactional(readOnly = true)
     public BigDecimal calcularPrecio(TipoDeporte tipoDeporte, LocalDate fecha,
             LocalTime horaInicio, LocalTime horaFin, boolean esSocio) {
+            
         int diaSemana = fecha.getDayOfWeek().getValue();
 
-        BigDecimal precio = tarifaRepository
-                .findActiveByDeporteDiaAndFecha(tipoDeporte, diaSemana, fecha)
-                .map(tarifa -> {
-                    long minutos = java.time.Duration.between(horaInicio, horaFin).toMinutes();
-                    BigDecimal horas = new BigDecimal(minutos)
-                            .divide(new BigDecimal(60), 2, RoundingMode.HALF_UP);
-                    return tarifa.getPrecioPorHora().multiply(horas);
-                })
-                .orElse(calcularPrecioFallback(horaInicio, horaFin));
+
+        List<Tarifa> tarifasActivas = tarifaRepository.findByActivaTrue();
+
+        
+        Tarifa tarifaAplicable = tarifasActivas.stream()
+                .filter(t -> t.getTipoDeporte() == tipoDeporte)
+                .filter(t -> t.getDiaSemana() == diaSemana)
+                .filter(t -> t.getVigenteDesde() == null || !fecha.isBefore(t.getVigenteDesde()))
+                .filter(t -> !horaInicio.isBefore(t.getHoraInicio()) && !horaFin.isAfter(t.getHoraFin()))
+                .findFirst()
+                .orElse(null);
+
+        BigDecimal precio;
+
+        if (tarifaAplicable != null) {
+            long minutos = java.time.Duration.between(horaInicio, horaFin).toMinutes();
+            BigDecimal horas = new BigDecimal(minutos)
+                    .divide(new BigDecimal(60), 2, RoundingMode.HALF_UP);
+            precio = tarifaAplicable.getPrecioPorHora().multiply(horas);
+        } else {
+            precio = calcularPrecioFallback(horaInicio, horaFin);
+        }
 
         if (esSocio) {
             BigDecimal descuento = precio.multiply(DESCUENTO_SOCIO);

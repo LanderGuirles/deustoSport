@@ -137,24 +137,24 @@ public class ReservaService {
         return reservaRepository.save(reserva);
     }
 
+    @Transactional(readOnly = true)
     public List<ReservaResponse> obtenerMisReservas(Long usuarioId) {
-        Objects.requireNonNull(usuarioId, "usuarioId no puede ser null");
         List<Reserva> reservas = reservaRepository.findByUsuarioId(usuarioId);
+        
         return reservas.stream().map(reserva -> {
             ReservaResponse dto = new ReservaResponse();
             dto.setId(reserva.getId());
             dto.setUsuarioId(reserva.getUsuario().getId());
-            dto.setPistaId(reserva.getPista() != null ? reserva.getPista().getId() : null);
-            dto.setPistaNombre(reserva.getPista() != null ? reserva.getPista().getNombre() : "Pista sin nombre");
-            dto.setTipoDeporte(reserva.getPista() != null ? reserva.getPista().getTipoDeporte() : null);
+            if (reserva.getPista() != null) {
+                dto.setPistaId(reserva.getPista().getId());
+                dto.setPistaNombre(reserva.getPista().getNombre());
+                dto.setTipoDeporte(reserva.getPista().getTipoDeporte()); 
+            }
             dto.setFechaReserva(reserva.getFechaReserva());
             dto.setHoraInicio(reserva.getHoraInicio());
             dto.setHoraFin(reserva.getHoraFin());
             dto.setPrecioTotal(reserva.getPrecioTotal());
             dto.setEstado(reserva.getEstado());
-            dto.setMetodoPago(reserva.getMetodoPago());
-            dto.setReferenciaPago(reserva.getReferenciaPago());
-            dto.setFechaPago(reserva.getFechaPago());
             return dto;
         }).toList();
     }

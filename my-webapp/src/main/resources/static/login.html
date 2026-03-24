@@ -50,45 +50,69 @@
     </div>
   </div>
 
+
   <script>
     async function doLogin() {
       const email = document.getElementById('login-email').value.trim();
       const pass = document.getElementById('login-password').value;
       const alertEl = document.getElementById('login-alert');
+      const btn = document.getElementById('btn-login');
       
+      // Limpiar errores previos
+      alertEl.style.display = 'none';
+
       if (!email || !pass) {
         alertEl.style.display = 'block';
         alertEl.textContent = 'Introduce email y contraseña';
         return;
       }
 
+      btn.disabled = true;
+      btn.textContent = 'Entrando...';
+
       try {
         const res = await fetch('http://localhost:8080/api/auth/login', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
           body: JSON.stringify({ email: email, password: pass })
         });
 
-        const data = await res.json();
+        const text = await res.text();
+        let data = null;
+
+        try {
+          data = JSON.parse(text);
+        } catch (parseErr) {
+          alertEl.style.display = 'block';
+          alertEl.textContent = 'Error del servidor. Revisa las credenciales o la conexión CORS.';
+          btn.disabled = false;
+          btn.textContent = 'Entrar';
+          return;
+        }
+
         const exitoso = data.exitoso === true || data.exitoso === 'true';
 
-        if (exitoso) {
-          // 1. GUARDAMOS EN LOCALSTORAGE (La clave del MPA)
+        if (res.ok && exitoso) {
           localStorage.setItem('usuarioId', data.usuarioId);
           localStorage.setItem('usuarioNombre', data.nombreCompleto);
           
-          // 2. REDIRIGIMOS AL PANEL
-          // Si tu backend devuelve el rol, podrías redirigir a secretaria-panel.html aquí.
-          window.location.href = 'cliente-panel.html';
+          window.location.href = 'home.html';
         } else {
           alertEl.style.display = 'block';
-          alertEl.textContent = data.mensaje || 'Credenciales incorrectas';
+          alertEl.textContent = data.mensaje || data.error || 'Credenciales incorrectas';
         }
       } catch (e) {
         alertEl.style.display = 'block';
-        alertEl.textContent = 'Error de conexión con el servidor.';
+        alertEl.textContent = 'Error de red. ¿Está encendida la API en el puerto 8080?';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Entrar';
       }
     }
   </script>
+  
 </body>
 </html>
