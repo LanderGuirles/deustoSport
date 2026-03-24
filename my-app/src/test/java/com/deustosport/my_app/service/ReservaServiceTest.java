@@ -1,52 +1,30 @@
+// my-app/src/test/java/com/deustosport/my_app/service/ReservaServiceTest.java
+
 package com.deustosport.my_app.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
-import com.deustosport.my_app.entity.Pista;
-import com.deustosport.my_app.entity.Reserva;
-import com.deustosport.my_app.entity.Usuario;
-import com.deustosport.my_app.enums.EstadoReserva;
-import com.deustosport.my_app.enums.MetodoPago;
-import com.deustosport.my_app.enums.TipoDeporte;
-import com.deustosport.my_app.repository.PistaRepository;
-import com.deustosport.my_app.repository.ReservaRepository;
-import com.deustosport.my_app.repository.UsuarioRepository;
+import com.deustosport.my_app.entity.*;
+import com.deustosport.my_app.enums.*;
+import com.deustosport.my_app.repository.*;
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.List;
-import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import java.time.*;
+import java.util.*;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class ReservaServiceTest {
 
-    @Mock
-    private ReservaRepository reservaRepository;
-
-    @Mock
-    private PistaRepository pistaRepository;
-
-    @Mock
-    private UsuarioRepository usuarioRepository;
-
-    @Mock
-    private TarifaService tarifaService;
-
-    @Mock
-    private PaymentGatewayClient paymentGatewayClient;
+    @Mock private ReservaRepository reservaRepository;
+    @Mock private PistaRepository pistaRepository;
+    @Mock private UsuarioRepository usuarioRepository;
+    @Mock private TarifaService tarifaService;
+    @Mock private PagoService pagoService;  // ← el que realmente usa ReservaService
 
     @InjectMocks
     private ReservaService reservaService;
@@ -75,10 +53,13 @@ class ReservaServiceTest {
 
         when(usuarioRepository.findById(10L)).thenReturn(Optional.of(usuario));
         when(pistaRepository.findById(20L)).thenReturn(Optional.of(pista));
-        when(reservaRepository.findConflictingReservations(20L, fecha, horaInicio, horaFin)).thenReturn(List.of());
-        when(tarifaService.calcularPrecio(eq(TipoDeporte.PADEL), eq(fecha), eq(horaInicio), eq(horaFin), eq(false)))
+        when(reservaRepository.findConflictingReservations(20L, fecha, horaInicio, horaFin))
+                .thenReturn(List.of());
+        when(tarifaService.calcularPrecio(eq(TipoDeporte.PADEL), eq(fecha),
+                eq(horaInicio), eq(horaFin), eq(false)))
                 .thenReturn(new BigDecimal("24.50"));
-        when(reservaRepository.save(any(Reserva.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(reservaRepository.save(any(Reserva.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
 
         Reserva reserva = reservaService.crearReserva(10L, 20L, fecha, horaInicio, 60);
 
@@ -98,31 +79,29 @@ class ReservaServiceTest {
         reserva.setEstado(EstadoReserva.PENDIENTE);
         reserva.setPrecioTotal(new BigDecimal("30.00"));
 
+        // El Pago que devuelve pagoService ya tiene referencia y fecha
+        Pago pagoMock = new Pago();
+        pagoMock.setReferenciaPago("DS-ABCD1234");
+        pagoMock.setFechaPago(java.time.LocalDateTime.now());
+        pagoMock.setMetodoPago(MetodoPago.TARJETA);
+
         when(reservaRepository.findById(99L)).thenReturn(Optional.of(reserva));
-        when(paymentGatewayClient.validarPagoExterno(
-            any(),
-            eq(new BigDecimal("30.00")),
-            eq(MetodoPago.TARJETA),
-            eq("4111111111111111"),
-            eq(null)
-        )).thenReturn("GW-OK-1234");
-        when(reservaRepository.save(any(Reserva.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(pagoService.procesarPagoInterno(eq(99L), isNull(), eq(MetodoPago.TARJETA)))
+                .thenReturn(pagoMock);
+        when(reservaRepository.save(any(Reserva.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
 
         Reserva pagada = reservaService.pagarReserva(
-                99L,
-                10L,
-                MetodoPago.TARJETA,
-                "4111111111111111",
-                "Usuario Prueba",
-                "12/30",
-                "123",
+                99L, 10L, MetodoPago.TARJETA,
+                "4111111111111111", "Usuario Prueba", "12/30", "123",
                 null, null
         );
 
         assertEquals(EstadoReserva.CONFIRMADA, pagada.getEstado());
         assertEquals(MetodoPago.TARJETA, pagada.getMetodoPago());
         assertNotNull(pagada.getFechaPago());
-        assertEquals("GW-OK-1234", pagada.getReferenciaPago());
+        assertEquals("DS-ABCD1234", pagada.getReferenciaPago());
+        verify(pagoService).procesarPagoInterno(eq(99L), isNull(), eq(MetodoPago.TARJETA));
     }
 
     @Test
@@ -139,18 +118,45 @@ class ReservaServiceTest {
         when(reservaRepository.findById(101L)).thenReturn(Optional.of(reserva));
 
         assertThrows(IllegalArgumentException.class, () -> reservaService.pagarReserva(
-                101L,
-                10L,
-                MetodoPago.BIZUM,
-                null,
-                null,
-                null,
-                null,
-                "555",
-                null
+                101L, 10L, MetodoPago.BIZUM,
+                null, null, null, null, "555", null
         ));
 
-        verify(reservaRepository, never()).save(any(Reserva.class));
-        verify(paymentGatewayClient, never()).validarPagoExterno(any(), any(), any(), any(), any());
+        verify(reservaRepository, never()).save(any());
+        verify(pagoService, never()).procesarPagoInterno(any(), any(), any());
+    }
+
+    @Test
+    void pagarReserva_conTransferencia_guardaIban() {
+        Reserva reserva = new Reserva();
+        reserva.setId(200L);
+        reserva.setUsuario(usuario);
+        reserva.setPista(pista);
+        reserva.setFechaReserva(LocalDate.now().plusDays(1));
+        reserva.setHoraInicio(LocalTime.of(9, 0));
+        reserva.setHoraFin(LocalTime.of(10, 0));
+        reserva.setEstado(EstadoReserva.PENDIENTE);
+        reserva.setPrecioTotal(new BigDecimal("15.00"));
+
+        Pago pagoMock = new Pago();
+        pagoMock.setReferenciaPago("DS-TRANSFER1");
+        pagoMock.setFechaPago(java.time.LocalDateTime.now());
+        pagoMock.setMetodoPago(MetodoPago.TRANSFERENCIA);
+
+        String iban = "ES9121000418450200051332";
+
+        when(reservaRepository.findById(200L)).thenReturn(Optional.of(reserva));
+        when(pagoService.procesarPagoInterno(eq(200L), eq(iban), eq(MetodoPago.TRANSFERENCIA)))
+                .thenReturn(pagoMock);
+        when(reservaRepository.save(any(Reserva.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        Reserva pagada = reservaService.pagarReserva(
+                200L, 10L, MetodoPago.TRANSFERENCIA,
+                null, null, null, null, null, iban
+        );
+
+        assertEquals(EstadoReserva.CONFIRMADA, pagada.getEstado());
+        verify(pagoService).procesarPagoInterno(eq(200L), eq(iban), eq(MetodoPago.TRANSFERENCIA));
     }
 }

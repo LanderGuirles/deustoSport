@@ -42,7 +42,10 @@ public class PagoService {
 
         Pago pago = new Pago();
         pago.setReserva(reserva);
-        pago.setIban(iban.toUpperCase().replaceAll("\\s", ""));
+        // Solo se guarda el IBAN si el método es transferencia
+        if (metodoPago == MetodoPago.TRANSFERENCIA && iban != null && !iban.isBlank()) {
+            pago.setIban(iban.toUpperCase().replaceAll("\\s", ""));
+        }
         pago.setMetodoPago(metodoPago);
         pago.setImporte(reserva.getPrecioTotal());
         pago.setFechaPago(LocalDateTime.now());

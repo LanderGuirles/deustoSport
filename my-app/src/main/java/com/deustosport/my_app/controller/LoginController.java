@@ -1,5 +1,5 @@
 package com.deustosport.my_app.controller;
-
+ 
 import com.deustosport.my_app.dto.CambioPasswordRequest;
 import com.deustosport.my_app.dto.LoginRequest;
 import com.deustosport.my_app.dto.LoginResponse;
@@ -17,24 +17,24 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
+ 
 @RestController
 @RequestMapping("/api/auth")
 @Tag(name = "Autenticación", description = "Endpoints para login, registro y gestión de sesiones")
 public class LoginController {
-
+ 
     @Autowired
     private LoginService loginService;
-
+ 
     @PostMapping("/registro")
     @Operation(summary = "Registrar nuevo usuario", description = "Crea una nueva cuenta de usuario con email y contraseña")
-        public ResponseEntity<LoginResponse> registro(@Valid @RequestBody RegistroRequest solicitud) {
+    public ResponseEntity<LoginResponse> registro(@Valid @RequestBody RegistroRequest solicitud) {
         LoginResponse response = loginService.registrarUsuario(solicitud);
         return response.isExitoso() ?
                 ResponseEntity.status(HttpStatus.CREATED).body(response) :
                 ResponseEntity.badRequest().body(response);
     }
-
+ 
     @PostMapping("/login")
     @Operation(summary = "Iniciar sesión", description = "Autentica un usuario con email y contraseña")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest solicitud) {
@@ -43,13 +43,13 @@ public class LoginController {
                     .body(new LoginResponse(null, null, null,
                             "Email y contraseña son requeridos", false));
         }
-
+ 
         LoginResponse response = loginService.iniciarSesion(solicitud);
         return response.isExitoso() ?
                 ResponseEntity.ok(response) :
                 ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
-
+ 
     @PostMapping("/logout")
     @Operation(summary = "Cerrar sesión", description = "Cierra la sesión del usuario autenticado")
     public ResponseEntity<LoginResponse> logout(@RequestHeader("X-Usuario-Id") Long usuarioId) {
@@ -58,35 +58,25 @@ public class LoginController {
                     .body(new LoginResponse(null, null, null,
                             "ID de usuario no válido", false));
         }
-
+ 
         LoginResponse response = loginService.cerrarSesion(usuarioId);
         return response.isExitoso() ?
                 ResponseEntity.ok(response) :
                 ResponseEntity.badRequest().body(response);
     }
-
-    /**
-     * POST /api/auth/solicitar-recuperacion
-     * Solicita recuperación de contraseña
-     * Query param: email
-     */
+ 
     @PostMapping("/solicitar-recuperacion")
-    public ResponseEntity<LoginResponse> solicitarRecuperacion(@RequestParam String email) {
+    public ResponseEntity<LoginResponse> solicitarRecuperacion(@RequestParam("email") String email) {
         if (email == null || email.isBlank()) {
             return ResponseEntity.badRequest()
                     .body(new LoginResponse(null, null, null,
                             "Email es requerido", false));
         }
-
+ 
         LoginResponse response = loginService.solicitarRecuperacion(email);
         return ResponseEntity.ok(response);
     }
-
-    /**
-     * POST /api/auth/restablecer-password
-     * Restablece la contraseña usando token de recuperación
-     * Body: { emailOToken (token), passwordNueva }
-     */
+ 
     @PostMapping("/restablecer-password")
     public ResponseEntity<LoginResponse> restablecerPassword(@RequestBody CambioPasswordRequest solicitud) {
         if (solicitud.getEmailOToken() == null || solicitud.getPasswordNueva() == null) {
@@ -94,39 +84,33 @@ public class LoginController {
                     .body(new LoginResponse(null, null, null,
                             "Token y contraseña nueva son requeridos", false));
         }
-
+ 
         LoginResponse response = loginService.restablecerPassword(solicitud);
         return response.isExitoso() ?
                 ResponseEntity.ok(response) :
                 ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
-
-    /**
-     * POST /api/auth/cambiar-password
-     * Cambia la contraseña del usuario autenticado
-     * Header requerido: X-Usuario-Id
-     * Body: { emailOToken (password actual), passwordNueva }
-     */
+ 
     @PostMapping("/cambiar-password")
     public ResponseEntity<LoginResponse> cambiarPassword(
             @RequestHeader("X-Usuario-Id") Long usuarioId,
             @RequestBody CambioPasswordRequest solicitud) {
-
+ 
         if (usuarioId == null || usuarioId <= 0) {
             return ResponseEntity.badRequest()
                     .body(new LoginResponse(null, null, null,
                             "ID de usuario no válido", false));
         }
-
+ 
         if (solicitud.getEmailOToken() == null || solicitud.getPasswordNueva() == null) {
             return ResponseEntity.badRequest()
                     .body(new LoginResponse(null, null, null,
                             "Contraseña actual y nueva son requeridas", false));
         }
-
+ 
         LoginResponse response = loginService.cambiarPassword(usuarioId,
                 solicitud.getEmailOToken(), solicitud.getPasswordNueva());
-
+ 
         return response.isExitoso() ?
                 ResponseEntity.ok(response) :
                 ResponseEntity.badRequest().body(response);

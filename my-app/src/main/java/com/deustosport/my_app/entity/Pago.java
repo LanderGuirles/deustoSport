@@ -18,7 +18,7 @@ public class Pago {
     @JoinColumn(name = "reserva_id", unique = true)
     private Reserva reserva;
 
-    @Column(nullable = false, length = 34)
+    @Column(nullable = true, length = 34)
     private String iban;
 
     @Enumerated(EnumType.STRING)

@@ -120,7 +120,7 @@ public class ReservaService {
         validarDatosPago(metodoPago, numeroTarjeta, titularTarjeta,
                 caducidadTarjeta, cvv, telefonoBizum, iban);
 
-        String ibanFinal = (iban != null && !iban.isBlank()) ? iban : "SIMULADO00000000000000";
+        String ibanFinal = (iban != null && !iban.isBlank()) ? iban : null;
 
         Pago pago = pagoService.procesarPagoInterno(reservaId, ibanFinal, metodoPago);
 
