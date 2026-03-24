@@ -413,7 +413,8 @@
                     ${ (!esCancelada && !esPasada) ? 
                         `<div class="actions">
                             ${esPendientePago ? `<button class="btn-pay" onclick="pagarReserva(${reserva.id}, 'TARJETA')">Pagar con tarjeta</button>
-                            <button class="btn-pay" onclick="pagarReserva(${reserva.id}, 'BIZUM')">Pagar con Bizum</button>` : ''}
+							<button class="btn-pay" onclick="pagarReserva(${reserva.id}, 'BIZUM')">Pagar con Bizum</button>
+							<button class="btn-pay" onclick="pagarReserva(${reserva.id}, 'TRANSFERENCIA')">Pagar con transferencia</button>` : ''}
                             <button class="btn-cancel" onclick="cancelarReserva(${reserva.id})">Cancelar Reserva</button>
                         </div>` 
                         : '' 
@@ -456,6 +457,12 @@
                 if (!telefonoBizum) return;
                 payload.telefonoBizum = telefonoBizum;
             }
+			
+			if (metodoPago === 'TRANSFERENCIA') {
+			    const iban = prompt('Introduce tu IBAN bancario:', 'ES9121000418450200051332');
+			    if (!iban) return;
+			    payload.iban = iban;
+			}
 
             try {
                 const response = await fetch(`/api/reservas/${reservaId}/pagar`, {

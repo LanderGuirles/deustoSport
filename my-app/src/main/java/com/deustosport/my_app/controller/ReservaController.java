@@ -26,64 +26,45 @@ public class ReservaController {
     }
 
     @PostMapping("/crear")
-    @Operation(summary = "Crear nueva reserva", description = "Permite a un usuario reservar una pista en una fecha y hora específica")
+    @Operation(summary = "Crear nueva reserva")
     public ResponseEntity<?> crearReserva(@RequestBody ReservaRequest request) {
         try {
-            // Validar campos obligatorios
-            if (request.getUsuarioId() == null || request.getPistaId() == null || 
-                request.getFecha() == null || request.getHoraInicio() == null) {
+            if (request.getUsuarioId() == null || request.getPistaId() == null ||
+                    request.getFecha() == null || request.getHoraInicio() == null) {
                 return ResponseEntity.badRequest().body(Map.of("error", "Faltan datos obligatorios para la reserva"));
             }
-
-            // Establecer duración por defecto si no viene
             Integer duracion = request.getDuracionMinutos() != null ? request.getDuracionMinutos() : 60;
-
             Reserva reserva = reservaService.crearReserva(
-                    request.getUsuarioId(),
-                    request.getPistaId(),
-                    request.getFecha(),
-                    request.getHoraInicio(),
-                    duracion
-            );
-
-            // mapeamos a dto para no devolver un entity
-            ReservaResponse reservaResponseDto = new ReservaResponse();
-            reservaResponseDto.setId(reserva.getId());
-            reservaResponseDto.setUsuarioId(reserva.getUsuario().getId());
-            reservaResponseDto.setPistaId(reserva.getPista().getId());
-            reservaResponseDto.setPistaNombre(reserva.getPista().getNombre());
-            reservaResponseDto.setTipoDeporte(reserva.getPista().getTipoDeporte());
-            reservaResponseDto.setFechaReserva(reserva.getFechaReserva());
-            reservaResponseDto.setHoraInicio(reserva.getHoraInicio());
-            reservaResponseDto.setHoraFin(reserva.getHoraFin());
-            reservaResponseDto.setPrecioTotal(reserva.getPrecioTotal());
-            reservaResponseDto.setEstado(reserva.getEstado());
-            reservaResponseDto.setMetodoPago(reserva.getMetodoPago());
-            reservaResponseDto.setReferenciaPago(reserva.getReferenciaPago());
-            reservaResponseDto.setFechaPago(reserva.getFechaPago());
-
-            return ResponseEntity.ok(reservaResponseDto);
+                    request.getUsuarioId(), request.getPistaId(),
+                    request.getFecha(), request.getHoraInicio(), duracion);
+            ReservaResponse dto = new ReservaResponse();
+            dto.setId(reserva.getId());
+            dto.setUsuarioId(reserva.getUsuario().getId());
+            dto.setPistaId(reserva.getPista().getId());
+            dto.setPistaNombre(reserva.getPista().getNombre());
+            dto.setTipoDeporte(reserva.getPista().getTipoDeporte());
+            dto.setFechaReserva(reserva.getFechaReserva());
+            dto.setHoraInicio(reserva.getHoraInicio());
+            dto.setHoraFin(reserva.getHoraFin());
+            dto.setPrecioTotal(reserva.getPrecioTotal());
+            dto.setEstado(reserva.getEstado());
+            return ResponseEntity.ok(dto);
         } catch (IllegalArgumentException | IllegalStateException e) {
-            // Captura errores de negocio controlados (400 Bad Request)
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            // Captura errores inesperados (500 Internal Server Error)
-            return ResponseEntity.internalServerError().body(Map.of("error", "Ha ocurrido un error inesperado al procesar la reserva."));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error inesperado al procesar la reserva."));
         }
     }
 
     @GetMapping("/usuario/{usuarioId}")
-    @Operation(summary = "Obtener mis reservas", description = "Devuelve el historial de reservas de un usuario")
+    @Operation(summary = "Obtener mis reservas")
     public ResponseEntity<List<ReservaResponse>> obtenerMisReservas(@PathVariable Long usuarioId) {
-        List<ReservaResponse> reservas = reservaService.obtenerMisReservas(usuarioId);
-        return ResponseEntity.ok(reservas);
+        return ResponseEntity.ok(reservaService.obtenerMisReservas(usuarioId));
     }
 
     @PostMapping("/{reservaId}/cancelar")
-    @Operation(summary = "Cancelar reserva", description = "Cancela una reserva existente si cumple las condiciones")
-    public ResponseEntity<?> cancelarReserva(
-            @PathVariable Long reservaId, 
-            @RequestParam Long usuarioId) {
+    @Operation(summary = "Cancelar reserva")
+    public ResponseEntity<?> cancelarReserva(@PathVariable Long reservaId, @RequestParam Long usuarioId) {
         try {
             Reserva reservaCancelada = reservaService.cancelarReserva(reservaId, usuarioId);
             return ResponseEntity.ok(reservaCancelada);
@@ -93,24 +74,18 @@ public class ReservaController {
     }
 
     @PostMapping("/{reservaId}/pagar")
-    @Operation(summary = "Pagar reserva", description = "Permite pagar una reserva pendiente con tarjeta o Bizum para confirmarla")
-    public ResponseEntity<?> pagarReserva(@PathVariable Long reservaId, @RequestBody PagoReservaRequest request) {
+    @Operation(summary = "Pagar reserva", description = "Paga con TARJETA, BIZUM o TRANSFERENCIA. TRANSFERENCIA requiere IBAN.")
+    public ResponseEntity<?> pagarReserva(@PathVariable Long reservaId,
+            @RequestBody PagoReservaRequest request) {
         try {
             if (request.getUsuarioId() == null || request.getMetodoPago() == null) {
                 return ResponseEntity.badRequest().body(Map.of("error", "Debes indicar usuarioId y metodoPago."));
             }
-
             Reserva reservaPagada = reservaService.pagarReserva(
-                    reservaId,
-                    request.getUsuarioId(),
-                    request.getMetodoPago(),
-                    request.getNumeroTarjeta(),
-                    request.getTitularTarjeta(),
-                    request.getCaducidadTarjeta(),
-                    request.getCvv(),
-                    request.getTelefonoBizum()
-            );
-
+                    reservaId, request.getUsuarioId(), request.getMetodoPago(),
+                    request.getNumeroTarjeta(), request.getTitularTarjeta(),
+                    request.getCaducidadTarjeta(), request.getCvv(),
+                    request.getTelefonoBizum(), request.getIban());
             ReservaResponse response = new ReservaResponse();
             response.setId(reservaPagada.getId());
             response.setUsuarioId(reservaPagada.getUsuario().getId());
@@ -129,24 +104,19 @@ public class ReservaController {
         } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Ha ocurrido un error inesperado al procesar el pago."));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error inesperado al procesar el pago."));
         }
     }
 
     @GetMapping("/disponibilidad")
-    @Operation(summary = "Consultar disponibilidad", description = "Verifica si una pista está libre en el horario indicado")
-    public ResponseEntity<?> consultarDisponibilidad(
-            @RequestParam Long pistaId,
-            @RequestParam String fecha,
-            @RequestParam String horaInicio,
+    @Operation(summary = "Consultar disponibilidad")
+    public ResponseEntity<?> consultarDisponibilidad(@RequestParam Long pistaId,
+            @RequestParam String fecha, @RequestParam String horaInicio,
             @RequestParam(defaultValue = "60") Integer duracionMinutos) {
         try {
-            boolean disponible = reservaService.consultarDisponibilidad(
-                    pistaId,
-                    LocalDate.parse(fecha),
-                    LocalTime.parse(horaInicio),
-                    LocalTime.parse(horaInicio).plusMinutes(duracionMinutos)
-            );
+            boolean disponible = reservaService.consultarDisponibilidad(pistaId,
+                    LocalDate.parse(fecha), LocalTime.parse(horaInicio),
+                    LocalTime.parse(horaInicio).plusMinutes(duracionMinutos));
             return ResponseEntity.ok(Map.of("disponible", disponible));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", "Error al consultar disponibilidad: " + e.getMessage()));

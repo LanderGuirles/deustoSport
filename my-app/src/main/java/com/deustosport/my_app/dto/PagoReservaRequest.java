@@ -12,4 +12,5 @@ public class PagoReservaRequest {
     private String caducidadTarjeta;
     private String cvv;
     private String telefonoBizum;
+    private String iban;
 }

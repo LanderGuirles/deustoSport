@@ -116,7 +116,7 @@ class ReservaServiceTest {
                 "Usuario Prueba",
                 "12/30",
                 "123",
-                null
+                null, null
         );
 
         assertEquals(EstadoReserva.CONFIRMADA, pagada.getEstado());
@@ -146,7 +146,8 @@ class ReservaServiceTest {
                 null,
                 null,
                 null,
-                "555"
+                "555",
+                null
         ));
 
         verify(reservaRepository, never()).save(any(Reserva.class));
