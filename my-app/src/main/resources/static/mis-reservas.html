@@ -184,6 +184,11 @@
             color: var(--brand);
         }
 
+        .status-pendiente {
+            background: #fff4e5;
+            color: #b54708;
+        }
+
         .status-cancelada {
             background: #fee4e2;
             color: var(--danger);
@@ -208,6 +213,28 @@
         .btn-cancel:hover {
             background: #fee4e2;
             border-color: #fee4e2;
+        }
+
+        .btn-pay {
+            background: #ecfdf3;
+            color: #027a48;
+            border: 1px solid #a6f4c5;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .btn-pay:hover {
+            background: #d1fadf;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
         .hidden {
@@ -346,17 +373,23 @@
             filtered.forEach(reserva => {
                 const esPasada = isPasada(reserva);
                 const esCancelada = reserva.estado === 'CANCELADA';
+                const esPendientePago = reserva.estado === 'PENDIENTE';
                 
                 let badgeClass = 'status-confirmada';
-                let badgeText = reserva.estado; // CONFIRMADA generalmente
+                let badgeText = reserva.estado;
 
                 if (esCancelada) {
                     badgeClass = 'status-cancelada';
                     badgeText = 'CANCELADA';
+                } else if (esPendientePago) {
+                    badgeClass = 'status-pendiente';
+                    badgeText = 'PENDIENTE DE PAGO';
                 } else if (esPasada) {
                     badgeClass = 'status-pasada';
                     badgeText = 'FINALIZADA';
                 }
+
+                const metodoPago = reserva.metodoPago ? `Metodo: ${reserva.metodoPago}` : 'Metodo: pendiente';
 
                 // foramto precio
                 const precio = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(reserva.precioTotal || 0);
@@ -373,16 +406,76 @@
                             <div class="meta-item">📅 ${fecha}</div>
                             <div class="meta-item">⏰ ${reserva.horaInicio} - ${reserva.horaFin}</div>
                             <div class="meta-item">💰 ${precio}</div>
+                            <div class="meta-item">💳 ${metodoPago}</div>
                             <span class="status-badge ${badgeClass}">${badgeText}</span>
                         </div>
                     </div>
                     ${ (!esCancelada && !esPasada) ? 
-                        `<button class="btn-cancel" onclick="cancelarReserva(${reserva.id})">Cancelar Reserva</button>` 
+                        `<div class="actions">
+                            ${esPendientePago ? `<button class="btn-pay" onclick="pagarReserva(${reserva.id}, 'TARJETA')">Pagar con tarjeta</button>
+                            <button class="btn-pay" onclick="pagarReserva(${reserva.id}, 'BIZUM')">Pagar con Bizum</button>` : ''}
+                            <button class="btn-cancel" onclick="cancelarReserva(${reserva.id})">Cancelar Reserva</button>
+                        </div>` 
                         : '' 
                     }
                 `;
                 list.appendChild(card);
             });
+        }
+
+        async function pagarReserva(reservaId, metodoPago) {
+            const userId = getUserId();
+            if (!userId) {
+                alert('Debes indicar el ID de usuario para pagar.');
+                return;
+            }
+
+            const payload = {
+                usuarioId: Number(userId),
+                metodoPago
+            };
+
+            if (metodoPago === 'TARJETA') {
+                const numeroTarjeta = prompt('Introduce numero de tarjeta (16 digitos):', '4111111111111111');
+                if (!numeroTarjeta) return;
+                const titularTarjeta = prompt('Titular de la tarjeta:', 'Usuario DeustoSport');
+                if (!titularTarjeta) return;
+                const caducidadTarjeta = prompt('Caducidad (MM/AA):', '12/30');
+                if (!caducidadTarjeta) return;
+                const cvv = prompt('CVV (3 o 4 digitos):', '123');
+                if (!cvv) return;
+
+                payload.numeroTarjeta = numeroTarjeta;
+                payload.titularTarjeta = titularTarjeta;
+                payload.caducidadTarjeta = caducidadTarjeta;
+                payload.cvv = cvv;
+            }
+
+            if (metodoPago === 'BIZUM') {
+                const telefonoBizum = prompt('Introduce telefono Bizum (+34XXXXXXXXX o 6XXXXXXXX):', '612345678');
+                if (!telefonoBizum) return;
+                payload.telefonoBizum = telefonoBizum;
+            }
+
+            try {
+                const response = await fetch(`/api/reservas/${reservaId}/pagar`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(await obtenerErrorApi(response));
+                }
+
+                alert('Pago realizado correctamente. Reserva confirmada.');
+                loadReservas();
+            } catch (error) {
+                console.error(error);
+                alert('No se pudo completar el pago: ' + error.message);
+            }
         }
 
         async function cancelarReserva(reservaId) {
@@ -407,6 +500,17 @@
                 console.error(error);
                 alert('Hubo un problema al cancelar la reserva: ' + error.message); // Mostrar mensaje del backend si es posible
             }
+        }
+
+        async function obtenerErrorApi(response) {
+            const contentType = response.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+                const data = await response.json();
+                return data.error || data.message || 'Error inesperado';
+            }
+
+            const text = await response.text();
+            return text || 'Error inesperado';
         }
         
         // Cargar por defecto si el input tiene valor (útil para dev)

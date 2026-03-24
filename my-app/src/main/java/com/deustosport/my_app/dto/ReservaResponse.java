@@ -2,8 +2,10 @@ package com.deustosport.my_app.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import com.deustosport.my_app.enums.EstadoReserva;
+import com.deustosport.my_app.enums.MetodoPago;
 import com.deustosport.my_app.enums.TipoDeporte;
 
 import lombok.Data;
@@ -20,4 +22,7 @@ public class ReservaResponse {
     private LocalTime horaFin;
     private BigDecimal precioTotal;
     private EstadoReserva estado;
+    private MetodoPago metodoPago;
+    private String referenciaPago;
+    private LocalDateTime fechaPago;
 }

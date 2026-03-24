@@ -1,5 +1,6 @@
 package com.deustosport.my_app.controller;
 
+import com.deustosport.my_app.dto.PagoReservaRequest;
 import com.deustosport.my_app.dto.ReservaRequest;
 import com.deustosport.my_app.dto.ReservaResponse;
 import com.deustosport.my_app.entity.Reserva;
@@ -57,6 +58,9 @@ public class ReservaController {
             reservaResponseDto.setHoraFin(reserva.getHoraFin());
             reservaResponseDto.setPrecioTotal(reserva.getPrecioTotal());
             reservaResponseDto.setEstado(reserva.getEstado());
+            reservaResponseDto.setMetodoPago(reserva.getMetodoPago());
+            reservaResponseDto.setReferenciaPago(reserva.getReferenciaPago());
+            reservaResponseDto.setFechaPago(reserva.getFechaPago());
 
             return ResponseEntity.ok(reservaResponseDto);
         } catch (IllegalArgumentException | IllegalStateException e) {
@@ -85,6 +89,47 @@ public class ReservaController {
             return ResponseEntity.ok(reservaCancelada);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{reservaId}/pagar")
+    @Operation(summary = "Pagar reserva", description = "Permite pagar una reserva pendiente con tarjeta o Bizum para confirmarla")
+    public ResponseEntity<?> pagarReserva(@PathVariable Long reservaId, @RequestBody PagoReservaRequest request) {
+        try {
+            if (request.getUsuarioId() == null || request.getMetodoPago() == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Debes indicar usuarioId y metodoPago."));
+            }
+
+            Reserva reservaPagada = reservaService.pagarReserva(
+                    reservaId,
+                    request.getUsuarioId(),
+                    request.getMetodoPago(),
+                    request.getNumeroTarjeta(),
+                    request.getTitularTarjeta(),
+                    request.getCaducidadTarjeta(),
+                    request.getCvv(),
+                    request.getTelefonoBizum()
+            );
+
+            ReservaResponse response = new ReservaResponse();
+            response.setId(reservaPagada.getId());
+            response.setUsuarioId(reservaPagada.getUsuario().getId());
+            response.setPistaId(reservaPagada.getPista().getId());
+            response.setPistaNombre(reservaPagada.getPista().getNombre());
+            response.setTipoDeporte(reservaPagada.getPista().getTipoDeporte());
+            response.setFechaReserva(reservaPagada.getFechaReserva());
+            response.setHoraInicio(reservaPagada.getHoraInicio());
+            response.setHoraFin(reservaPagada.getHoraFin());
+            response.setPrecioTotal(reservaPagada.getPrecioTotal());
+            response.setEstado(reservaPagada.getEstado());
+            response.setMetodoPago(reservaPagada.getMetodoPago());
+            response.setReferenciaPago(reservaPagada.getReferenciaPago());
+            response.setFechaPago(reservaPagada.getFechaPago());
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "Ha ocurrido un error inesperado al procesar el pago."));
         }
     }
 
