@@ -1,6 +1,7 @@
 package com.deustosport.my_app.entity;
 
 import com.deustosport.my_app.enums.EstadoReserva;
+import com.deustosport.my_app.enums.MetodoPago;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,6 +16,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -62,6 +64,15 @@ public class Reserva {
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal precioTotal;
+
+        @Enumerated(EnumType.STRING)
+        @Column(length = 20)
+        private MetodoPago metodoPago;
+
+        @Column(length = 64)
+        private String referenciaPago;
+
+        private LocalDateTime fechaPago;
 
     @Column(nullable = false)
     private Integer creditosUsados = 0;

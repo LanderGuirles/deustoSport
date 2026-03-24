@@ -4,4 +4,5 @@ public enum MetodoPago {
     TARJETA,
     BIZUM,
     TRANSFERENCIA
+
 }
