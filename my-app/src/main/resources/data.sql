@@ -1,7 +1,7 @@
 -- Insertar usuarios de prueba
-INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo) VALUES ('Juan García', 'juan@deustosport.com', '11111111A', '666111222', true);
-INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo) VALUES ('María López', 'maria@deustosport.com', '22222222B', '666333444', true);
-INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo) VALUES ('Carlos Rodríguez', 'carlos@deustosport.com', '33333333C', '666555666', true);
+INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio) VALUES ('Juan García', 'juan@deustosport.com', '11111111A', '666111222', true, false);
+INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio) VALUES ('María López', 'maria@deustosport.com', '22222222B', '666333444', true, true);
+INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio) VALUES ('Carlos Rodríguez', 'carlos@deustosport.com', '33333333C', '666555666', true, false);
 
 -- Insertar credenciales de prueba
 -- Password: password123 (hash BCrypt)
