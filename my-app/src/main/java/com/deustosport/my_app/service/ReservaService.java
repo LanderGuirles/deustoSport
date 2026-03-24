@@ -34,16 +34,21 @@ public class ReservaService {
     }
 
     @Transactional
-    public Reserva crearReserva(Long usuarioId, Long pistaId, LocalDate fecha, LocalTime horaInicio, Integer duracionMinutos) {
-        if (fecha.isBefore(LocalDate.now()) || (fecha.isEqual(LocalDate.now()) && horaInicio.isBefore(LocalTime.now()))) {
+    public Reserva crearReserva(Long usuarioId, Long pistaId, LocalDate fecha,
+            LocalTime horaInicio, Integer duracionMinutos) {
+
+        if (fecha.isBefore(LocalDate.now()) ||
+                (fecha.isEqual(LocalDate.now()) && horaInicio.isBefore(LocalTime.now()))) {
             throw new IllegalArgumentException("No se pueden hacer reservas en fechas u horas pasadas.");
         }
 
         Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con ID: " + usuarioId));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Usuario no encontrado con ID: " + usuarioId));
 
         Pista pista = pistaRepository.findById(pistaId)
-                .orElseThrow(() -> new IllegalArgumentException("Pista no encontrada con ID: " + pistaId));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Pista no encontrada con ID: " + pistaId));
 
         if (!pista.isActiva()) {
             throw new IllegalStateException("La pista seleccionada no está disponible para reservas.");
@@ -52,12 +57,14 @@ public class ReservaService {
         horaInicio = horaInicio.withSecond(0).withNano(0);
         LocalTime horaFin = horaInicio.plusMinutes(duracionMinutos);
 
-        List<Reserva> conflictos = reservaRepository.findConflictingReservations(pistaId, fecha, horaInicio, horaFin);
+        List<Reserva> conflictos = reservaRepository.findConflictingReservations(
+                pistaId, fecha, horaInicio, horaFin);
         if (!conflictos.isEmpty()) {
             throw new IllegalStateException("La pista ya está reservada en el horario seleccionado.");
         }
 
-        BigDecimal precioTotal = tarifaService.calcularPrecio(pista.getTipoDeporte(), fecha, horaInicio, horaFin, usuario.isEsSocio());
+        BigDecimal precioTotal = tarifaService.calcularPrecio(
+                pista.getTipoDeporte(), fecha, horaInicio, horaFin, usuario.isEsSocio());
 
         Reserva nuevaReserva = new Reserva();
         nuevaReserva.setUsuario(usuario);
@@ -66,7 +73,7 @@ public class ReservaService {
         nuevaReserva.setHoraInicio(horaInicio);
         nuevaReserva.setHoraFin(horaFin);
         nuevaReserva.setPrecioTotal(precioTotal);
-        nuevaReserva.setEstado(EstadoReserva.CONFIRMADA);
+        nuevaReserva.setEstado(EstadoReserva.PENDIENTE); // <-- cambiado de CONFIRMADA
         nuevaReserva.setCreditosUsados(0);
 
         return reservaRepository.save(nuevaReserva);
@@ -74,8 +81,7 @@ public class ReservaService {
 
     public List<ReservaResponse> obtenerMisReservas(Long usuarioId) {
         List<Reserva> reservas = reservaRepository.findByUsuarioId(usuarioId);
-
-        return reservas.stream() .map(reserva -> {
+        return reservas.stream().map(reserva -> {
             ReservaResponse dto = new ReservaResponse();
             dto.setId(reserva.getId());
             dto.setUsuarioId(reserva.getUsuario().getId());
@@ -88,8 +94,7 @@ public class ReservaService {
             dto.setPrecioTotal(reserva.getPrecioTotal());
             dto.setEstado(reserva.getEstado());
             return dto;
-        })
-        .toList();
+        }).toList();
     }
 
     @Transactional

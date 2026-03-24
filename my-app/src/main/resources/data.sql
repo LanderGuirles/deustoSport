@@ -18,3 +18,10 @@ VALUES (1, 'Polideportivo Deusto', 'Calle Agirre, 1, Bilbao', '08:00:00', '22:00
 
 -- Si usas H2 con modo PostgreSQL:
 ALTER TABLE instalaciones ALTER COLUMN id RESTART WITH 2;
+
+-- Insertar pistas
+INSERT INTO pistas (nombre, tipo_deporte, instalacion_id, max_jugadores, activa) VALUES ('Pista Pádel 1', 'PADEL', 1, 4, true);
+INSERT INTO pistas (nombre, tipo_deporte, instalacion_id, max_jugadores, activa) VALUES ('Pista Pádel 2', 'PADEL', 1, 4, true);
+INSERT INTO pistas (nombre, tipo_deporte, instalacion_id, max_jugadores, activa) VALUES ('Pista Tenis 1', 'TENIS', 1, 4, true);
+INSERT INTO pistas (nombre, tipo_deporte, instalacion_id, max_jugadores, activa) VALUES ('Pista Tenis 2', 'TENIS', 1, 4, true);
+INSERT INTO pistas (nombre, tipo_deporte, instalacion_id, max_jugadores, activa) VALUES ('Pista Fútbol 1', 'FUTBOL', 1, 22, true);
