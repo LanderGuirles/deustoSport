@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Reservas - DeustoSport</title>
+    <style>
+        :root {
+            --bg: #f4f7fb;
+            --card: #ffffff;
+            --ink: #1d2939;
+            --muted: #667085;
+            --brand: #0b7a75;
+            --brand-soft: #dff3f1;
+            --danger: #b42318;
+            --warning: #f79009;
+            --success: #12b76a;
+            --line: #e4e7ec;
+            --shadow: 0 1px 3px rgba(16, 24, 40, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at 0% 0%, #edf8f7 0%, var(--bg) 48%);
+            color: var(--ink);
+            line-height: 1.5;
+        }
+
+        .layout {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        header {
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0 0 8px 0;
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--brand);
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: var(--muted);
+        }
+
+        
+        .user-context {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: center; 
+        }
+
+        .user-context input {
+            padding: 8px 12px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            width: 200px;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background-color: var(--brand);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+        
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        /* Filtros */
+        .filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .filter-btn {
+            background: white;
+            border: 1px solid var(--line);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            color: var(--muted);
+            font-size: 14px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .filter-btn.active {
+            background: var(--brand);
+            color: white;
+            border-color: var(--brand);
+        }
+
+        .filter-btn:hover:not(.active) {
+            background: var(--bg);
+        }
+
+        /* lista de las reservas */
+        .reserva-list {
+            display: grid;
+            gap: 16px;
+        }
+
+        .reserva-card {
+            background: var(--card);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--line);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            transition: transform 0.2s;
+        }
+        
+        .reserva-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .reserva-info {
+            flex: 1;
+        }
+
+        .pista-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .reserva-meta {
+            font-size: 14px;
+            color: var(--muted);
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-badge {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 12px;
+            text-transform: uppercase;
+        }
+
+        .status-confirmada {
+            background: var(--brand-soft);
+            color: var(--brand);
+        }
+
+        .status-pendiente {
+            background: #fff4e5;
+            color: #b54708;
+        }
+
+        .status-cancelada {
+            background: #fee4e2;
+            color: var(--danger);
+        }
+        
+        .status-pasada {
+            background: #f2f4f7;
+            color: var(--muted);
+        }
+
+        .btn-cancel {
+            background: white;
+            color: var(--danger);
+            border: 1px solid var(--line);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .btn-cancel:hover {
+            background: #fee4e2;
+            border-color: #fee4e2;
+        }
+
+        .btn-pay {
+            background: #ecfdf3;
+            color: #027a48;
+            border: 1px solid #a6f4c5;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .btn-pay:hover {
+            background: #d1fadf;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--muted);
+            background: white;
+            border-radius: 8px;
+            border: 1px dashed var(--line);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: var(--muted);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="layout">
+        <header>
+            <h1>Mis Reservas</h1>
+            <div class="subtitle">Consulta y gestiona tus reservas de pistas deportivas</div>
+        </header>
+
+        <!-- Simulación de Login: En app real esto vendría de un token para el inicio de sesion-->
+        <div class="user-context">
+            <label for="userId">ID Usuario:</label>
+            <input type="number" id="userId" placeholder="Ej: 1" value="1">
+            <button class="btn-primary" onclick="loadReservas()">Cargar Reservas</button>
+        </div>
+
+        <div class="filters">
+            <button class="filter-btn active" onclick="filterReservas('todas', this)">Todas</button>
+            <button class="filter-btn" onclick="filterReservas('activas', this)">Activas</button>
+            <button class="filter-btn" onclick="filterReservas('pasadas', this)">Pasadas</button>
+            <button class="filter-btn" onclick="filterReservas('canceladas', this)">Canceladas</button>
+        </div>
+
+        <div id="loadingIndicator" class="loading hidden">Cargando reservas...</div>
+        
+        <div id="reservaList" class="reserva-list">
+            <!-- se cargan las listas -->
+            <div class="empty-state">Ingresa tu ID de usuario y pulsa "Cargar" para ver tus reservas.</div>
+        </div>
+    </div>
+
+    <script>
+        let allReservas = [];
+        let currentFilter = 'todas';
+
+        function getUserId() {
+            return document.getElementById('userId').value;
+        }
+
+        async function loadReservas() {
+            const userId = getUserId();
+            if (!userId) {
+                alert('Por favor, ingresa un ID de usuario válido.');
+                return;
+            }
+
+            const loading = document.getElementById('loadingIndicator');
+            const list = document.getElementById('reservaList');
+            
+            loading.classList.remove('hidden');
+            list.innerHTML = ''; // limpiar filtros
+
+            try {
+                const response = await fetch(`http://localhost:8080/api/reservas/usuario/${userId}`);
+                if (!response.ok) throw new Error('Error al cargar reservas');
+                
+                allReservas = await response.json();
+                renderReservas();
+            } catch (error) {
+                console.error(error);
+                list.innerHTML = `<div class="empty-state" style="color: var(--danger)">Error: No se pudieron cargar las reservas. Verifica el ID o la conexión.</div>`;
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        function filterReservas(filterType, btnElement) {
+            currentFilter = filterType;
+            
+            // UI Toggle
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            if(btnElement) btnElement.classList.add('active');
+
+            renderReservas();
+        }
+
+        function isPasada(reserva) {
+            const now = new Date();
+            // YYYY-MM-DD
+            const [year, month, day] = reserva.fechaReserva.split('-');
+            const [hour, minute] = reserva.horaInicio.split(':');
+            
+            const reservaDate = new Date(year, month - 1, day, hour, minute);
+            return reservaDate < now;
+        }
+
+        function renderReservas() {
+            const list = document.getElementById('reservaList');
+            list.innerHTML = '';
+
+            let filtered = allReservas;
+
+            if (currentFilter === 'activas') {
+                filtered = allReservas.filter(r => r.estado !== 'CANCELADA' && !isPasada(r));
+            } else if (currentFilter === 'pasadas') {
+                filtered = allReservas.filter(r => isPasada(r));
+            } else if (currentFilter === 'canceladas') {
+                filtered = allReservas.filter(r => r.estado === 'CANCELADA');
+            }
+
+
+            // Ordenar: Más recientes (futuras primero, luego pasadas desc)
+            filtered.sort((a, b) => {
+                const dateA = new Date(a.fechaReserva + 'T' + a.horaInicio);
+                const dateB = new Date(b.fechaReserva + 'T' + b.horaInicio);
+                return dateB - dateA; // Descendente
+            });
+
+            if (filtered.length === 0) {
+                list.innerHTML = `<div class="empty-state">No se encontraron reservas con este filtro.</div>`;
+                return;
+            }
+
+            filtered.forEach(reserva => {
+                const esPasada = isPasada(reserva);
+                const esCancelada = reserva.estado === 'CANCELADA';
+                const esPendientePago = reserva.estado === 'PENDIENTE';
+                
+                let badgeClass = 'status-confirmada';
+                let badgeText = reserva.estado;
+
+                if (esCancelada) {
+                    badgeClass = 'status-cancelada';
+                    badgeText = 'CANCELADA';
+                } else if (esPendientePago) {
+                    badgeClass = 'status-pendiente';
+                    badgeText = 'PENDIENTE DE PAGO';
+                } else if (esPasada) {
+                    badgeClass = 'status-pasada';
+                    badgeText = 'FINALIZADA';
+                }
+
+                const metodoPago = reserva.metodoPago ? `Metodo: ${reserva.metodoPago}` : 'Metodo: pendiente';
+
+                // foramto precio
+                const precio = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(reserva.precioTotal || 0);
+                
+                // Formato fecha
+                const fecha = new Date(reserva.fechaReserva).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+                const card = document.createElement('div');
+                card.className = 'reserva-card';
+                card.innerHTML = `
+                    <div class="reserva-info">
+                        <span class="pista-name">${reserva.pistaNombre || 'Pista sin nombre'} (${reserva.tipoDeporte || 'Deporte no especificado'})</span>
+                        <div class="reserva-meta">
+                            <div class="meta-item">📅 ${fecha}</div>
+                            <div class="meta-item">⏰ ${reserva.horaInicio} - ${reserva.horaFin}</div>
+                            <div class="meta-item">💰 ${precio}</div>
+                            <div class="meta-item">💳 ${metodoPago}</div>
+                            <span class="status-badge ${badgeClass}">${badgeText}</span>
+                        </div>
+                    </div>
+                    ${ (!esCancelada && !esPasada) ? 
+                        `<div class="actions">
+                            ${esPendientePago ? `<button class="btn-pay" onclick="pagarReserva(${reserva.id}, 'TARJETA')">Pagar con tarjeta</button>
+							<button class="btn-pay" onclick="pagarReserva(${reserva.id}, 'BIZUM')">Pagar con Bizum</button>
+							<button class="btn-pay" onclick="pagarReserva(${reserva.id}, 'TRANSFERENCIA')">Pagar con transferencia</button>` : ''}
+                            <button class="btn-cancel" onclick="cancelarReserva(${reserva.id})">Cancelar Reserva</button>
+                        </div>` 
+                        : '' 
+                    }
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        async function pagarReserva(reservaId, metodoPago) {
+            const userId = getUserId();
+            if (!userId) {
+                alert('Debes indicar el ID de usuario para pagar.');
+                return;
+            }
+
+            const payload = {
+                usuarioId: Number(userId),
+                metodoPago
+            };
+
+            if (metodoPago === 'TARJETA') {
+                const numeroTarjeta = prompt('Introduce numero de tarjeta (16 digitos):', '4111111111111111');
+                if (!numeroTarjeta) return;
+                const titularTarjeta = prompt('Titular de la tarjeta:', 'Usuario DeustoSport');
+                if (!titularTarjeta) return;
+                const caducidadTarjeta = prompt('Caducidad (MM/AA):', '12/30');
+                if (!caducidadTarjeta) return;
+                const cvv = prompt('CVV (3 o 4 digitos):', '123');
+                if (!cvv) return;
+
+                payload.numeroTarjeta = numeroTarjeta;
+                payload.titularTarjeta = titularTarjeta;
+                payload.caducidadTarjeta = caducidadTarjeta;
+                payload.cvv = cvv;
+            }
+
+            if (metodoPago === 'BIZUM') {
+                const telefonoBizum = prompt('Introduce telefono Bizum (+34XXXXXXXXX o 6XXXXXXXX):', '612345678');
+                if (!telefonoBizum) return;
+                payload.telefonoBizum = telefonoBizum;
+            }
+			
+			if (metodoPago === 'TRANSFERENCIA') {
+			    const iban = prompt('Introduce tu IBAN bancario:', 'ES9121000418450200051332');
+			    if (!iban) return;
+			    payload.iban = iban;
+			}
+
+            try {
+                const response = await fetch(`http://localhost:8080/api/reservas/${reservaId}/pagar`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(await obtenerErrorApi(response));
+                }
+
+                alert('Pago realizado correctamente. Reserva confirmada.');
+                loadReservas();
+            } catch (error) {
+                console.error(error);
+                alert('No se pudo completar el pago: ' + error.message);
+            }
+        }
+
+        async function cancelarReserva(reservaId) {
+            if (!confirm('¿Estás seguro de que quieres cancelar esta reserva?')) return;
+
+            const userId = getUserId();
+            try {
+                const response = await fetch(`http://localhost:8080/api/reservas/${reservaId}/cancelar?usuarioId=${userId}`, {
+                    method: 'POST'
+                });
+
+                if (!response.ok) {
+                    const errorMsg = await response.text();
+                    throw new Error(errorMsg || 'Error al cancelar');
+                }
+
+                // Recargar lista
+                alert('Reserva cancelada correctamente.');
+                loadReservas(); 
+
+            } catch (error) {
+                console.error(error);
+                alert('Hubo un problema al cancelar la reserva: ' + error.message); // Mostrar mensaje del backend si es posible
+            }
+        }
+
+        async function obtenerErrorApi(response) {
+            const contentType = response.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+                const data = await response.json();
+                return data.error || data.message || 'Error inesperado';
+            }
+
+            const text = await response.text();
+            return text || 'Error inesperado';
+        }
+        
+        // Cargar por defecto si el input tiene valor (útil para dev)
+        // document.addEventListener('DOMContentLoaded', () => {
+        //     if(document.getElementById('userId').value) loadReservas();
+        // });
+    </script>
+</body>
+</html>

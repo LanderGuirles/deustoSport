@@ -920,7 +920,7 @@ async function doLogin() {
   btn.innerHTML = '<span class="spinner"></span> Entrando...';
 
   try {
-    const res = await fetch('/api/auth/login', {
+    const res = await fetch('http://localhost:8080/api/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -992,7 +992,7 @@ async function loadTarifas() {
   container.innerHTML = '<div class="empty"><div class="spinner"></div></div>';
 
   try {
-    const res = await fetch('/api/tarifas/activas');
+    const res = await fetch('http://localhost:8080/api/tarifas/activas');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const tarifas = await res.json();
 
@@ -1024,7 +1024,7 @@ async function loadPistas() {
   container.innerHTML = '<div class="empty"><div class="spinner"></div></div>';
 
   try {
-    const res = await fetch('/api/pistas');
+    const res = await fetch('http://localhost:8080/api/pistas');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const pistas = await res.json();
 
@@ -1114,7 +1114,7 @@ async function confirmarReserva() {
   btn.innerHTML = '<span class="spinner"></span> Reservando...';
 
   try {
-    const res = await fetch('/api/reservas/crear', {
+    const res = await fetch('http://localhost:8080/api/reservas/crear', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1156,7 +1156,7 @@ async function loadMisReservas() {
   container.innerHTML = '<div class="empty"><div class="spinner"></div></div>';
 
   try {
-    const res = await fetch(`/api/reservas/usuario/${session.usuarioId}`);
+    const res = await fetch(`http://localhost:8080/api/reservas/usuario/${session.usuarioId}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const reservas = await res.json();
 
@@ -1283,7 +1283,7 @@ async function confirmarPago() {
   btn.innerHTML = '<span class="spinner"></span> Procesando...';
 
   try {
-    const res = await fetch(`/api/reservas/${reservaParaPagar.id}/pagar`, {
+    const res = await fetch(`http://localhost:8080/api/reservas/${reservaParaPagar.id}/pagar`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)

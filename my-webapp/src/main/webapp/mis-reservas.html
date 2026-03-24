@@ -310,7 +310,7 @@
             list.innerHTML = ''; // limpiar filtros
 
             try {
-                const response = await fetch(`/api/reservas/usuario/${userId}`);
+                const response = await fetch(`http://localhost:8080/api/reservas/usuario/${userId}`);
                 if (!response.ok) throw new Error('Error al cargar reservas');
                 
                 allReservas = await response.json();
@@ -465,7 +465,7 @@
 			}
 
             try {
-                const response = await fetch(`/api/reservas/${reservaId}/pagar`, {
+                const response = await fetch(`http://localhost:8080/api/reservas/${reservaId}/pagar`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -490,7 +490,7 @@
 
             const userId = getUserId();
             try {
-                const response = await fetch(`/api/reservas/${reservaId}/cancelar?usuarioId=${userId}`, {
+                const response = await fetch(`http://localhost:8080/api/reservas/${reservaId}/cancelar?usuarioId=${userId}`, {
                     method: 'POST'
                 });
 
