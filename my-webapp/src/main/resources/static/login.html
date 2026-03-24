@@ -1,207 +1,94 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DeustoSport - Login</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .container {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            width: 100%;
-            max-width: 400px;
-            padding: 40px;
-        }
-        
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 28px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-weight: 500;
-        }
-        
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-        
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 5px rgba(102, 126, 234, 0.1);
-        }
-        
-        button {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s;
-            margin-top: 10px;
-        }
-        
-        button:hover {
-            transform: translateY(-2px);
-        }
-        
-        button:active {
-            transform: translateY(0);
-        }
-        
-        .response {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 5px;
-            display: none;
-        }
-        
-        .response.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-            display: block;
-        }
-        
-        .response.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-            display: block;
-        }
-        
-        .response.info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-            display: block;
-        }
-        
-        .test-users {
-            background: #f0f0f0;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 20px;
-            font-size: 12px;
-            color: #666;
-        }
-        
-        .test-users strong {
-            display: block;
-            margin-bottom: 10px;
-        }
-        
-        .test-users p {
-            margin: 5px 0;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>DeustoSport - Iniciar Sesión</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* Estilos del login extraídos de tu código original */
+    :root { --bg: #0d1117; --surface: #161b22; --surface2: #1e242e; --border: #30363d; --accent: #00e5a0; --accent2: #00b37e; --text: #e6edf3; --muted: #7d8590; }
+    * { box-sizing: border-box; font-family: 'DM Sans', sans-serif; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,229,160,0.08) 0%, transparent 70%); }
+    
+    .logo { position: absolute; top: 20px; left: 32px; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; color: var(--accent); cursor: pointer;}
+    .logo span { color: var(--text); }
+    
+    .login-card { width: 100%; max-width: 400px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 40px 36px; }
+    .login-card h1 { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; margin-bottom: 6px; }
+    .login-card .sub { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
+    .field { margin-bottom: 18px; }
+    .field label { display: block; font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; }
+    .field input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 11px 14px; border-radius: 10px; font-size: 14px; transition: border-color .2s; }
+    .field input:focus { outline: none; border-color: var(--accent); }
+    .btn-primary { width: 100%; background: var(--accent); color: #0d1117; border: none; padding: 13px; border-radius: 10px; font-size: 15px; font-weight: 700; font-family: 'Syne', sans-serif; cursor: pointer; transition: background .2s; }
+    .btn-primary:hover { background: var(--accent2); }
+    .alert { margin-top: 16px; padding: 10px 14px; border-radius: 8px; font-size: 13px; background: rgba(248,81,73,0.12); border: 1px solid rgba(248,81,73,0.3); color: #f85149; display: none; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🏋️ DeustoSport</h1>
-        
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" placeholder="Tu email" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="password">Contraseña:</label>
-                <input type="password" id="password" name="password" placeholder="Tu contraseña" required>
-            </div>
-            
-            <button type="submit">Iniciar Sesión</button>
-        </form>
-        
-        <div id="response" class="response"></div>
-        
-        <div class="test-users">
-            <strong>👥 Usuarios de Prueba:</strong>
-            <p>📧 juan@deustosport.com</p>
-            <p>📧 maria@deustosport.com</p>
-            <p>📧 carlos@deustosport.com</p>
-            <p><strong>🔑 Contraseña:</strong> password123</p>
-        </div>
-    </div>
 
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const responseDiv = document.getElementById('response');
-            
-            responseDiv.className = 'response info';
-            responseDiv.textContent = '⏳ Iniciando sesión...';
-            
-            try {
-                const response = await fetch('http://localhost:8080/api/auth/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        email: email,
-                        password: password
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.exitoso) {
-                    responseDiv.className = 'response success';
-                    responseDiv.innerHTML = `
-                        <strong>✅ ¡Bienvenido ${data.nombreCompleto}!</strong><br>
-                        <small>ID: ${data.usuarioId}<br>
-                        Email: ${data.email}</small>
-                    `;
-                    document.getElementById('loginForm').reset();
-                } else {
-                    responseDiv.className = 'response error';
-                    responseDiv.textContent = '❌ ' + data.mensaje;
-                }
-            } catch (error) {
-                responseDiv.className = 'response error';
-                responseDiv.textContent = '❌ Error de conexión: ' + error.message;
-            }
+  <div class="logo" onclick="window.location.href='index.html'">Deusto<span>Sport</span></div>
+
+  <div class="login-card">
+    <h1>Bienvenido 👋</h1>
+    <p class="sub">Inicia sesión para reservar pistas</p>
+
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="login-email" placeholder="tu@email.com" />
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input type="password" id="login-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
+    </div>
+    
+    <button class="btn-primary" id="btn-login" onclick="doLogin()">Entrar</button>
+    <div id="login-alert" class="alert"></div>
+    
+    <div style="margin-top: 20px; text-align: center; font-size: 14px; color: var(--muted);">
+      ¿No tienes cuenta? <a href="registro.html" style="color: var(--accent); text-decoration: none;">Regístrate</a>
+    </div>
+  </div>
+
+  <script>
+    async function doLogin() {
+      const email = document.getElementById('login-email').value.trim();
+      const pass = document.getElementById('login-password').value;
+      const alertEl = document.getElementById('login-alert');
+      
+      if (!email || !pass) {
+        alertEl.style.display = 'block';
+        alertEl.textContent = 'Introduce email y contraseña';
+        return;
+      }
+
+      try {
+        const res = await fetch('http://localhost:8080/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email, password: pass })
         });
-    </script>
+
+        const data = await res.json();
+        const exitoso = data.exitoso === true || data.exitoso === 'true';
+
+        if (exitoso) {
+          // 1. GUARDAMOS EN LOCALSTORAGE (La clave del MPA)
+          localStorage.setItem('usuarioId', data.usuarioId);
+          localStorage.setItem('usuarioNombre', data.nombreCompleto);
+          
+          // 2. REDIRIGIMOS AL PANEL
+          // Si tu backend devuelve el rol, podrías redirigir a secretaria-panel.html aquí.
+          window.location.href = 'cliente-panel.html';
+        } else {
+          alertEl.style.display = 'block';
+          alertEl.textContent = data.mensaje || 'Credenciales incorrectas';
+        }
+      } catch (e) {
+        alertEl.style.display = 'block';
+        alertEl.textContent = 'Error de conexión con el servidor.';
+      }
+    }
+  </script>
 </body>
 </html>
