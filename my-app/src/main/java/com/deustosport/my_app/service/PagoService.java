@@ -1,5 +1,6 @@
 package com.deustosport.my_app.service;
 
+import com.deustosport.my_app.dto.PagoResponse;
 import com.deustosport.my_app.entity.Pago;
 import com.deustosport.my_app.entity.Reserva;
 import com.deustosport.my_app.enums.EstadoPago;
@@ -24,10 +25,18 @@ public class PagoService {
     }
 
     @Transactional(readOnly = true)
-    public Pago obtenerPagoPorReserva(Long reservaId) {
-        return pagoRepository.findByReservaId(reservaId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "No existe pago para la reserva con ID: " + reservaId));
+    public PagoResponse obtenerPagoPorReserva(Long reservaId) {
+        Pago pago = pagoRepository.findByReservaId(reservaId).orElseThrow(() -> new IllegalArgumentException("No existe pago para la reserva con ID: " + reservaId));
+
+        PagoResponse pagoResponseDto = new PagoResponse();
+        pagoResponseDto.setReferenciaPago(pago.getReferenciaPago());
+        pagoResponseDto.setImporte(pago.getImporte());
+        pagoResponseDto.setMetodoPago(pago.getMetodoPago());
+        pagoResponseDto.setEstadoPago(pago.getEstadoPago());
+        pagoResponseDto.setIban(pago.getIban() != null ? pago.getIban() : "");
+        pagoResponseDto.setFechaPago(pago.getFechaPago());
+        
+        return pagoResponseDto;
     }
 
     @Transactional

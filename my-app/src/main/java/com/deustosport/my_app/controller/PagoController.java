@@ -1,10 +1,9 @@
 package com.deustosport.my_app.controller;
 
-import com.deustosport.my_app.entity.Pago;
+import com.deustosport.my_app.dto.PagoResponse;
 import com.deustosport.my_app.service.PagoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
@@ -38,18 +37,9 @@ public class PagoController {
     @Operation(summary = "Consultar pago de una reserva")
     public ResponseEntity<?> consultarPago(@PathVariable Long reservaId) {
         try {
-            Pago pago = pagoService.obtenerPagoPorReserva(reservaId);
+            PagoResponse pagoResponseDto = pagoService.obtenerPagoPorReserva(reservaId);
 
-            // Map.of() no admite valores null → usamos HashMap
-            Map<String, Object> respuesta = new HashMap<>();
-            respuesta.put("referenciaPago", pago.getReferenciaPago());
-            respuesta.put("importe",        pago.getImporte());
-            respuesta.put("metodoPago",     pago.getMetodoPago());
-            respuesta.put("estadoPago",     pago.getEstadoPago());
-            respuesta.put("iban",           pago.getIban() != null ? pago.getIban() : "");
-            respuesta.put("fechaPago",      pago.getFechaPago().toString());
-
-            return ResponseEntity.ok(respuesta);
+            return ResponseEntity.ok(pagoResponseDto);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
