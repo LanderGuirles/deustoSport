@@ -18,7 +18,7 @@ import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-
+@SuppressWarnings("null")
 class ReservaServiceTest {
 
     @Mock private ReservaRepository reservaRepository;

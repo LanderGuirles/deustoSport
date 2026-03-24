@@ -929,17 +929,6 @@ async function doLogin() {
       body: JSON.stringify({ email: email, password: pass })
     });
 
-<<<<<<< HEAD
-    if (data.exitoso) {
-      session = { usuarioId: data.usuarioId, nombreCompleto: data.nombreCompleto, email: data.email };
-      document.getElementById('nav-nombre').textContent = data.nombreCompleto.split(' ')[0];
-      
-      // Ocultar login, mostrar app
-      document.getElementById('page-login').classList.remove('active');
-      document.getElementById('page-app').classList.add('active');
-      document.getElementById('main-nav').style.display = 'flex';
-      
-=======
     // Leer el cuerpo siempre, independientemente del status HTTP
     const text = await res.text();
     let data = null;
@@ -968,7 +957,6 @@ async function doLogin() {
         (data.nombreCompleto || 'Usuario').split(' ')[0];
       passInput.value = '';
       showPage('app');
->>>>>>> 2e9107ed1327b7b3bb17c5e653e9e3669717cc9c
       loadTarifas();
       loadPistas();
     } else {
