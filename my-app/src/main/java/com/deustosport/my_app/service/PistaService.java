@@ -9,6 +9,7 @@ import com.deustosport.my_app.entity.Pista;
 import com.deustosport.my_app.repository.InstalacionRepository;
 import com.deustosport.my_app.repository.PistaRepository;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,6 +43,7 @@ public class PistaService {
 
     @Transactional
     public List<Pista> obtenerPistasPorInstalacionId(Long instalacionId){
+        Objects.requireNonNull(instalacionId, "instalacionId no puede ser null");
         if (!instalacionRepository.existsById(instalacionId)) {
             throw new RuntimeException("No se puede listar: La instalación con ID " + instalacionId + " no existe.");
         }
@@ -73,7 +75,7 @@ public class PistaService {
             throw new RuntimeException("Error: La pista debe estar vinculada a una instalación válida.");
         }
 
-        Long instalacionId = nuevaPista.getInstalacion().getId();
+        Long instalacionId = Objects.requireNonNull(nuevaPista.getInstalacion().getId(), "instalacionId no puede ser null");
         
         // Buscamos la instalación real
         Instalacion instalacionAsociada = instalacionRepository.findById(instalacionId)
@@ -88,6 +90,7 @@ public class PistaService {
 
     @Transactional
     public PistaResponse actualizarPista(Long id, PistaRequest pistaRequestDTO) {
+        Objects.requireNonNull(id, "id no puede ser null");
         Pista pistaExistente = pistaRepository.findById(id).orElseThrow(() -> new RuntimeException("No se puede modificar: La pista con ID " + id + " no existe."));
 
         if (!pistaExistente.getNombre().equalsIgnoreCase(pistaRequestDTO.getNombre()) && pistaRepository.existsByNombreIgnoreCase(pistaRequestDTO.getNombre())) {
@@ -99,9 +102,10 @@ public class PistaService {
         pistaExistente.setMaxJugadores(pistaRequestDTO.getMaxJugadores());
         pistaExistente.setActiva(pistaRequestDTO.isActiva());
 
-        if (!pistaExistente.getInstalacion().getId().equals(pistaRequestDTO.getInstalacionId())) {
-        Instalacion nuevaInst = instalacionRepository.findById(pistaRequestDTO.getInstalacionId())
-                .orElseThrow(() -> new RuntimeException("La nueva instalación con ID " + pistaRequestDTO .getInstalacionId() + " no existe."));
+        Long nuevaInstalacionId = Objects.requireNonNull(pistaRequestDTO.getInstalacionId(), "instalacionId no puede ser null");
+        if (!pistaExistente.getInstalacion().getId().equals(nuevaInstalacionId)) {
+        Instalacion nuevaInst = instalacionRepository.findById(nuevaInstalacionId)
+            .orElseThrow(() -> new RuntimeException("La nueva instalación con ID " + nuevaInstalacionId + " no existe."));
         pistaExistente.setInstalacion(nuevaInst);
     }
 
@@ -116,6 +120,7 @@ public class PistaService {
 
     @Transactional
     public void eliminarPista(Long id) {
+        Objects.requireNonNull(id, "id no puede ser null");
         
         if (!pistaRepository.existsById(id)) {
             throw new RuntimeException("No se puede modificar: La pista con ID " + id + " no existe.");
@@ -131,6 +136,7 @@ public class PistaService {
 
     @Transactional
     public PistaResponse bloquearPista(Long id) {
+        Objects.requireNonNull(id, "id no puede ser null");
         Pista pistaExistente = pistaRepository.findById(id).orElseThrow(() -> new RuntimeException("No se puede modificar: La pista con ID " + id + " no existe."));
 
         pistaExistente.setActiva(false);

@@ -3,6 +3,7 @@ package com.deustosport.my_app.service;
 import com.deustosport.my_app.entity.Instalacion;
 import com.deustosport.my_app.repository.InstalacionRepository;
 import java.time.LocalTime;
+import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,11 +18,13 @@ public class InstalacionService {
 
     @Transactional(readOnly = true)
     public boolean existeInstalacion(Long id) {
+        Objects.requireNonNull(id, "id no puede ser null");
         return instalacionRepository.existsById(id);
     }
 
     @Transactional
     public Instalacion actualizarHorarioGeneral(Long instalacionId, LocalTime horaApertura, LocalTime horaCierre) {
+        Objects.requireNonNull(instalacionId, "instalacionId no puede ser null");
         if (horaApertura == null || horaCierre == null) {
             throw new IllegalArgumentException("La hora de apertura y cierre son obligatorias.");
         }

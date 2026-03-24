@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 @Service
@@ -48,6 +49,8 @@ public class ReservaService {
     @Transactional
     public Reserva crearReserva(Long usuarioId, Long pistaId, LocalDate fecha,
             LocalTime horaInicio, Integer duracionMinutos) {
+        Objects.requireNonNull(usuarioId, "usuarioId no puede ser null");
+        Objects.requireNonNull(pistaId, "pistaId no puede ser null");
 
         if (fecha.isBefore(LocalDate.now()) ||
                 (fecha.isEqual(LocalDate.now()) && horaInicio.isBefore(LocalTime.now()))) {
@@ -95,6 +98,8 @@ public class ReservaService {
     public Reserva pagarReserva(Long reservaId, Long usuarioId, MetodoPago metodoPago,
             String numeroTarjeta, String titularTarjeta, String caducidadTarjeta,
             String cvv, String telefonoBizum, String iban) {
+        Objects.requireNonNull(reservaId, "reservaId no puede ser null");
+        Objects.requireNonNull(usuarioId, "usuarioId no puede ser null");
 
         Reserva reserva = reservaRepository.findById(reservaId)
                 .orElseThrow(() -> new IllegalArgumentException("Reserva no encontrada"));
@@ -133,6 +138,7 @@ public class ReservaService {
     }
 
     public List<ReservaResponse> obtenerMisReservas(Long usuarioId) {
+        Objects.requireNonNull(usuarioId, "usuarioId no puede ser null");
         List<Reserva> reservas = reservaRepository.findByUsuarioId(usuarioId);
         return reservas.stream().map(reserva -> {
             ReservaResponse dto = new ReservaResponse();
@@ -155,6 +161,8 @@ public class ReservaService {
 
     @Transactional
     public Reserva cancelarReserva(Long reservaId, Long usuarioId) {
+        Objects.requireNonNull(reservaId, "reservaId no puede ser null");
+        Objects.requireNonNull(usuarioId, "usuarioId no puede ser null");
         Reserva reserva = reservaRepository.findById(reservaId)
                 .orElseThrow(() -> new IllegalArgumentException("Reserva no encontrada"));
 
@@ -178,6 +186,7 @@ public class ReservaService {
 
     public boolean consultarDisponibilidad(Long pistaId, LocalDate fecha,
             LocalTime horaInicio, LocalTime horaFin) {
+        Objects.requireNonNull(pistaId, "pistaId no puede ser null");
         return reservaRepository.findConflictingReservations(
                 pistaId, fecha, horaInicio, horaFin).isEmpty();
     }

@@ -18,6 +18,7 @@ import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("null")
 class ReservaServiceTest {
 
     @Mock private ReservaRepository reservaRepository;
@@ -58,7 +59,7 @@ class ReservaServiceTest {
         when(tarifaService.calcularPrecio(eq(TipoDeporte.PADEL), eq(fecha),
                 eq(horaInicio), eq(horaFin), eq(false)))
                 .thenReturn(new BigDecimal("24.50"));
-        when(reservaRepository.save(any(Reserva.class)))
+        when(reservaRepository.save(isA(Reserva.class)))
                 .thenAnswer(inv -> inv.getArgument(0));
 
         Reserva reserva = reservaService.crearReserva(10L, 20L, fecha, horaInicio, 60);
@@ -88,7 +89,7 @@ class ReservaServiceTest {
         when(reservaRepository.findById(99L)).thenReturn(Optional.of(reserva));
         when(pagoService.procesarPagoInterno(eq(99L), isNull(), eq(MetodoPago.TARJETA)))
                 .thenReturn(pagoMock);
-        when(reservaRepository.save(any(Reserva.class)))
+        when(reservaRepository.save(isA(Reserva.class)))
                 .thenAnswer(inv -> inv.getArgument(0));
 
         Reserva pagada = reservaService.pagarReserva(
@@ -122,7 +123,7 @@ class ReservaServiceTest {
                 null, null, null, null, "555", null
         ));
 
-        verify(reservaRepository, never()).save(any());
+        verify(reservaRepository, never()).save(isA(Reserva.class));
         verify(pagoService, never()).procesarPagoInterno(any(), any(), any());
     }
 
@@ -148,7 +149,7 @@ class ReservaServiceTest {
         when(reservaRepository.findById(200L)).thenReturn(Optional.of(reserva));
         when(pagoService.procesarPagoInterno(eq(200L), eq(iban), eq(MetodoPago.TRANSFERENCIA)))
                 .thenReturn(pagoMock);
-        when(reservaRepository.save(any(Reserva.class)))
+        when(reservaRepository.save(isA(Reserva.class)))
                 .thenAnswer(inv -> inv.getArgument(0));
 
         Reserva pagada = reservaService.pagarReserva(

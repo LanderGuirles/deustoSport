@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -121,6 +122,7 @@ public class LoginService {
      */
     @Transactional
     public LoginResponse cerrarSesion(Long usuarioId) {
+        Objects.requireNonNull(usuarioId, "usuarioId no puede ser null");
         Optional<Usuario> usuarioOpt = usuarioRepository.findById(usuarioId);
 
         if (usuarioOpt.isEmpty()) {
@@ -224,6 +226,7 @@ public class LoginService {
      */
     @Transactional
     public LoginResponse cambiarPassword(Long usuarioId, String passwordActual, String passwordNueva) {
+        Objects.requireNonNull(usuarioId, "usuarioId no puede ser null");
         Optional<Usuario> usuarioOpt = usuarioRepository.findById(usuarioId);
 
         if (usuarioOpt.isEmpty()) {

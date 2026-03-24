@@ -8,6 +8,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +42,7 @@ public class TarifaService {
 
     @Transactional
     public Tarifa actualizarTarifa(Long id, Tarifa datos) {
+        Objects.requireNonNull(id, "id no puede ser null");
         Tarifa existente = tarifaRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Tarifa no encontrada con ID: " + id));
         validarTarifa(datos);
@@ -57,6 +59,7 @@ public class TarifaService {
 
     @Transactional
     public void desactivarTarifa(Long id) {
+        Objects.requireNonNull(id, "id no puede ser null");
         Tarifa tarifa = tarifaRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Tarifa no encontrada con ID: " + id));
         tarifa.setActiva(false);

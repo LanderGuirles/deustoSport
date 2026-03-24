@@ -3,13 +3,13 @@ package com.deustosport.my_app.service;
 import com.deustosport.my_app.entity.Pago;
 import com.deustosport.my_app.entity.Reserva;
 import com.deustosport.my_app.enums.EstadoPago;
-import com.deustosport.my_app.enums.EstadoReserva;
 import com.deustosport.my_app.enums.MetodoPago;
 import com.deustosport.my_app.repository.PagoRepository;
 import com.deustosport.my_app.repository.ReservaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -32,6 +32,7 @@ public class PagoService {
 
     @Transactional
     public Pago procesarPagoInterno(Long reservaId, String iban, MetodoPago metodoPago) {
+        Objects.requireNonNull(reservaId, "reservaId no puede ser null");
         Reserva reserva = reservaRepository.findById(reservaId)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Reserva no encontrada con ID: " + reservaId));
