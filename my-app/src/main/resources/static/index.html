@@ -810,7 +810,12 @@ async function doLogin() {
     if (data.exitoso) {
       session = { usuarioId: data.usuarioId, nombreCompleto: data.nombreCompleto, email: data.email };
       document.getElementById('nav-nombre').textContent = data.nombreCompleto.split(' ')[0];
-      showPage('app');
+      
+      // Ocultar login, mostrar app
+      document.getElementById('page-login').classList.remove('active');
+      document.getElementById('page-app').classList.add('active');
+      document.getElementById('main-nav').style.display = 'flex';
+      
       loadTarifas();
       loadPistas();
     } else {
