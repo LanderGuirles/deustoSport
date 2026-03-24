@@ -4,6 +4,7 @@ import com.deustosport.my_app.entity.Tarifa;
 import com.deustosport.my_app.enums.TipoDeporte;
 import com.deustosport.my_app.repository.TarifaRepository;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -12,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class TarifaService {
+
+    private static final BigDecimal DESCUENTO_SOCIO = new BigDecimal("0.20");
 
     private final TarifaRepository tarifaRepository;
 
@@ -62,23 +65,31 @@ public class TarifaService {
 
     @Transactional(readOnly = true)
     public BigDecimal calcularPrecio(TipoDeporte tipoDeporte, LocalDate fecha,
-            LocalTime horaInicio, LocalTime horaFin) {
+            LocalTime horaInicio, LocalTime horaFin, boolean esSocio) {
         int diaSemana = fecha.getDayOfWeek().getValue();
-        return tarifaRepository
+
+        BigDecimal precio = tarifaRepository
                 .findActiveByDeporteDiaAndFecha(tipoDeporte, diaSemana, fecha)
                 .map(tarifa -> {
                     long minutos = java.time.Duration.between(horaInicio, horaFin).toMinutes();
                     BigDecimal horas = new BigDecimal(minutos)
-                            .divide(new BigDecimal(60), 2, java.math.RoundingMode.HALF_UP);
+                            .divide(new BigDecimal(60), 2, RoundingMode.HALF_UP);
                     return tarifa.getPrecioPorHora().multiply(horas);
                 })
                 .orElse(calcularPrecioFallback(horaInicio, horaFin));
+
+        if (esSocio) {
+            BigDecimal descuento = precio.multiply(DESCUENTO_SOCIO);
+            precio = precio.subtract(descuento).setScale(2, RoundingMode.HALF_UP);
+        }
+
+        return precio;
     }
 
     private BigDecimal calcularPrecioFallback(LocalTime horaInicio, LocalTime horaFin) {
         long minutos = java.time.Duration.between(horaInicio, horaFin).toMinutes();
         BigDecimal horas = new BigDecimal(minutos)
-                .divide(new BigDecimal(60), 2, java.math.RoundingMode.HALF_UP);
+                .divide(new BigDecimal(60), 2, RoundingMode.HALF_UP);
         return new BigDecimal("10.00").multiply(horas);
     }
 

@@ -55,7 +55,7 @@ public class ReservaService {
         }
 
         BigDecimal precioTotal = tarifaService.calcularPrecio(
-                pista.getTipoDeporte(), fecha, horaInicio, horaFin);
+                pista.getTipoDeporte(), fecha, horaInicio, horaFin, usuario.isEsSocio());
 
         Reserva nuevaReserva = new Reserva();
         nuevaReserva.setUsuario(usuario);
