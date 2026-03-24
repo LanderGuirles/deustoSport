@@ -157,7 +157,7 @@
     <div id="response" class="response"></div>
 
     <p class="footer-link">
-        Ya tienes cuenta? <a href="/docs/index.html">Inicia sesion desde API docs</a>
+        Ya tienes cuenta? <a href="/index.html">Inicia sesión</a>
     </p>
 </div>
 
@@ -191,6 +191,9 @@
                 responseDiv.className = "response success";
                 responseDiv.textContent = "Cuenta creada correctamente. Ya puedes iniciar sesion.";
                 form.reset();
+                setTimeout(() => {
+                    window.location.href = "/";
+                }, 2000);
                 return;
             }
 

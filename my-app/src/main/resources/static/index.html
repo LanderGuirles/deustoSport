@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DeustoSport</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
   <style>
@@ -159,6 +159,76 @@
       line-height: 1.8;
     }
     .demo-hint strong { color: var(--text); }
+
+    /* ── REGISTRO CARD ── */
+    .login-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: center;
+    }
+    .signup-card {
+      background: var(--surface);
+      border: 2px dashed var(--border);
+      border-radius: 20px;
+      padding: 40px 36px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: all .3s;
+      cursor: pointer;
+      min-height: 400px;
+    }
+    .signup-card:hover {
+      border-color: var(--accent);
+      background: rgba(0,229,160,0.04);
+      transform: translateY(-4px);
+    }
+    .signup-card .icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      display: block;
+    }
+    .signup-card h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .signup-card p {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+    .btn-signup {
+      background: var(--accent);
+      color: #0d1117;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: 'Syne', sans-serif;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .btn-signup:hover {
+      background: var(--accent2);
+    }
+
+    @media (max-width: 900px) {
+      .login-container {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      .signup-card {
+        min-height: 300px;
+      }
+    }
 
     /* ── MAIN APP ── */
     #page-app { padding: 0 0 60px; }
@@ -522,6 +592,20 @@
     #toast.ok { border-color: var(--success); color: var(--success); }
     #toast.err { border-color: var(--danger); color: var(--danger); }
 
+    /* ── DEBUG INFO (solo en caso de error) ── */
+    .debug-info {
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: rgba(248,81,73,0.06);
+      border-radius: 6px;
+      font-size: 11px;
+      color: var(--muted);
+      font-family: monospace;
+      word-break: break-all;
+      display: none;
+    }
+    .debug-info.visible { display: block; }
+
     @media (max-width: 600px) {
       nav { padding: 12px 16px; }
       .hero { padding: 28px 16px 20px; }
@@ -547,27 +631,44 @@
   <div style="position:absolute;top:20px;left:32px;">
     <div class="logo">Deusto<span>Sport</span></div>
   </div>
-  <div class="login-card">
-    <h1>Bienvenido 👋</h1>
-    <p class="sub">Inicia sesión para reservar pistas deportivas</p>
+  <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;">
+    <div class="login-container">
+      <!-- LOGIN CARD -->
+      <div class="login-card">
+        <h1>Bienvenido 👋</h1>
+        <p class="sub">Inicia sesión para reservar pistas deportivas</p>
 
-    <div class="field">
-      <label>Email</label>
-      <input type="email" id="login-email" placeholder="tu@email.com" />
-    </div>
-    <div class="field">
-      <label>Contraseña</label>
-      <input type="password" id="login-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
-    </div>
-    <button class="btn-primary" id="btn-login" onclick="doLogin()">Entrar</button>
-    <div id="login-alert"></div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="login-email" placeholder="tu@email.com" autocomplete="email" />
+        </div>
+        <div class="field">
+          <label>Contraseña</label>
+          <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"
+                 onkeydown="if(event.key==='Enter')doLogin()" />
+        </div>
+        <button class="btn-primary" id="btn-login" onclick="doLogin()">Entrar</button>
+        <div id="login-alert"></div>
+        <div id="login-debug" class="debug-info"></div>
 
-    <div class="demo-hint">
-      <strong>Usuarios de prueba</strong><br>
-      📧 juan@deustosport.com<br>
-      📧 maria@deustosport.com &nbsp;(socia – 20% dto.)<br>
-      📧 carlos@deustosport.com<br>
-      🔑 Contraseña: <strong>password123</strong>
+        <div class="demo-hint">
+          <strong>Usuarios de prueba</strong><br>
+          📧 juan@deustosport.com<br>
+          📧 maria@deustosport.com &nbsp;(socia – 20% dto.)<br>
+          📧 carlos@deustosport.com<br>
+          🔑 Contraseña: <strong>password123</strong>
+        </div>
+      </div>
+
+      <!-- SIGNUP CARD -->
+      <a href="/registro.html" style="text-decoration:none;color:inherit;">
+        <div class="signup-card">
+          <span class="icon">✨</span>
+          <h2>Crear Cuenta</h2>
+          <p>¿Eres nuevo en DeustoSport?<br>Regístrate ahora y empieza a reservar tus pistas favoritas.</p>
+          <button type="button" class="btn-signup" onclick="event.stopPropagation(); window.location.href='/registro.html'">Registrarse</button>
+        </div>
+      </a>
     </div>
   </div>
 </div>
@@ -735,7 +836,7 @@
 
 <script>
 // ═══════════════════ STATE ═══════════════════
-let session = null; // { usuarioId, nombreCompleto, email }
+let session = null;
 let pistaSeleccionada = null;
 let reservaParaPagar = null;
 let metodoSeleccionado = null;
@@ -783,41 +884,93 @@ function fmtFecha(s) {
   return new Date(s + 'T00:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
+function showLoginError(msg, debugInfo) {
+  const alertEl = document.getElementById('login-alert');
+  const debugEl = document.getElementById('login-debug');
+  alertEl.innerHTML = `<div class="alert alert-error">${msg}</div>`;
+  if (debugInfo) {
+    debugEl.textContent = debugInfo;
+    debugEl.classList.add('visible');
+  } else {
+    debugEl.classList.remove('visible');
+  }
+}
+
 // ═══════════════════ AUTH ═══════════════════
 async function doLogin() {
-  const email = document.getElementById('login-email').value.trim();
-  const pass  = document.getElementById('login-password').value;
-  const btn   = document.getElementById('btn-login');
-  const alert = document.getElementById('login-alert');
+  const emailInput = document.getElementById('login-email');
+  const passInput  = document.getElementById('login-password');
+  const btn        = document.getElementById('btn-login');
+  const alertEl    = document.getElementById('login-alert');
+  const debugEl    = document.getElementById('login-debug');
+
+  const email = emailInput.value.trim();
+  const pass  = passInput.value;
+
+  // Limpiar estado anterior
+  alertEl.innerHTML = '';
+  debugEl.classList.remove('visible');
 
   if (!email || !pass) {
-    alert.innerHTML = '<div class="alert alert-error">Introduce email y contraseña</div>';
+    showLoginError('Introduce email y contraseña');
     return;
   }
 
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>';
-  alert.innerHTML = '';
+  btn.innerHTML = '<span class="spinner"></span> Entrando...';
 
   try {
     const res = await fetch('/api/auth/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password: pass })
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ email: email, password: pass })
     });
-    const data = await res.json();
 
-    if (data.exitoso) {
-      session = { usuarioId: data.usuarioId, nombreCompleto: data.nombreCompleto, email: data.email };
-      document.getElementById('nav-nombre').textContent = data.nombreCompleto.split(' ')[0];
+    // Leer el cuerpo siempre, independientemente del status HTTP
+    const text = await res.text();
+    let data = null;
+
+    try {
+      data = JSON.parse(text);
+    } catch (parseErr) {
+      // La respuesta no es JSON (puede ser HTML de Spring Security)
+      showLoginError(
+        'Error de servidor. Verifica que la aplicación esté corriendo correctamente.',
+        `HTTP ${res.status} — Respuesta no JSON: ${text.substring(0, 120)}`
+      );
+      return;
+    }
+
+    // Comprobar explícitamente el campo exitoso (puede ser boolean o string)
+    const exitoso = data.exitoso === true || data.exitoso === 'true';
+
+    if (exitoso) {
+      session = {
+        usuarioId: data.usuarioId,
+        nombreCompleto: data.nombreCompleto,
+        email: data.email
+      };
+      document.getElementById('nav-nombre').textContent =
+        (data.nombreCompleto || 'Usuario').split(' ')[0];
+      passInput.value = '';
       showPage('app');
       loadTarifas();
       loadPistas();
     } else {
-      alert.innerHTML = `<div class="alert alert-error">${data.mensaje || 'Credenciales incorrectas'}</div>`;
+      // Login fallido con respuesta válida del servidor
+      const mensaje = data.mensaje || data.message || data.error || 'Credenciales incorrectas';
+      showLoginError(mensaje);
     }
-  } catch (e) {
-    alert.innerHTML = '<div class="alert alert-error">Error de conexión</div>';
+
+  } catch (networkErr) {
+    // Error de red: servidor caído, CORS, etc.
+    showLoginError(
+      'No se puede conectar con el servidor. ¿Está arrancado my-app en el puerto 8080?',
+      networkErr.message
+    );
   } finally {
     btn.disabled = false;
     btn.textContent = 'Entrar';
@@ -830,6 +983,7 @@ function logout() {
   document.getElementById('login-email').value = '';
   document.getElementById('login-password').value = '';
   document.getElementById('login-alert').innerHTML = '';
+  document.getElementById('login-debug').classList.remove('visible');
 }
 
 // ═══════════════════ TARIFAS ═══════════════════
@@ -839,6 +993,7 @@ async function loadTarifas() {
 
   try {
     const res = await fetch('/api/tarifas/activas');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const tarifas = await res.json();
 
     document.getElementById('tarifas-count').textContent = tarifas.length + ' tarifas';
@@ -852,14 +1007,14 @@ async function loadTarifas() {
 
     container.innerHTML = tarifas.map(t => `
       <div class="tarifa-card">
-        <div class="tarifa-sport">${t.tipoDeporte}</div>
+        <div class="tarifa-sport">${t.tipoDeporte || '—'}</div>
         <div class="tarifa-label">${dias[t.diaSemana] || 'Día ' + t.diaSemana}</div>
-        <div class="tarifa-horario">⏰ ${t.horaInicio.substring(0,5)} – ${t.horaFin.substring(0,5)}</div>
+        <div class="tarifa-horario">⏰ ${(t.horaInicio || '').substring(0,5)} – ${(t.horaFin || '').substring(0,5)}</div>
         <div class="tarifa-precio">${fmtEur(t.precioPorHora)} <span>/ hora</span></div>
       </div>
     `).join('');
   } catch (e) {
-    container.innerHTML = '<div class="empty"><div class="icon">⚠️</div><p>Error al cargar tarifas</p></div>';
+    container.innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>Error al cargar tarifas: ${e.message}</p></div>`;
   }
 }
 
@@ -870,47 +1025,54 @@ async function loadPistas() {
 
   try {
     const res = await fetch('/api/pistas');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const pistas = await res.json();
 
-    document.getElementById('pistas-count').textContent = pistas.length + ' pistas';
+    const activas = pistas.filter(p => p.activa);
+    document.getElementById('pistas-count').textContent = activas.length + ' pistas';
 
-    if (!pistas.length) {
+    if (!activas.length) {
       container.innerHTML = '<div class="empty"><div class="icon">🏟️</div><p>No hay pistas registradas</p></div>';
       return;
     }
 
-    container.innerHTML = pistas.filter(p => p.activa).map(p => `
-      <div class="pista-card">
-        <div class="pista-sport-tag ${sportClass(p.tipoDeporte)}">${p.tipoDeporte}</div>
-        <div class="pista-name">${p.nombre}</div>
-        <div class="pista-meta">
-          🏢 ${p.instalacionNombre || '—'} &nbsp;|&nbsp; 👥 Max <span>${p.maxJugadores}</span> jugadores
+    container.innerHTML = activas.map(p => {
+      // Serializar la pista de forma segura para el atributo onclick
+      const pistaJson = JSON.stringify(p).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+      return `
+        <div class="pista-card">
+          <div class="pista-sport-tag ${sportClass(p.tipoDeporte)}">${p.tipoDeporte || '—'}</div>
+          <div class="pista-name">${p.nombre || '—'}</div>
+          <div class="pista-meta">
+            🏢 ${p.instalacionNombre || '—'} &nbsp;|&nbsp; 👥 Max <span>${p.maxJugadores || '—'}</span> jugadores
+          </div>
+          <button class="btn-reservar" onclick="abrirReserva(${pistaJson})">
+            Reservar pista →
+          </button>
         </div>
-        <button class="btn-reservar" onclick="abrirReserva(${JSON.stringify(p).split('"').join('&quot;')})">
-          Reservar pista →
-        </button>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   } catch (e) {
-    container.innerHTML = '<div class="empty"><div class="icon">⚠️</div><p>Error al cargar pistas</p></div>';
+    container.innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>Error al cargar pistas: ${e.message}</p></div>`;
   }
 }
 
 // ═══════════════════ RESERVA ═══════════════════
 function abrirReserva(pista) {
   pistaSeleccionada = pista;
-  document.getElementById('modal-pista-label').textContent = pista.nombre + ' · ' + pista.tipoDeporte;
-  // fecha mínima = mañana
+  document.getElementById('modal-pista-label').textContent =
+    (pista.nombre || '—') + ' · ' + (pista.tipoDeporte || '—');
+
   const hoy = new Date();
   hoy.setDate(hoy.getDate() + 1);
-  document.getElementById('reserva-fecha').min = hoy.toISOString().split('T')[0];
-  document.getElementById('reserva-fecha').value = hoy.toISOString().split('T')[0];
+  const minDate = hoy.toISOString().split('T')[0];
+  document.getElementById('reserva-fecha').min = minDate;
+  document.getElementById('reserva-fecha').value = minDate;
   document.getElementById('reserva-hora').value = '10:00';
   document.getElementById('precio-preview').textContent = '—';
   openModal('modal-reserva');
 }
 
-// Calcular precio en tiempo real cuando cambian los inputs
 ['reserva-fecha','reserva-hora','reserva-duracion'].forEach(id => {
   document.getElementById(id).addEventListener('change', calcularPrecioPreview);
 });
@@ -923,20 +1085,19 @@ async function calcularPrecioPreview() {
 
   if (!fecha || !horaIni) return;
 
-  const [h, m] = horaIni.split(':').map(Number);
-  const fin = new Date(0, 0, 0, h, m + parseInt(duracion));
-  const horaFin = fin.getHours().toString().padStart(2,'0') + ':' + fin.getMinutes().toString().padStart(2,'0');
-
   try {
-    const res = await fetch(`/api/reservas/disponibilidad?pistaId=${pistaSeleccionada.id}&fecha=${fecha}&horaInicio=${horaIni}&duracionMinutos=${duracion}`);
+    const res = await fetch(
+      `/api/reservas/disponibilidad?pistaId=${pistaSeleccionada.id}&fecha=${fecha}&horaInicio=${horaIni}&duracionMinutos=${duracion}`
+    );
     const data = await res.json();
     if (!data.disponible) {
       document.getElementById('precio-preview').textContent = '⚠️ No disponible';
       return;
     }
-  } catch(_) {}
-
-  document.getElementById('precio-preview').textContent = 'Calculando...';
+    document.getElementById('precio-preview').textContent = 'Disponible ✓';
+  } catch (_) {
+    document.getElementById('precio-preview').textContent = '—';
+  }
 }
 
 async function confirmarReserva() {
@@ -964,7 +1125,10 @@ async function confirmarReserva() {
         duracionMinutos: duracion
       })
     });
-    const data = await res.json();
+
+    const text = await res.text();
+    let data = {};
+    try { data = JSON.parse(text); } catch(_) {}
 
     if (!res.ok) {
       toast(data.error || 'Error al reservar', 'err');
@@ -974,12 +1138,11 @@ async function confirmarReserva() {
     closeModal('modal-reserva');
     toast('✅ Reserva creada. ¡Recuerda pagarla!', 'ok');
 
-    // Ir a mis reservas
     const tabBtn = document.getElementById('tab-reservas-btn');
     switchTab('misreservas', tabBtn);
 
   } catch (e) {
-    toast('Error de conexión', 'err');
+    toast('Error de conexión: ' + e.message, 'err');
   } finally {
     btn.disabled = false;
     btn.textContent = 'Confirmar reserva';
@@ -994,6 +1157,7 @@ async function loadMisReservas() {
 
   try {
     const res = await fetch(`/api/reservas/usuario/${session.usuarioId}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const reservas = await res.json();
 
     if (!reservas.length) {
@@ -1001,18 +1165,20 @@ async function loadMisReservas() {
       return;
     }
 
-    // Ordenar: futuras primero
     reservas.sort((a, b) => {
-      const da = new Date(a.fechaReserva + 'T' + a.horaInicio);
-      const db = new Date(b.fechaReserva + 'T' + b.horaInicio);
+      const da = new Date((a.fechaReserva || '') + 'T' + (a.horaInicio || '00:00'));
+      const db = new Date((b.fechaReserva || '') + 'T' + (b.horaInicio || '00:00'));
       return db - da;
     });
 
     container.innerHTML = reservas.map(r => {
-      const esPasada = new Date(r.fechaReserva + 'T' + r.horaInicio) < new Date();
+      const esPasada = new Date((r.fechaReserva || '') + 'T' + (r.horaInicio || '00:00')) < new Date();
+      const rJson = JSON.stringify(r).replace(/'/g, "\\'").replace(/"/g, '&quot;');
       const acciones = (!esPasada && r.estado !== 'CANCELADA')
         ? `<div class="reserva-actions">
-            ${r.estado === 'PENDIENTE' ? `<button class="btn-pagar" onclick="abrirPago(${JSON.stringify(r).split('"').join('&quot;')})">Pagar</button>` : ''}
+            ${r.estado === 'PENDIENTE'
+              ? `<button class="btn-pagar" onclick="abrirPago(${rJson})">Pagar</button>`
+              : ''}
             <button class="btn-cancel-reserva" onclick="cancelarReserva(${r.id})">Cancelar</button>
           </div>`
         : '';
@@ -1020,9 +1186,13 @@ async function loadMisReservas() {
       return `
         <div class="reserva-card">
           <div class="reserva-info">
-            <div class="reserva-pista">${r.pistaNombre || '—'} <span style="font-size:12px;color:var(--muted);font-weight:400">${r.tipoDeporte || ''}</span></div>
+            <div class="reserva-pista">
+              ${r.pistaNombre || '—'}
+              <span style="font-size:12px;color:var(--muted);font-weight:400">${r.tipoDeporte || ''}</span>
+            </div>
             <div class="reserva-meta">
-              📅 ${fmtFecha(r.fechaReserva)} &nbsp;⏰ ${r.horaInicio ? r.horaInicio.substring(0,5) : '—'} – ${r.horaFin ? r.horaFin.substring(0,5) : '—'}
+              📅 ${fmtFecha(r.fechaReserva)}
+              &nbsp;⏰ ${r.horaInicio ? r.horaInicio.substring(0,5) : '—'} – ${r.horaFin ? r.horaFin.substring(0,5) : '—'}
               &nbsp;💶 ${fmtEur(r.precioTotal)}
               ${r.metodoPago ? '&nbsp;💳 ' + r.metodoPago : ''}
             </div>
@@ -1036,22 +1206,27 @@ async function loadMisReservas() {
     }).join('');
 
   } catch (e) {
-    container.innerHTML = '<div class="empty"><div class="icon">⚠️</div><p>Error al cargar reservas</p></div>';
+    container.innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>Error al cargar reservas: ${e.message}</p></div>`;
   }
 }
 
 async function cancelarReserva(reservaId) {
   if (!confirm('¿Cancelar esta reserva?')) return;
   try {
-    const res = await fetch(`/api/reservas/${reservaId}/cancelar?usuarioId=${session.usuarioId}`, { method: 'POST' });
+    const res = await fetch(
+      `/api/reservas/${reservaId}/cancelar?usuarioId=${session.usuarioId}`,
+      { method: 'POST' }
+    );
     if (res.ok) {
       toast('Reserva cancelada', 'ok');
       loadMisReservas();
     } else {
-      const d = await res.json();
-      toast(d.error || 'No se pudo cancelar', 'err');
+      const text = await res.text();
+      let msg = 'No se pudo cancelar';
+      try { msg = JSON.parse(text).error || msg; } catch(_) {}
+      toast(msg, 'err');
     }
-  } catch(_) { toast('Error de conexión', 'err'); }
+  } catch(e) { toast('Error de conexión', 'err'); }
 }
 
 // ═══════════════════ PAGO ═══════════════════
@@ -1059,10 +1234,9 @@ function abrirPago(reserva) {
   reservaParaPagar = reserva;
   metodoSeleccionado = null;
   document.getElementById('modal-pago-label').textContent =
-    `${reserva.pistaNombre} · ${fmtFecha(reserva.fechaReserva)} · ${fmtEur(reserva.precioTotal)}`;
+    `${reserva.pistaNombre || '—'} · ${fmtFecha(reserva.fechaReserva)} · ${fmtEur(reserva.precioTotal)}`;
   document.getElementById('pago-total').textContent = fmtEur(reserva.precioTotal);
 
-  // reset
   document.querySelectorAll('.metodo-btn').forEach(b => b.classList.remove('selected'));
   document.querySelectorAll('.pago-fields').forEach(f => f.classList.remove('active'));
   document.getElementById('btn-confirmar-pago').disabled = true;
@@ -1089,10 +1263,10 @@ async function confirmarPago() {
   };
 
   if (metodoSeleccionado === 'TARJETA') {
-    payload.numeroTarjeta  = document.getElementById('p-numero').value.replace(/\s/g,'');
-    payload.titularTarjeta = document.getElementById('p-titular').value;
+    payload.numeroTarjeta   = document.getElementById('p-numero').value.replace(/\s/g,'');
+    payload.titularTarjeta  = document.getElementById('p-titular').value;
     payload.caducidadTarjeta = document.getElementById('p-caducidad').value;
-    payload.cvv            = document.getElementById('p-cvv').value;
+    payload.cvv             = document.getElementById('p-cvv').value;
     if (!payload.numeroTarjeta || !payload.titularTarjeta || !payload.caducidadTarjeta || !payload.cvv) {
       toast('Completa todos los datos de la tarjeta', 'err'); return;
     }
@@ -1114,7 +1288,10 @@ async function confirmarPago() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    const data = await res.json();
+
+    const text = await res.text();
+    let data = {};
+    try { data = JSON.parse(text); } catch(_) {}
 
     if (!res.ok) {
       toast(data.error || 'Error al pagar', 'err');
@@ -1126,7 +1303,7 @@ async function confirmarPago() {
     loadMisReservas();
 
   } catch (e) {
-    toast('Error de conexión', 'err');
+    toast('Error de conexión: ' + e.message, 'err');
   } finally {
     btn.disabled = false;
     btn.textContent = 'Pagar ahora';
@@ -1134,14 +1311,12 @@ async function confirmarPago() {
 }
 
 // ═══════════════════ INIT ═══════════════════
-// Cerrar modales al hacer click fuera
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', e => {
     if (e.target === overlay) overlay.classList.remove('open');
   });
 });
 
-// Fecha min hoy+1 al cargar
 const manana = new Date();
 manana.setDate(manana.getDate() + 1);
 document.getElementById('reserva-fecha').min = manana.toISOString().split('T')[0];
