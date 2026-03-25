@@ -127,6 +127,30 @@
     </div>
 
     <section class="card">
+        <h2>Horario General del Polideportivo</h2>
+        <form id="horarioGeneralForm">
+            <div class="form-grid">
+                <div class="field">
+                    <label>Instalación</label>
+                    <select id="horarioInstalacionId" required></select>
+                </div>
+                <div class="field">
+                    <label>Hora de apertura</label>
+                    <input id="horaApertura" type="time" required>
+                </div>
+                <div class="field">
+                    <label>Hora de cierre</label>
+                    <input id="horaCierre" type="time" required>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn-primary" id="btnGuardarHorario">Guardar Horario</button>
+            </div>
+        </form>
+        <div class="status" id="horarioStatus"></div>
+    </section>
+
+    <section class="card">
         <h2>Añadir Nueva Pista</h2>
         <form id="crearPistaForm">
             <div class="form-grid">
@@ -226,6 +250,7 @@
 
 <script>
     const API_URL = "http://localhost:8080/api/pistas";
+    const INSTALACIONES_API_URL = "http://localhost:8080/api/instalaciones";
     
     // Configuración inicial de usuario
     document.getElementById("sessionUser").textContent = localStorage.getItem("usuarioNombre") || "Coordinador";
@@ -238,6 +263,88 @@
     const tablaStatusEl = document.getElementById("tablaStatus");
     const pistasBodyEl = document.getElementById("pistasBody");
     const crearForm = document.getElementById("crearPistaForm");
+    const horarioGeneralForm = document.getElementById("horarioGeneralForm");
+    const horarioStatusEl = document.getElementById("horarioStatus");
+    const horarioInstalacionIdEl = document.getElementById("horarioInstalacionId");
+    const horaAperturaEl = document.getElementById("horaApertura");
+    const horaCierreEl = document.getElementById("horaCierre");
+
+    async function cargarInstalacionesParaHorario() {
+        showStatus(horarioStatusEl, "Cargando instalaciones...", "loading");
+        try {
+            const response = await fetch(INSTALACIONES_API_URL);
+            if (!response.ok) throw new Error("No se pudieron cargar las instalaciones.");
+
+            const instalaciones = await response.json();
+
+            if (!instalaciones.length) {
+                horarioInstalacionIdEl.innerHTML = '<option value="">Sin instalaciones</option>';
+                showStatus(horarioStatusEl, "No hay instalaciones disponibles.", "error");
+                return;
+            }
+
+            horarioInstalacionIdEl.innerHTML = instalaciones
+                .map(inst => `<option value="${inst.id}" data-apertura="${(inst.horaApertura || "08:00:00").substring(0, 5)}" data-cierre="${(inst.horaCierre || "22:00:00").substring(0, 5)}">${inst.nombre} (ID: ${inst.id})</option>`)
+                .join("");
+
+            aplicarHorarioDesdeSeleccion();
+            showStatus(horarioStatusEl, "", "");
+        } catch (error) {
+            showStatus(horarioStatusEl, error.message, "error");
+        }
+    }
+
+    function aplicarHorarioDesdeSeleccion() {
+        const selectedOption = horarioInstalacionIdEl.options[horarioInstalacionIdEl.selectedIndex];
+        if (!selectedOption) return;
+
+        horaAperturaEl.value = selectedOption.dataset.apertura || "08:00";
+        horaCierreEl.value = selectedOption.dataset.cierre || "22:00";
+    }
+
+    horarioInstalacionIdEl.addEventListener("change", aplicarHorarioDesdeSeleccion);
+
+    horarioGeneralForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const instalacionId = horarioInstalacionIdEl.value;
+        const horaApertura = horaAperturaEl.value;
+        const horaCierre = horaCierreEl.value;
+
+        if (!instalacionId || !horaApertura || !horaCierre) {
+            showStatus(horarioStatusEl, "Debes completar instalación, apertura y cierre.", "error");
+            return;
+        }
+
+        showStatus(horarioStatusEl, "Guardando horario...", "loading");
+        document.getElementById("btnGuardarHorario").disabled = true;
+
+        try {
+            const response = await fetch(`${INSTALACIONES_API_URL}/${instalacionId}/horario-general`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    horaApertura: `${horaApertura}:00`,
+                    horaCierre: `${horaCierre}:00`
+                })
+            });
+
+            const bodyText = await response.text();
+            let body = null;
+            try { body = bodyText ? JSON.parse(bodyText) : null; } catch (_) {}
+
+            if (!response.ok) {
+                throw new Error(body?.error || "No se pudo actualizar el horario general.");
+            }
+
+            showStatus(horarioStatusEl, "Horario actualizado correctamente.", "success");
+            await cargarInstalacionesParaHorario();
+        } catch (error) {
+            showStatus(horarioStatusEl, error.message, "error");
+        } finally {
+            document.getElementById("btnGuardarHorario").disabled = false;
+        }
+    });
 
     function showStatus(element, text, type) {
         element.textContent = text;
@@ -450,6 +557,7 @@
     window.confirmarEliminarPista = confirmarEliminarPista;
     window.abrirModalEdicion = abrirModalEdicion;
 
+    cargarInstalacionesParaHorario();
     cargarPistas();
 </script>
 </body>

@@ -3,6 +3,7 @@ package com.deustosport.my_app.service;
 import com.deustosport.my_app.entity.Instalacion;
 import com.deustosport.my_app.repository.InstalacionRepository;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,11 @@ public class InstalacionService {
     public boolean existeInstalacion(Long id) {
         Objects.requireNonNull(id, "id no puede ser null");
         return instalacionRepository.existsById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Instalacion> obtenerTodas() {
+        return instalacionRepository.findAll();
     }
 
     @Transactional

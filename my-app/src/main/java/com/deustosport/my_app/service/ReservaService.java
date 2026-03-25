@@ -72,6 +72,8 @@ public class ReservaService {
         horaInicio = horaInicio.withSecond(0).withNano(0);
         LocalTime horaFin = horaInicio.plusMinutes(duracionMinutos);
 
+        validarHorarioInstalacion(pista, horaInicio, horaFin);
+
         List<Reserva> conflictos = reservaRepository.findConflictingReservations(
                 pistaId, fecha, horaInicio, horaFin);
         if (!conflictos.isEmpty()) {
@@ -187,8 +189,38 @@ public class ReservaService {
     public boolean consultarDisponibilidad(Long pistaId, LocalDate fecha,
             LocalTime horaInicio, LocalTime horaFin) {
         Objects.requireNonNull(pistaId, "pistaId no puede ser null");
+
+        Pista pista = pistaRepository.findById(pistaId)
+                .orElseThrow(() -> new IllegalArgumentException("Pista no encontrada con ID: " + pistaId));
+
+        if (!estaDentroDeHorarioInstalacion(pista, horaInicio, horaFin)) {
+            return false;
+        }
+
         return reservaRepository.findConflictingReservations(
                 pistaId, fecha, horaInicio, horaFin).isEmpty();
+    }
+
+    private void validarHorarioInstalacion(Pista pista, LocalTime horaInicio, LocalTime horaFin) {
+        if (!estaDentroDeHorarioInstalacion(pista, horaInicio, horaFin)) {
+            LocalTime apertura = pista.getInstalacion().getHoraApertura();
+            LocalTime cierre = pista.getInstalacion().getHoraCierre();
+            throw new IllegalArgumentException(
+                    "El horario solicitado está fuera del horario general de la instalación ("
+                            + apertura + " - " + cierre + ").");
+        }
+    }
+
+    private boolean estaDentroDeHorarioInstalacion(Pista pista, LocalTime horaInicio, LocalTime horaFin) {
+        if (pista.getInstalacion() == null || pista.getInstalacion().getHoraApertura() == null
+                || pista.getInstalacion().getHoraCierre() == null) {
+            return true;
+        }
+
+        LocalTime apertura = pista.getInstalacion().getHoraApertura();
+        LocalTime cierre = pista.getInstalacion().getHoraCierre();
+
+        return !horaInicio.isBefore(apertura) && !horaFin.isAfter(cierre);
     }
 
     private void validarDatosPago(MetodoPago metodoPago, String numeroTarjeta,

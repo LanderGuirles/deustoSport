@@ -39,11 +39,17 @@ class ReservaServiceTest {
         usuario.setId(10L);
         usuario.setEsSocio(false);
 
+                Instalacion instalacion = new Instalacion();
+                instalacion.setId(1L);
+                instalacion.setHoraApertura(LocalTime.of(8, 0));
+                instalacion.setHoraCierre(LocalTime.of(22, 0));
+
         pista = new Pista();
         pista.setId(20L);
         pista.setNombre("Pista central");
         pista.setTipoDeporte(TipoDeporte.PADEL);
         pista.setActiva(true);
+                pista.setInstalacion(instalacion);
     }
 
     @Test
@@ -67,6 +73,21 @@ class ReservaServiceTest {
         assertEquals(EstadoReserva.PENDIENTE, reserva.getEstado());
         assertEquals(new BigDecimal("24.50"), reserva.getPrecioTotal());
     }
+
+        @Test
+        void crearReserva_fueraHorarioGeneral_lanzaExcepcion() {
+                LocalDate fecha = LocalDate.now().plusDays(1);
+                LocalTime horaInicio = LocalTime.of(22, 0);
+
+                when(usuarioRepository.findById(10L)).thenReturn(Optional.of(usuario));
+                when(pistaRepository.findById(20L)).thenReturn(Optional.of(pista));
+
+                IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                                () -> reservaService.crearReserva(10L, 20L, fecha, horaInicio, 60));
+
+                assertTrue(ex.getMessage().contains("horario general"));
+                verify(reservaRepository, never()).save(any());
+        }
 
     @Test
     void pagarReserva_conTarjeta_confirmaReserva() {

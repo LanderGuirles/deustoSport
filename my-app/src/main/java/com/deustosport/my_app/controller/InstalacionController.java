@@ -32,6 +32,12 @@ public class InstalacionController {
         this.instalacionService = instalacionService;
         this.pistaService = pistaService;
     }
+
+    @GetMapping
+    @Operation(summary = "Listar instalaciones", description = "Devuelve todas las instalaciones registradas")
+    public ResponseEntity<List<Instalacion>> listarInstalaciones() {
+        return ResponseEntity.ok(instalacionService.obtenerTodas());
+    }
  
     @GetMapping("/{instalacionId}/pistas")
     @Operation(summary = "Listar todas las pistas de una instalacion", description = "Devuelve todas las pistas activas de esa instalacion")
