@@ -25,7 +25,20 @@
     .field input:focus { outline: none; border-color: var(--accent); }
     .btn-primary { width: 100%; background: var(--accent); color: #0d1117; border: none; padding: 13px; border-radius: 10px; font-size: 15px; font-weight: 700; font-family: 'Syne', sans-serif; cursor: pointer; transition: background .2s; }
     .btn-primary:hover { background: var(--accent2); }
+    .btn-secondary { width: 100%; background: transparent; color: var(--accent); border: 1px solid var(--accent); padding: 13px; border-radius: 10px; font-size: 15px; font-weight: 700; font-family: 'Syne', sans-serif; cursor: pointer; transition: all .2s; margin-top: 8px; }
+    .btn-secondary:hover { background: rgba(0,229,160,0.1); }
     .alert { margin-top: 16px; padding: 10px 14px; border-radius: 8px; font-size: 13px; background: rgba(248,81,73,0.12); border: 1px solid rgba(248,81,73,0.3); color: #f85149; display: none; }
+    .alert.success { background: rgba(3,102,214,0.12); border: 1px solid rgba(3,102,214,0.3); color: #58a6ff; }
+    .link { color: var(--accent); text-decoration: none; cursor: pointer; }
+    .link:hover { text-decoration: underline; }
+    
+    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; }
+    .modal.active { display: flex; }
+    .modal-content { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 40px 36px; max-width: 400px; width: 100%; }
+    .modal-content h2 { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 12px; }
+    .modal-content .sub { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+    .close-btn { float: right; font-size: 24px; cursor: pointer; color: var(--muted); }
+    .close-btn:hover { color: var(--text); }
   </style>
 </head>
 <body>
@@ -34,6 +47,45 @@
     <button class="btn-ghost" onclick="window.location.href='index.html'">Volver al inicio</button>
   </nav>
 
+  <!-- Modal de Recuperación de Contraseña -->
+  <div id="recoveryModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeRecoveryModal()">&times;</span>
+      <h2 id="recoveryTitle">Recuperar Contraseña</h2>
+      <p class="sub" id="recoverySubtitle">Introduce tu email para recibir instrucciones</p>
+
+      <!-- Paso 1: Solicitar Recuperación -->
+      <div id="step1">
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="recovery-email" placeholder="tu@email.com" />
+        </div>
+        <button class="btn-primary" id="btn-request-recovery" onclick="requestRecovery()">Solicitar Recuperación</button>
+        <div id="recovery-alert" class="alert"></div>
+      </div>
+
+      <!-- Paso 2: Restablecer Contraseña -->
+      <div id="step2" style="display: none;">
+        <div class="field">
+          <label>Código de Recuperación</label>
+          <input type="text" id="recovery-token" placeholder="Pega el código que recibiste" />
+        </div>
+        <div class="field">
+          <label>Nueva Contraseña</label>
+          <input type="password" id="recovery-password" placeholder="••••••••" />
+        </div>
+        <div class="field">
+          <label>Confirmar Contraseña</label>
+          <input type="password" id="recovery-password-confirm" placeholder="••••••••" />
+        </div>
+        <button class="btn-primary" id="btn-confirm-recovery" onclick="confirmRecovery()">Restablecer Contraseña</button>
+        <button class="btn-secondary" onclick="backToStep1()">Volver</button>
+        <div id="recovery-alert2" class="alert"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card de Login -->
   <div class="login-card">
     <h1>Bienvenido 👋</h1>
     <p class="sub">Inicia sesión para reservar pistas</p>
@@ -52,11 +104,16 @@
     
     <div style="margin-top: 20px; text-align: center; font-size: 14px; color: var(--muted);">
       ¿No tienes cuenta? <a href="registro.html" style="color: var(--accent); text-decoration: none;">Regístrate</a>
+      <br style="margin: 8px 0;" />
+      <span class="link" onclick="openRecoveryModal()" style="font-size: 12px;">¿Olvidaste tu contraseña?</span>
     </div>
   </div>
 
 
   <script>
+    const API_URL = 'http://localhost:8080/api/auth';
+
+    // === LOGIN ===
     async function doLogin() {
       const email = document.getElementById('login-email').value.trim();
       const pass = document.getElementById('login-password').value;
@@ -76,7 +133,7 @@
       btn.textContent = 'Entrando...';
 
       try {
-        const res = await fetch('http://localhost:8080/api/auth/login', {
+        const res = await fetch(`${API_URL}/login`, {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
@@ -100,7 +157,7 @@
 
         const exitoso = data.exitoso === true || data.exitoso === 'true';
 
-      if (res.ok && exitoso) {
+        if (res.ok && exitoso) {
           localStorage.setItem('usuarioId', data.usuarioId);
           localStorage.setItem('usuarioNombre', data.nombreCompleto);
           localStorage.setItem('usuarioEmail', data.email || email);
@@ -129,6 +186,147 @@
         btn.textContent = 'Entrar';
       }
     }
+
+    // === RECUPERACIÓN DE CONTRASEÑA ===
+    function openRecoveryModal() {
+      document.getElementById('recoveryModal').classList.add('active');
+      document.getElementById('step1').style.display = 'block';
+      document.getElementById('step2').style.display = 'none';
+      document.getElementById('recovery-email').value = '';
+      document.getElementById('recovery-alert').textContent = '';
+      document.getElementById('recovery-alert').style.display = 'none';
+    }
+
+    function closeRecoveryModal() {
+      document.getElementById('recoveryModal').classList.remove('active');
+    }
+
+    async function requestRecovery() {
+      const email = document.getElementById('recovery-email').value.trim();
+      const alertEl = document.getElementById('recovery-alert');
+      const btn = document.getElementById('btn-request-recovery');
+
+      alertEl.style.display = 'none';
+
+      if (!email) {
+        alertEl.style.display = 'block';
+        alertEl.textContent = 'Introduce tu email';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
+
+      try {
+        const res = await fetch(`${API_URL}/solicitar-recuperacion?email=${encodeURIComponent(email)}`, {
+          method: 'POST',
+          headers: { 'Accept': 'application/json' }
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.exitoso) {
+          alertEl.classList.add('success');
+          alertEl.style.display = 'block';
+          alertEl.textContent = '✓ Email enviado. Revisa tu bandeja de entrada para el código.';
+          setTimeout(() => {
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'block';
+            document.getElementById('recoveryTitle').textContent = 'Restablecer Contraseña';
+            document.getElementById('recoverySubtitle').textContent = 'Introduce el código que recibiste por email';
+          }, 1500);
+        } else {
+          alertEl.classList.remove('success');
+          alertEl.style.display = 'block';
+          alertEl.textContent = data.mensaje || 'Error al procesar la solicitud';
+        }
+      } catch (e) {
+        alertEl.classList.remove('success');
+        alertEl.style.display = 'block';
+        alertEl.textContent = 'Error de red. Verifica tu conexión.';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Solicitar Recuperación';
+      }
+    }
+
+    function backToStep1() {
+      document.getElementById('step1').style.display = 'block';
+      document.getElementById('step2').style.display = 'none';
+      document.getElementById('recoveryTitle').textContent = 'Recuperar Contraseña';
+      document.getElementById('recoverySubtitle').textContent = 'Introduce tu email para recibir instrucciones';
+      document.getElementById('recovery-alert2').style.display = 'none';
+    }
+
+    async function confirmRecovery() {
+      const token = document.getElementById('recovery-token').value.trim();
+      const password = document.getElementById('recovery-password').value;
+      const passwordConfirm = document.getElementById('recovery-password-confirm').value;
+      const alertEl = document.getElementById('recovery-alert2');
+      const btn = document.getElementById('btn-confirm-recovery');
+
+      alertEl.style.display = 'none';
+
+      if (!token || !password || !passwordConfirm) {
+        alertEl.style.display = 'block';
+        alertEl.textContent = 'Todos los campos son obligatorios';
+        return;
+      }
+
+      if (password !== passwordConfirm) {
+        alertEl.style.display = 'block';
+        alertEl.textContent = 'Las contraseñas no coinciden';
+        return;
+      }
+
+      if (password.length < 6) {
+        alertEl.style.display = 'block';
+        alertEl.textContent = 'La contraseña debe tener al menos 6 caracteres';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Restaurando...';
+
+      try {
+        const res = await fetch(`${API_URL}/restablecer-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            emailOToken: token,
+            passwordNueva: password
+          })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.exitoso) {
+          alertEl.classList.add('success');
+          alertEl.style.display = 'block';
+          alertEl.textContent = '✓ Contraseña restablecida correctamente. Cerrando...';
+          setTimeout(() => {
+            closeRecoveryModal();
+            document.getElementById('login-email').focus();
+          }, 2000);
+        } else {
+          alertEl.classList.remove('success');
+          alertEl.style.display = 'block';
+          alertEl.textContent = data.mensaje || 'Error al restablecer la contraseña';
+        }
+      } catch (e) {
+        alertEl.classList.remove('success');
+        alertEl.style.display = 'block';
+        alertEl.textContent = 'Error de red. Verifica tu conexión.';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Restablecer Contraseña';
+      }
+    }
+
+    // Cerrar modal al presionar ESC
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeRecoveryModal();
+    });
   </script>
   
 </body>

@@ -28,6 +28,9 @@ public class LoginService {
     @Autowired
     private CredencialRepository credencialRepository;
 
+    @Autowired
+    private EmailService emailService;
+
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Transactional
@@ -153,7 +156,10 @@ public class LoginService {
             credencial.setFechaExpiracionToken(LocalDateTime.now().plusHours(24));
             credencialRepository.save(credencial);
 
-                return new LoginResponse(usuario.getId(), usuario.getNombreCompleto(),
+            // Enviar email con el token de recuperación
+            emailService.enviarEmailRecuperacion(usuario.getEmail(), token);
+
+            return new LoginResponse(usuario.getId(), usuario.getNombreCompleto(),
                     usuario.getEmail(), toRolString(usuario.getRol()), "Instrucciones enviadas al email", true);
         } catch (Exception e) {
             return new LoginResponse(null, null, email, null,
