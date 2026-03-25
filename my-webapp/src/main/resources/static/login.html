@@ -100,11 +100,23 @@
 
         const exitoso = data.exitoso === true || data.exitoso === 'true';
 
-        if (res.ok && exitoso) {
+      if (res.ok && exitoso) {
           localStorage.setItem('usuarioId', data.usuarioId);
           localStorage.setItem('usuarioNombre', data.nombreCompleto);
-          
-          window.location.href = 'home.html';
+          localStorage.setItem('usuarioEmail', data.email || email);
+
+          const rol = (data.rol || '').toString().trim().toUpperCase();
+          localStorage.setItem('usuarioRol', rol);
+
+          if (rol === 'SECRETARIA') {
+            window.location.href = 'secretaria-panel.html';
+          } else if (rol === 'COORDINADOR') {
+            window.location.href = 'coordinador-panel.html';
+          } else if (rol === 'AYUNTAMIENTO') {
+            window.location.href = 'ayuntamiento-panel.html';
+          } else {
+            window.location.href = 'home.html';
+          }
         } else {
           alertEl.style.display = 'block';
           alertEl.textContent = data.mensaje || data.error || 'Credenciales incorrectas';

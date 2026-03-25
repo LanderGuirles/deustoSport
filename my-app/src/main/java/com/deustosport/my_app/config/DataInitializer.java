@@ -32,6 +32,7 @@ public class DataInitializer implements CommandLineRunner {
         actualizarPassword("juan@deustosport.com", "password123");
         actualizarPassword("maria@deustosport.com", "password123");
         actualizarPassword("carlos@deustosport.com", "password123");
+        actualizarPassword("ayuntamiento.bilbao@deustosport.com", "bilbao");
     }
 
     private void actualizarPassword(String email, String rawPassword) {

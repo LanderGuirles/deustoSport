@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Ayuntamiento - Tarifas por Horas</title>
+    <script>
+        const currentUserId = localStorage.getItem('usuarioId');
+        const currentUserRol = (localStorage.getItem('usuarioRol') || '').trim().toUpperCase();
+        const currentUserEmail = (localStorage.getItem('usuarioEmail') || '').trim().toLowerCase();
+        const ayuntamientoEmail = 'ayuntamiento.bilbao@deustosport.com';
+
+        if (!currentUserId || currentUserRol !== 'AYUNTAMIENTO' || currentUserEmail !== ayuntamientoEmail) {
+            window.location.replace('login.html');
+        }
+    </script>
+    <style>
+        :root {
+            --bg: #f3f7fa;
+            --card: #ffffff;
+            --ink: #1e293b;
+            --muted: #64748b;
+            --line: #e2e8f0;
+            --brand: #0f766e;
+            --brand-soft: #dff4f2;
+            --danger: #b91c1c;
+            --ok: #166534;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--ink);
+            background: radial-gradient(circle at 0% 0%, #e8f7f5 0%, var(--bg) 50%);
+        }
+
+        .layout {
+            max-width: 1200px;
+            margin: 28px auto;
+            padding: 0 16px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 30px;
+        }
+
+        .subtitle {
+            margin: 8px 0 0;
+            color: var(--muted);
+        }
+
+        .session {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+        }
+
+        .grid {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .field input,
+        .field select {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            padding: 10px 12px;
+            font-size: 14px;
+            background: #fff;
+        }
+
+        .actions {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            border: none;
+            border-radius: 9px;
+            padding: 10px 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-primary { background: var(--brand); color: #fff; }
+        .btn-secondary { background: var(--brand-soft); color: #0f5f58; }
+        .btn-danger { background: #fff1f1; color: var(--danger); border: 1px solid #fecaca; }
+        .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+
+        .status {
+            margin-top: 10px;
+            font-size: 14px;
+            display: none;
+            padding: 10px 12px;
+            border-radius: 9px;
+            border: 1px solid transparent;
+        }
+
+        .status.ok { display: block; color: var(--ok); background: #ecfdf5; border-color: #bbf7d0; }
+        .status.err { display: block; color: var(--danger); background: #fff1f2; border-color: #fecdd3; }
+        .status.info { display: block; color: var(--muted); background: #f8fafc; border-color: var(--line); }
+
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 980px;
+            background: #fff;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--line);
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #334155;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .pill {
+            display: inline-block;
+            border-radius: 999px;
+            padding: 3px 9px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .pill-on { color: #166534; background: #dcfce7; }
+        .pill-off { color: #b45309; background: #fef3c7; }
+
+        .tiny-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+<div class="layout">
+    <div class="header">
+        <div>
+            <h1>Panel Ayuntamiento</h1>
+            <p class="subtitle">Configurar precios segun horas, deporte y dia de la semana.</p>
+        </div>
+        <div>
+            <div class="session">Sesion: <strong id="sessionUser">-</strong></div>
+            <div class="actions" style="justify-content:flex-end; margin-top:8px;">
+                <button class="btn-ghost" id="logoutBtn">Cerrar sesion</button>
+            </div>
+        </div>
+    </div>
+
+    <section class="card">
+        <h2 style="margin:0 0 14px;">Crear / Editar tarifa</h2>
+        <div class="grid">
+            <div class="field">
+                <label for="tipoDeporte">Deporte</label>
+                <select id="tipoDeporte">
+                    <option value="PADEL">PADEL</option>
+                    <option value="TENIS">TENIS</option>
+                    <option value="FUTBOL">FUTBOL</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="diaSemana">Dia semana (1-7)</label>
+                <input id="diaSemana" type="number" min="1" max="7" value="1">
+            </div>
+            <div class="field">
+                <label for="horaInicio">Hora inicio</label>
+                <input id="horaInicio" type="time" value="08:00">
+            </div>
+            <div class="field">
+                <label for="horaFin">Hora fin</label>
+                <input id="horaFin" type="time" value="09:00">
+            </div>
+            <div class="field">
+                <label for="precioPorHora">Precio por hora</label>
+                <input id="precioPorHora" type="number" step="0.01" min="0.01" value="10.00">
+            </div>
+            <div class="field">
+                <label for="vigenteDesde">Vigente desde</label>
+                <input id="vigenteDesde" type="date">
+            </div>
+            <div class="field">
+                <label for="vigenteHasta">Vigente hasta (opcional)</label>
+                <input id="vigenteHasta" type="date">
+            </div>
+            <div class="field">
+                <label for="activa">Activa</label>
+                <select id="activa">
+                    <option value="true">Si</option>
+                    <option value="false">No</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="btn-primary" id="saveBtn">Guardar nueva tarifa</button>
+            <button class="btn-secondary" id="clearBtn">Limpiar</button>
+            <button class="btn-ghost" id="cancelEditBtn" style="display:none;">Cancelar edicion</button>
+        </div>
+        <div class="status" id="formStatus"></div>
+    </section>
+
+    <section class="card">
+        <div class="actions" style="justify-content:space-between; margin-top:0; margin-bottom:10px;">
+            <h2 style="margin:0;">Tarifas registradas</h2>
+            <button class="btn-secondary" id="refreshBtn">Recargar</button>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Deporte</th>
+                    <th>Dia</th>
+                    <th>Inicio</th>
+                    <th>Fin</th>
+                    <th>Precio/h</th>
+                    <th>Desde</th>
+                    <th>Hasta</th>
+                    <th>Activa</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody id="tarifasBody">
+                <tr><td colspan="10">Cargando tarifas...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="status info" id="tableStatus">Leyendo tarifas...</div>
+    </section>
+</div>
+
+<script>
+    const API_URL = 'http://localhost:8080/api/tarifas';
+    let tarifaEnEdicionId = null;
+    let tarifasCache = [];
+
+    const diasMap = {
+        1: 'Lunes',
+        2: 'Martes',
+        3: 'Miercoles',
+        4: 'Jueves',
+        5: 'Viernes',
+        6: 'Sabado',
+        7: 'Domingo'
+    };
+
+    document.getElementById('sessionUser').textContent = localStorage.getItem('usuarioNombre') || 'Ayuntamiento';
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.clear();
+        window.location.href = 'login.html';
+    });
+
+    function setStatus(el, text, kind) {
+        el.textContent = text || '';
+        el.className = 'status';
+        if (!text) return;
+        el.classList.add(kind);
+    }
+
+    function toIsoTimeShort(val) {
+        return val ? `${val}:00` : null;
+    }
+
+    function normalizeDate(val) {
+        return val || null;
+    }
+
+    function tarifaPayloadFromForm() {
+        return {
+            tipoDeporte: document.getElementById('tipoDeporte').value,
+            diaSemana: Number(document.getElementById('diaSemana').value),
+            horaInicio: toIsoTimeShort(document.getElementById('horaInicio').value),
+            horaFin: toIsoTimeShort(document.getElementById('horaFin').value),
+            precioPorHora: Number(document.getElementById('precioPorHora').value),
+            vigenteDesde: document.getElementById('vigenteDesde').value,
+            vigenteHasta: normalizeDate(document.getElementById('vigenteHasta').value),
+            activa: document.getElementById('activa').value === 'true'
+        };
+    }
+
+    function fillFormFromTarifa(t) {
+        document.getElementById('tipoDeporte').value = t.tipoDeporte;
+        document.getElementById('diaSemana').value = t.diaSemana;
+        document.getElementById('horaInicio').value = (t.horaInicio || '').substring(0, 5);
+        document.getElementById('horaFin').value = (t.horaFin || '').substring(0, 5);
+        document.getElementById('precioPorHora').value = t.precioPorHora;
+        document.getElementById('vigenteDesde').value = t.vigenteDesde || '';
+        document.getElementById('vigenteHasta').value = t.vigenteHasta || '';
+        document.getElementById('activa').value = t.activa ? 'true' : 'false';
+    }
+
+    function resetForm() {
+        tarifaEnEdicionId = null;
+        document.getElementById('saveBtn').textContent = 'Guardar nueva tarifa';
+        document.getElementById('cancelEditBtn').style.display = 'none';
+        document.getElementById('tipoDeporte').value = 'PADEL';
+        document.getElementById('diaSemana').value = '1';
+        document.getElementById('horaInicio').value = '08:00';
+        document.getElementById('horaFin').value = '09:00';
+        document.getElementById('precioPorHora').value = '10.00';
+        document.getElementById('vigenteDesde').value = new Date().toISOString().split('T')[0];
+        document.getElementById('vigenteHasta').value = '';
+        document.getElementById('activa').value = 'true';
+    }
+
+    async function loadTarifas() {
+        const body = document.getElementById('tarifasBody');
+        const tableStatus = document.getElementById('tableStatus');
+        setStatus(tableStatus, 'Leyendo tarifas...', 'info');
+
+        try {
+            const res = await fetch(API_URL);
+            if (!res.ok) throw new Error('No se pudieron obtener las tarifas.');
+
+            tarifasCache = await res.json();
+
+            if (!tarifasCache.length) {
+                body.innerHTML = '<tr><td colspan="10">No hay tarifas registradas.</td></tr>';
+                setStatus(tableStatus, 'Sin datos de tarifas.', 'info');
+                return;
+            }
+
+            body.innerHTML = tarifasCache.map((t) => `
+                <tr>
+                    <td>${t.id}</td>
+                    <td>${t.tipoDeporte}</td>
+                    <td>${diasMap[t.diaSemana] || t.diaSemana}</td>
+                    <td>${(t.horaInicio || '').substring(0, 5)}</td>
+                    <td>${(t.horaFin || '').substring(0, 5)}</td>
+                    <td>${Number(t.precioPorHora).toFixed(2)} EUR</td>
+                    <td>${t.vigenteDesde || '-'}</td>
+                    <td>${t.vigenteHasta || '-'}</td>
+                    <td>${t.activa ? '<span class="pill pill-on">SI</span>' : '<span class="pill pill-off">NO</span>'}</td>
+                    <td>
+                        <div class="tiny-actions">
+                            <button class="btn-secondary" onclick="editarTarifa(${t.id})">Editar</button>
+                            <button class="btn-danger" onclick="desactivarTarifa(${t.id})">Desactivar</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+
+            setStatus(tableStatus, `Tarifas cargadas: ${tarifasCache.length}`, 'info');
+        } catch (error) {
+            body.innerHTML = '<tr><td colspan="10">Error al cargar tarifas.</td></tr>';
+            setStatus(tableStatus, error.message, 'err');
+        }
+    }
+
+    async function guardarTarifa() {
+        const formStatus = document.getElementById('formStatus');
+        setStatus(formStatus, 'Guardando...', 'info');
+
+        const payload = tarifaPayloadFromForm();
+
+        try {
+            const isEdit = tarifaEnEdicionId !== null;
+            const endpoint = isEdit ? `${API_URL}/${tarifaEnEdicionId}` : API_URL;
+            const method = isEdit ? 'PUT' : 'POST';
+
+            const res = await fetch(endpoint, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const text = await res.text();
+            let body = null;
+            try { body = text ? JSON.parse(text) : null; } catch (_) {}
+
+            if (!res.ok) {
+                throw new Error(body?.error || 'No se pudo guardar la tarifa.');
+            }
+
+            setStatus(formStatus, isEdit ? 'Tarifa actualizada correctamente.' : 'Tarifa creada correctamente.', 'ok');
+            resetForm();
+            await loadTarifas();
+        } catch (error) {
+            setStatus(formStatus, error.message, 'err');
+        }
+    }
+
+    function editarTarifa(id) {
+        const tarifa = tarifasCache.find((t) => t.id === id);
+        if (!tarifa) return;
+
+        tarifaEnEdicionId = id;
+        fillFormFromTarifa(tarifa);
+        document.getElementById('saveBtn').textContent = `Guardar cambios #${id}`;
+        document.getElementById('cancelEditBtn').style.display = 'inline-block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function desactivarTarifa(id) {
+        const ok = window.confirm(`Desactivar tarifa #${id}?`);
+        if (!ok) return;
+
+        const tableStatus = document.getElementById('tableStatus');
+        setStatus(tableStatus, `Desactivando tarifa #${id}...`, 'info');
+
+        try {
+            const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            const text = await res.text();
+            let body = null;
+            try { body = text ? JSON.parse(text) : null; } catch (_) {}
+
+            if (!res.ok) {
+                throw new Error(body?.error || 'No se pudo desactivar la tarifa.');
+            }
+
+            setStatus(tableStatus, `Tarifa #${id} desactivada.`, 'ok');
+            await loadTarifas();
+        } catch (error) {
+            setStatus(tableStatus, error.message, 'err');
+        }
+    }
+
+    document.getElementById('saveBtn').addEventListener('click', guardarTarifa);
+    document.getElementById('clearBtn').addEventListener('click', resetForm);
+    document.getElementById('cancelEditBtn').addEventListener('click', resetForm);
+    document.getElementById('refreshBtn').addEventListener('click', loadTarifas);
+
+    window.editarTarifa = editarTarifa;
+    window.desactivarTarifa = desactivarTarifa;
+
+    resetForm();
+    loadTarifas();
+</script>
+</body>
+</html>
