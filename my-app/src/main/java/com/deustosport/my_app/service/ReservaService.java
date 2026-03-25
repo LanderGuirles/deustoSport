@@ -5,6 +5,7 @@ import com.deustosport.my_app.entity.Pago;
 import com.deustosport.my_app.entity.Pista;
 import com.deustosport.my_app.entity.Reserva;
 import com.deustosport.my_app.entity.Usuario;
+import com.deustosport.my_app.service.EmailService;
 import com.deustosport.my_app.enums.EstadoReserva;
 import com.deustosport.my_app.enums.MetodoPago;
 import com.deustosport.my_app.repository.PistaRepository;
@@ -35,17 +36,20 @@ public class ReservaService {
     private final ReservaRepository  reservaRepository;
     private final PistaRepository    pistaRepository;
     private final UsuarioRepository  usuarioRepository;
+    private final EmailService       emailService;
     private final TarifaService      tarifaService;
     private final PagoService        pagoService;
 
     public ReservaService(ReservaRepository reservaRepository,
                           PistaRepository pistaRepository,
                           UsuarioRepository usuarioRepository,
+                          EmailService emailService,
                           TarifaService tarifaService,
                           @Lazy PagoService pagoService) {
         this.reservaRepository = reservaRepository;
         this.pistaRepository   = pistaRepository;
         this.usuarioRepository = usuarioRepository;
+        this.emailService      = emailService;
         this.tarifaService     = tarifaService;
         this.pagoService       = pagoService;
     }
@@ -144,7 +148,19 @@ public class ReservaService {
         reserva.setFechaPago(pago.getFechaPago());
         reserva.setEstado(EstadoReserva.CONFIRMADA);
 
-        return reservaRepository.save(reserva);
+        Reserva reservaFinal = reservaRepository.save(reserva);
+
+        // Enviar correo de confirmación de reserva
+        emailService.enviarEmailConfirmacionReserva(
+            reservaFinal.getUsuario().getEmail(),
+            reservaFinal.getPista().getNombre(),
+            reservaFinal.getPista().getTipoDeporte().name(),
+            reservaFinal.getFechaReserva(),
+            reservaFinal.getHoraInicio(),
+            reservaFinal.getHoraFin(),
+            reservaFinal.getPrecioTotal());
+
+        return reservaFinal;
     }
 
     // ─── Mis reservas ─────────────────────────────────────────────────────────
