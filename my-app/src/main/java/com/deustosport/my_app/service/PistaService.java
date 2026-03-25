@@ -139,7 +139,7 @@ public class PistaService {
         Objects.requireNonNull(id, "id no puede ser null");
         Pista pistaExistente = pistaRepository.findById(id).orElseThrow(() -> new RuntimeException("No se puede modificar: La pista con ID " + id + " no existe."));
 
-        pistaExistente.setActiva(false);
+        pistaExistente.setActiva(!pistaExistente.isActiva());
 
         Pista pistaGuardada =  pistaRepository.save(pistaExistente);
 

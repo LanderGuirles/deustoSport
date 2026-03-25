@@ -111,8 +111,10 @@
           const rol = (data.rol || '').toString().trim().toUpperCase();
           localStorage.setItem('usuarioRol', rol);
 
-          if (rol === 'SECRETARIA' || rol === 'SECRETARIO') {
+          if (rol === 'SECRETARIA') {
             window.location.href = 'secretaria-panel.html';
+          } if (rol === 'COORDINADOR') {
+            window.location.href = 'coordinador-panel.html';
           } else {
             window.location.href = 'home.html';
           }
