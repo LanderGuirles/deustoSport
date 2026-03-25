@@ -53,7 +53,7 @@ public class TarifaController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Actualizar tarifa")
-    public ResponseEntity<?> actualizarTarifa(@PathVariable Long id, @RequestBody Tarifa tarifa) {
+    public ResponseEntity<?> actualizarTarifa(@PathVariable("id") Long id, @RequestBody Tarifa tarifa) {
         try {
             return ResponseEntity.ok(tarifaService.actualizarTarifa(id, tarifa));
         } catch (Exception e) {
@@ -63,7 +63,7 @@ public class TarifaController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Desactivar tarifa", description = "Marca la tarifa como inactiva sin borrarla")
-    public ResponseEntity<?> desactivarTarifa(@PathVariable Long id) {
+    public ResponseEntity<?> desactivarTarifa(@PathVariable("id") Long id) {
         try {
             tarifaService.desactivarTarifa(id);
             return ResponseEntity.ok(Map.of("mensaje", "Tarifa desactivada correctamente"));

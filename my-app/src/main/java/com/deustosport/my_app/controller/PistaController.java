@@ -64,7 +64,7 @@ public class PistaController {
 
     @PutMapping("/{pistaId}")
     @io.swagger.v3.oas.annotations.Operation(summary = "Actualizar pistas", description = "Permite modificar los datos de las pistas")
-    public ResponseEntity<?> actualizarPista(@PathVariable Long pistaId, @RequestBody PistaRequest pistaRequestDTO ) {
+    public ResponseEntity<?> actualizarPista(@PathVariable("pistaId") Long pistaId, @RequestBody PistaRequest pistaRequestDTO ) {
         
         try {
             PistaResponse pistaActualizada = pistaService.actualizarPista(pistaId, pistaRequestDTO);
@@ -77,7 +77,7 @@ public class PistaController {
 
     @DeleteMapping("/{pistaId}")
     @io.swagger.v3.oas.annotations.Operation(summary = "Eliminar pista", description = "Elimina la pista de la base de datos")
-    public ResponseEntity<?> eliminarPista(@PathVariable Long pistaId) {
+    public ResponseEntity<?> eliminarPista(@PathVariable("pistaId") Long pistaId) {
         try {
             pistaService.eliminarPista(pistaId);
             return ResponseEntity.ok("La pista con id: " + pistaId + " ha sido eliminada correctamente.");
@@ -88,7 +88,7 @@ public class PistaController {
 
     @PatchMapping("/{pistaId}/bloquear")
     @io.swagger.v3.oas.annotations.Operation(summary = "Bloquear pista", description = "Bloquea la pista cambiando su estado")
-    public ResponseEntity<?> bloquearPista(@PathVariable Long pistaId) {
+    public ResponseEntity<?> bloquearPista(@PathVariable("pistaId") Long pistaId) {
         try {
             PistaResponse pistaBloqueada = pistaService.bloquearPista(pistaId);
             return ResponseEntity.ok(pistaBloqueada);

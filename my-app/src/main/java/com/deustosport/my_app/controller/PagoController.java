@@ -35,7 +35,7 @@ public class PagoController {
 
     @GetMapping("/reserva/{reservaId}")
     @Operation(summary = "Consultar pago de una reserva")
-    public ResponseEntity<?> consultarPago(@PathVariable Long reservaId) {
+    public ResponseEntity<?> consultarPago(@PathVariable("reservaId") Long reservaId) {
         try {
             PagoResponse pagoResponseDto = pagoService.obtenerPagoPorReserva(reservaId);
 

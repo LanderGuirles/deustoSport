@@ -58,14 +58,14 @@ public class ReservaController {
 
     @GetMapping("/usuario/{usuarioId}")
     @Operation(summary = "Obtener mis reservas", description = "Devuelve el historial de reservas de un usuario")
-    public ResponseEntity<List<ReservaResponse>> obtenerMisReservas(@PathVariable Long usuarioId) {
+    public ResponseEntity<List<ReservaResponse>> obtenerMisReservas(@PathVariable("usuarioId") Long usuarioId) {
         List<ReservaResponse> reservas = reservaService.obtenerMisReservas(usuarioId);
         return ResponseEntity.ok(reservas);
     }
 
     @PostMapping("/{reservaId}/cancelar")
     @Operation(summary = "Cancelar reserva")
-    public ResponseEntity<?> cancelarReserva(@PathVariable Long reservaId, @RequestParam Long usuarioId) {
+    public ResponseEntity<?> cancelarReserva(@PathVariable("reservaId") Long reservaId, @RequestParam("usuarioId") Long usuarioId) {
         try {
             Reserva reservaCancelada = reservaService.cancelarReserva(reservaId, usuarioId);
             return ResponseEntity.ok(reservaCancelada);
@@ -76,7 +76,7 @@ public class ReservaController {
 
     @PostMapping("/{reservaId}/pagar")
     @Operation(summary = "Pagar reserva", description = "Paga con TARJETA, BIZUM o TRANSFERENCIA. TRANSFERENCIA requiere IBAN.")
-    public ResponseEntity<?> pagarReserva(@PathVariable Long reservaId,
+    public ResponseEntity<?> pagarReserva(@PathVariable("reservaId") Long reservaId,
             @RequestBody PagoReservaRequest request) {
         try {
             if (request.getUsuarioId() == null || request.getMetodoPago() == null) {
@@ -111,9 +111,9 @@ public class ReservaController {
 
     @GetMapping("/disponibilidad")
     @Operation(summary = "Consultar disponibilidad")
-    public ResponseEntity<?> consultarDisponibilidad(@RequestParam Long pistaId,
-            @RequestParam String fecha, @RequestParam String horaInicio,
-            @RequestParam(defaultValue = "60") Integer duracionMinutos) {
+    public ResponseEntity<?> consultarDisponibilidad(@RequestParam("pistaId") Long pistaId,
+            @RequestParam("fecha") String fecha, @RequestParam("horaInicio") String horaInicio,
+            @RequestParam(name = "duracionMinutos", defaultValue = "60") Integer duracionMinutos) {
         try {
             boolean disponible = reservaService.consultarDisponibilidad(pistaId,
                     LocalDate.parse(fecha), LocalTime.parse(horaInicio),
