@@ -259,10 +259,10 @@
 
   <div class="container">
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('tarifas',this)">📋 Tarifas</button>
-      <button class="tab-btn" onclick="switchTab('pistas',this)">🏟️ Reservar</button>
+      <button class="tab-btn active" onclick="switchTab('tarifas',this)">Tarifas</button>
+      <button class="tab-btn" onclick="switchTab('pistas',this)">Reservar</button>
       <button class="tab-btn" id="tab-misreservas-btn"
-              onclick="switchTab('misreservas',this)">📅 Mis Reservas</button>
+              onclick="switchTab('misreservas',this)">Mis Reservas</button>
     </div>
 
     <!-- ── TAB TARIFAS ── -->
@@ -275,7 +275,7 @@
       </div>
       <div id="tarifas-container">
         <div class="empty">
-          <div class="icon">📋</div>
+          <div class="icon"></div>
           <p>Selecciona una pista para ver sus tarifas</p>
         </div>
       </div>
@@ -345,13 +345,13 @@
       </div>
       <div class="metodo-grid">
         <button class="metodo-btn" onclick="selectMetodoCal('TARJETA',this)">
-          <span class="metodo-icon">💳</span>Tarjeta
+          <span class="metodo-icon"></span>Tarjeta
         </button>
         <button class="metodo-btn" onclick="selectMetodoCal('BIZUM',this)">
-          <span class="metodo-icon">📱</span>Bizum
+          <span class="metodo-icon"></span>Bizum
         </button>
         <button class="metodo-btn" onclick="selectMetodoCal('TRANSFERENCIA',this)">
-          <span class="metodo-icon">🏦</span>Transferencia
+          <span class="metodo-icon"></span>Transferencia
         </button>
       </div>
       <div class="pago-fields" id="cal-f-TARJETA">
@@ -496,8 +496,8 @@
 			        <div class="pista-sport-tag ${sportClass(p.tipoDeporte)}">${p.tipoDeporte}</div>
 			        <div class="pista-name">${p.nombre}</div>
 			        <div class="pista-meta">
-			          🏢 ${p.instalacionNombre || '—'} &nbsp;|&nbsp;
-			          👥 Max <span>${p.maxJugadores}</span> jugadores
+			          ${p.instalacionNombre || '—'} &nbsp;|&nbsp;
+			          Max <span>${p.maxJugadores}</span> jugadores
 			        </div>
 			        <button class="btn-reservar" onclick="abrirCalendario(${p.id})">
 			          Ver disponibilidad y reservar →
@@ -505,7 +505,7 @@
 			      </div>`).join('');
 			  } catch {
 			    container.innerHTML =
-			      '<div class="empty"><div class="icon">⚠️</div><p>Error al cargar pistas.</p></div>';
+			      '<div class="empty"><div class="icon"></div><p>Error al cargar pistas.</p></div>';
 			  }
 			}
 
@@ -516,7 +516,7 @@
 			  const container = document.getElementById('tarifas-container');
 			  if (!pistaId) {
 			    container.innerHTML =
-			      '<div class="empty"><div class="icon">📋</div><p>Selecciona una pista para ver sus tarifas</p></div>';
+			      '<div class="empty"><div class="icon"></div><p>Selecciona una pista para ver sus tarifas</p></div>';
 			    return;
 			  }
 			  container.innerHTML = '<div class="empty"><div class="spinner"></div></div>';
@@ -526,7 +526,7 @@
 
 			    if (!tarifas.length) {
 			      container.innerHTML =
-			        '<div class="empty"><div class="icon">📋</div><p>No hay tarifas configuradas para esta pista</p></div>';
+			        '<div class="empty"><div class="icon"></div><p>No hay tarifas configuradas para esta pista</p></div>';
 			      return;
 			    }
 
@@ -546,8 +546,8 @@
 			            ${lista.map(t => `
 			              <div class="tarifa-card">
 			                <span class="tarifa-badge ${tipo}">${tipo}</span>
-			                <div class="tarifa-horario">⏰ ${t.horaInicio.substring(0,5)} – ${t.horaFin.substring(0,5)}</div>
-			                <div class="tarifa-horario">📅 ${dias[t.diaSemana]}</div>
+			                <div class="tarifa-horario">${t.horaInicio.substring(0,5)} – ${t.horaFin.substring(0,5)}</div>
+			                <div class="tarifa-horario">${dias[t.diaSemana]}</div>
 			                <div class="tarifa-precio">${fmtEur(t.precioPorHora)} <span>/ hora</span></div>
 			              </div>`).join('')}
 			          </div>
@@ -561,7 +561,7 @@
 
 			  } catch {
 			    container.innerHTML =
-			      '<div class="empty"><div class="icon">⚠️</div><p>Error al cargar tarifas.</p></div>';
+			      '<div class="empty"><div class="icon"></div><p>Error al cargar tarifas.</p></div>';
 			  }
 			}
 
@@ -876,9 +876,9 @@
 			              <span style="font-size:12px;color:var(--muted);font-weight:400">${r.tipoDeporte || ''}</span>
 			            </div>
 			            <div class="reserva-meta">
-			              📅 ${fmtFecha(r.fechaReserva)} &nbsp;
-			              ⏰ ${r.horaInicio?.substring(0,5) || '—'} – ${r.horaFin?.substring(0,5) || '—'} &nbsp;
-			              💶 ${fmtEur(r.precioTotal)}
+			              ${fmtFecha(r.fechaReserva)} &nbsp;
+			              ${r.horaInicio?.substring(0,5) || '—'} – ${r.horaFin?.substring(0,5) || '—'} &nbsp;
+			              ${fmtEur(r.precioTotal)}
 			              ${r.metodoPago ? '&nbsp;💳 ' + r.metodoPago : ''}
 			              ${r.referenciaPago ? '&nbsp;🔖 ' + r.referenciaPago : ''}
 			            </div>
