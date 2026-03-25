@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Coordinador - Gestión de Pistas</title>
+    <script>
+        // --- SEGURIDAD DE ACCESO ---
+        const currentUserId = localStorage.getItem('usuarioId');
+        const currentUserRol = (localStorage.getItem('usuarioRol') || '').trim().toUpperCase();
+        const allowedRol = 'COORDINADOR';
+
+        if (!currentUserId || currentUserRol !== allowedRol) {
+            console.error("Acceso denegado. Se requiere rol COORDINADOR.");
+            window.location.replace('login.html');
+        }
+    </script>
+    <style>
+        /* ESTILOS VISUALES */
+        :root {
+            --bg: #f4f7fb;
+            --card: #ffffff;
+            --ink: #1d2939;
+            --muted: #667085;
+            --brand: #0b7a75;
+            --brand-soft: #dff3f1;
+            --danger: #b42318;
+            --line: #e4e7ec;
+            --success: #027a48;
+            --warning: #b54708;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at 0% 0%, #edf8f7 0%, var(--bg) 48%);
+            color: var(--ink);
+        }
+
+        .layout { max-width: 1200px; margin: 36px auto; padding: 0 16px; }
+
+        .header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 24px; }
+        .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .session-user { font-size: 14px; color: var(--muted); }
+        h1 { margin: 0; font-size: 30px; letter-spacing: 0.3px; }
+        h2 { font-size: 18px; margin-top: 0; margin-bottom: 16px; color: var(--ink); }
+        .subtitle { margin-top: 8px; color: var(--muted); }
+
+        .card {
+            background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+            padding: 24px; box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06); margin-bottom: 24px;
+        }
+
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
+        .form-grid.single-col { grid-template-columns: 1fr; } /* Para el modal */
+        
+        .field label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; }
+        .field input, .field select {
+            width: 100%; border: 1px solid var(--line); border-radius: 10px;
+            padding: 10px 12px; font-size: 14px; font-family: inherit;
+        }
+        .field input:focus, .field select:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
+
+        .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+
+        button { border: none; border-radius: 10px; padding: 10px 18px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; }
+        .btn-primary { background: var(--brand); color: #fff; }
+        .btn-primary:hover { background: #096662; }
+        .btn-secondary { background: var(--brand-soft); color: #065f5b; }
+        .btn-secondary:hover { background: #ccebe8; }
+        .btn-danger { background: #fff; color: var(--danger); border: 1px solid #f4c7c3; }
+        .btn-danger:hover { background: #fff7f6; }
+        .btn-logout { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+        .btn-logout:hover { color: var(--danger); border-color: #f4c7c3; background: #fff7f6; }
+
+        .status { margin-top: 12px; font-size: 14px; color: var(--muted); min-height: 20px; padding: 10px; border-radius: 8px; display: none; }
+        .status.error { display: block; background: #fff7f6; color: var(--danger); border: 1px solid #f4c7c3; }
+        .status.success { display: block; background: #edfcf6; color: var(--success); border: 1px solid #abefc6; }
+        .status.loading { display: block; background: #f9fafb; color: var(--muted); border: 1px solid var(--line); }
+
+        .grid-container { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th, td { text-align: left; padding: 16px; border-bottom: 1px solid var(--line); font-size: 14px; vertical-align: middle; }
+        th { background: #f8fafc; color: #344054; font-weight: 700; text-transform: uppercase; font-size: 12px; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: #f9fafb; }
+
+        .action-cell { display: flex; gap: 8px; flex-wrap: wrap; }
+        .badge { font-weight: 600; font-size: 12px; padding: 4px 10px; border-radius: 16px; display: inline-block; }
+        .badge-disponible { background: #edfcf6; color: var(--success); }
+        .badge-bloqueada { background: #fffcf0; color: var(--warning); }
+
+        /* ESTILOS DE LA VENTANA MODAL (EDICIÓN) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(16, 24, 40, 0.6);
+            display: none; align-items: center; justify-content: center; z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+        .modal-card {
+            background: var(--card); border-radius: 16px; padding: 24px;
+            width: 100%; max-width: 450px; box-shadow: 0 20px 24px -4px rgba(16, 24, 40, 0.1);
+            max-height: 90vh; overflow-y: auto;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 24px; }
+            .header { flex-direction: column; align-items: flex-start; }
+            .card { padding: 16px; }
+            .form-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="layout">
+    <div class="header">
+        <div>
+            <h1>Panel de Coordinación</h1>
+            <p class="subtitle">Configuración y gestión de pistas deportivas del centro.</p>
+        </div>
+        <div class="header-actions">
+            <span class="session-user">Coordinador: <strong id="sessionUser">-</strong></span>
+            <button class="btn-logout" id="cerrarSesionBtn">Cerrar sesión</button>
+        </div>
+    </div>
+
+    <section class="card">
+        <h2>Añadir Nueva Pista</h2>
+        <form id="crearPistaForm">
+            <div class="form-grid">
+                <div class="field">
+                    <label>Nombre de la pista</label>
+                    <input id="nombrePista" type="text" placeholder="Ej: Pista de Pádel 1" required>
+                </div>
+                <div class="field">
+                    <label>Deporte</label>
+                    <select id="tipoDeporte" required>
+                        <option value="" disabled selected>Selecciona deporte</option>
+                        <option value="PADEL">Pádel</option>
+                        <option value="TENIS">Tenis</option>
+                        <option value="FUTBOL">Fútbol</option>
+                        <option value="BALONCESTO">Baloncesto</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Máx. Jugadores</label>
+                    <input id="maxJugadores" type="number" min="1" placeholder="Ej: 4" required>
+                </div>
+                <div class="field">
+                    <label>ID Instalación</label>
+                    <input id="instalacionId" type="number" placeholder="Ej: 1" required>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="reset" class="btn-secondary">Limpiar</button>
+                <button type="submit" class="btn-primary" id="btnGuardar">Guardar Pista</button>
+            </div>
+        </form>
+        <div class="status" id="formStatus"></div>
+    </section>
+
+    <section class="card">
+        <h2>Pistas Existentes</h2>
+        <div class="status loading" id="tablaStatus">Cargando pistas...</div>
+        <div class="grid-container">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Deporte</th>
+                    <th>Máx. Jug</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody id="pistasBody"></tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<div id="modalEdicion" class="modal-overlay">
+    <div class="modal-card">
+        <h2>Modificar Pista <span id="modalPistaIdDisplay" style="color:var(--brand);"></span></h2>
+        <form id="editarPistaForm">
+            <input type="hidden" id="editPistaId">
+            <input type="hidden" id="editOriginalActiva"> <input type="hidden" id="editInstalacionId"> <div class="form-grid single-col">
+                <div class="field">
+                    <label>Nombre de la pista</label>
+                    <input id="editNombre" type="text" required>
+                </div>
+                <div class="field">
+                    <label>Deporte</label>
+                    <select id="editDeporte" required>
+                        <option value="PADEL">Pádel</option>
+                        <option value="TENIS">Tenis</option>
+                        <option value="FUTBOL">Fútbol</option>
+                        <option value="BALONCESTO">Baloncesto</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Máx. Jugadores (Usuarios)</label>
+                    <input id="editMaxJugadores" type="number" min="1" required>
+                </div>
+                <div class="field">
+                    <label>Estado de la pista</label>
+                    <select id="editEstado" required>
+                        <option value="true">Disponible (Activa)</option>
+                        <option value="false">Bloqueada (Inactiva)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="status" id="modalStatus"></div>
+
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
+                <button type="submit" class="btn-primary" id="btnActualizar">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const API_URL = "http://localhost:8080/api/pistas";
+    
+    // Configuración inicial de usuario
+    document.getElementById("sessionUser").textContent = localStorage.getItem("usuarioNombre") || "Coordinador";
+    document.getElementById("cerrarSesionBtn").addEventListener("click", () => {
+        localStorage.clear();
+        window.location.href = "login.html";
+    });
+
+    const formStatusEl = document.getElementById("formStatus");
+    const tablaStatusEl = document.getElementById("tablaStatus");
+    const pistasBodyEl = document.getElementById("pistasBody");
+    const crearForm = document.getElementById("crearPistaForm");
+
+    function showStatus(element, text, type) {
+        element.textContent = text;
+        element.className = `status ${type}`;
+        element.style.display = text ? "block" : "none";
+    }
+
+    // ==========================================
+    // 1. CARGAR PISTAS (GET)
+    // ==========================================
+    async function cargarPistas() {
+        showStatus(tablaStatusEl, "Cargando...", "loading");
+        try {
+            const response = await fetch(API_URL);
+            if (!response.ok) throw new Error("Error al obtener las pistas.");
+            const pistas = await response.json();
+
+            if (pistas.length === 0) {
+                pistasBodyEl.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay pistas configuradas.</td></tr>';
+                showStatus(tablaStatusEl, "", "");
+                return;
+            }
+
+            pistasBodyEl.innerHTML = pistas.map(pista => {
+                const estaActiva = pista.activa === true;
+                const estadoBadge = estaActiva 
+                    ? '<span class="badge badge-disponible">Disponible</span>'
+                    : '<span class="badge badge-bloqueada">Bloqueada</span>';
+                
+                const textoBloqueo = estaActiva ? "Bloquear" : "Desbloquear";
+                const nombreEscapado = pista.nombre.replace(/'/g, "\\'");
+                
+                // ORDEN DE BOTONES: Bloquear/Desbloquear -> Modificar -> Eliminar
+                return `
+                    <tr>
+                        <td><strong>${pista.id}</strong></td>
+                        <td>${pista.nombre}</td>
+                        <td>${pista.tipoDeporte}</td>
+                        <td>${pista.maxJugadores}</td>
+                        <td>${estadoBadge}</td>
+                        <td>
+                            <div class="action-cell">
+                                <button class="btn-secondary" onclick="alternarBloqueoPista(${pista.id})">
+                                    ${textoBloqueo}
+                                </button>
+                                <button class="btn-primary" onclick="abrirModalEdicion(${pista.id}, '${nombreEscapado}', '${pista.tipoDeporte}', ${pista.maxJugadores}, ${estaActiva})">
+                                    Modificar
+                                </button>
+                                <button class="btn-danger" onclick="confirmarEliminarPista(${pista.id}, '${nombreEscapado}')">
+                                    Eliminar
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+            showStatus(tablaStatusEl, "", "");
+        } catch (error) {
+            showStatus(tablaStatusEl, error.message, "error");
+        }
+    }
+
+    // ==========================================
+    // 2. CREAR PISTA (POST)
+    // ==========================================
+    crearForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        showStatus(formStatusEl, "Guardando...", "loading");
+        document.getElementById("btnGuardar").disabled = true;
+
+        const pistaData = {
+            nombre: document.getElementById("nombrePista").value,
+            tipoDeporte: document.getElementById("tipoDeporte").value,
+            maxJugadores: parseInt(document.getElementById("maxJugadores").value),
+            instalacionId: parseInt(document.getElementById("instalacionId").value)
+        };
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(pistaData)
+            });
+            if (!response.ok) throw new Error(await response.text() || "Error al crear.");
+
+            showStatus(formStatusEl, "Pista creada.", "success");
+            crearForm.reset();
+            cargarPistas();
+            setTimeout(() => showStatus(formStatusEl, "", ""), 3000);
+        } catch (error) {
+            showStatus(formStatusEl, error.message, "error");
+        } finally {
+            document.getElementById("btnGuardar").disabled = false;
+        }
+    });
+
+    // ==========================================
+    // 3. BLOQUEO / DESBLOQUEO RÁPIDO (PATCH)
+    // ==========================================
+    async function alternarBloqueoPista(id) {
+        showStatus(tablaStatusEl, `Actualizando estado...`, "loading");
+        try {
+            const response = await fetch(`${API_URL}/${id}/bloquear`, { method: 'PATCH' });
+            if (!response.ok) throw new Error("No se pudo cambiar el estado.");
+            cargarPistas();
+        } catch (error) {
+            alert(error.message);
+            showStatus(tablaStatusEl, "", "");
+        }
+    }
+
+    // ==========================================
+    // 4. ELIMINAR (DELETE)
+    // ==========================================
+    function confirmarEliminarPista(id, nombre) {
+        if (confirm(`¿Eliminar la pista "${nombre}" (ID: ${id})?\nEsta acción no se puede deshacer.`)) {
+            eliminarPista(id);
+        }
+    }
+
+    async function eliminarPista(id) {
+        showStatus(tablaStatusEl, `Eliminando...`, "loading");
+        try {
+            const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            if (!response.ok) throw new Error("No se pudo eliminar.");
+            cargarPistas();
+        } catch (error) {
+            alert(error.message);
+            showStatus(tablaStatusEl, "", "");
+        }
+    }
+
+    // ==========================================
+    // 5. VENTANA MODAL (MODIFICAR - PUT/PATCH)
+    // ==========================================
+    const modalEl = document.getElementById("modalEdicion");
+    const modalStatus = document.getElementById("modalStatus");
+    const editarPistaForm = document.getElementById("editarPistaForm");
+
+    function abrirModalEdicion(id, nombre, deporte, maxJugadores, activa) {
+        // Rellenar datos en la modal
+        document.getElementById("editPistaId").value = id;
+        document.getElementById("modalPistaIdDisplay").textContent = `#${id}`;
+        document.getElementById("editNombre").value = nombre;
+        document.getElementById("editDeporte").value = deporte;
+        document.getElementById("editMaxJugadores").value = maxJugadores;
+        document.getElementById("editEstado").value = activa ? "true" : "false";
+        document.getElementById("editOriginalActiva").value = activa ? "true" : "false";
+        
+        // Asignamos Instalación 1 por defecto para el PUT ya que la API lo suele pedir
+        document.getElementById("editInstalacionId").value = 1; 
+
+        showStatus(modalStatus, "", ""); // Limpiar errores previos
+        modalEl.style.display = "flex"; // Mostrar modal
+    }
+
+    function cerrarModal() {
+        modalEl.style.display = "none";
+    }
+
+    editarPistaForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        showStatus(modalStatus, "Guardando cambios...", "loading");
+        document.getElementById("btnActualizar").disabled = true;
+
+        const id = document.getElementById("editPistaId").value;
+        const estadoSeleccionado = document.getElementById("editEstado").value;
+        const estadoOriginal = document.getElementById("editOriginalActiva").value;
+
+        // Datos para el PUT
+        const pistaModificada = {
+            nombre: document.getElementById("editNombre").value,
+            tipoDeporte: document.getElementById("editDeporte").value,
+            maxJugadores: parseInt(document.getElementById("editMaxJugadores").value),
+            instalacionId: parseInt(document.getElementById("editInstalacionId").value)
+        };
+
+        try {
+            // 1. Ejecutar el PUT (Nombre, deporte, aforo)
+            const responsePut = await fetch(`${API_URL}/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(pistaModificada)
+            });
+            if (!responsePut.ok) throw new Error(await responsePut.text() || "Error al actualizar datos.");
+
+            // 2. Ejecutar PATCH si el coordinador cambió el estado (Disponible/Bloqueada) en la modal
+            if (estadoSeleccionado !== estadoOriginal) {
+                const responsePatch = await fetch(`${API_URL}/${id}/bloquear`, { method: 'PATCH' });
+                if (!responsePatch.ok) throw new Error("Los datos se guardaron, pero falló el cambio de estado.");
+            }
+
+            // Éxito total
+            cerrarModal();
+            cargarPistas();
+        } catch (error) {
+            showStatus(modalStatus, error.message, "error");
+        } finally {
+            document.getElementById("btnActualizar").disabled = false;
+        }
+    });
+
+    // Cerrar modal si el usuario hace click fuera de la tarjeta blanca
+    modalEl.addEventListener("click", (e) => {
+        if (e.target === modalEl) cerrarModal();
+    });
+
+    // --- CARGA INICIAL ---
+    window.alternarBloqueoPista = alternarBloqueoPista;
+    window.confirmarEliminarPista = confirmarEliminarPista;
+    window.abrirModalEdicion = abrirModalEdicion;
+
+    cargarPistas();
+</script>
+</body>
+</html>

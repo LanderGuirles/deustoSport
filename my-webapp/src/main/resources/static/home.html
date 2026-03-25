@@ -8,7 +8,9 @@
   
   <script>
     const currentUserId = localStorage.getItem('usuarioId');
-    if (!currentUserId) {
+    const currentUserRol = (localStorage.getItem('usuarioRol') || '').trim().toUpperCase();
+    const allowedHomeRoles = ['CLIENTE', 'USUARIO'];
+    if (!currentUserId || !allowedHomeRoles.includes(currentUserRol)) {
         window.location.replace('login.html');
     }
   </script>
