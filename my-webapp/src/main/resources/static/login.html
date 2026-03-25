@@ -8,10 +8,13 @@
     /* Estilos del login extraídos de tu código original */
     :root { --bg: #0d1117; --surface: #161b22; --surface2: #1e242e; --border: #30363d; --accent: #00e5a0; --accent2: #00b37e; --text: #e6edf3; --muted: #7d8590; }
     * { box-sizing: border-box; font-family: 'DM Sans', sans-serif; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,229,160,0.08) 0%, transparent 70%); }
+    body { color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 96px 20px 20px; background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,229,160,0.08) 0%, transparent 70%), var(--bg); }
     
-    .logo { position: absolute; top: 20px; left: 32px; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; color: var(--accent); cursor: pointer;}
-    .logo span { color: var(--text); }
+    .topbar { position: fixed; top: 0; left: 0; right: 0; height: 74px; border-bottom: 1px solid var(--border); background: rgba(13,17,23,0.95); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; z-index: 10; }
+    .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; color: var(--accent); letter-spacing: -0.5px; cursor: pointer;}
+    .logo span { color: var(--text); font-family: 'Syne', sans-serif; font-weight: 800; letter-spacing: -0.5px; }
+    .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all .2s; }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
     
     .login-card { width: 100%; max-width: 400px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 40px 36px; }
     .login-card h1 { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; margin-bottom: 6px; }
@@ -26,8 +29,10 @@
   </style>
 </head>
 <body>
-
-  <div class="logo" onclick="window.location.href='index.html'">Deusto<span>Sport</span></div>
+  <nav class="topbar">
+    <div class="logo" onclick="window.location.href='index.html'">Deusto<span>Sport</span></div>
+    <button class="btn-ghost" onclick="window.location.href='index.html'">Volver al inicio</button>
+  </nav>
 
   <div class="login-card">
     <h1>Bienvenido 👋</h1>

@@ -27,13 +27,13 @@ public class SecretariaController {
     @GetMapping("/usuarios")
     @Operation(summary = "Buscar usuarios", description = "Permite buscar usuarios por DNI")
     public ResponseEntity<List<SecretariaUsuarioResumenDto>> buscarUsuarios(
-            @RequestParam(required = false) String dni) {
+            @RequestParam(name = "dni", required = false) String dni) {
         return ResponseEntity.ok(secretariaService.buscarUsuarios(dni));
     }
 
     @GetMapping("/usuarios/{usuarioId}/reservas")
     @Operation(summary = "Consultar reservas de usuario", description = "Devuelve las reservas de un usuario para atención en secretaría")
-    public ResponseEntity<List<SecretariaReservaResumenDto>> consultarReservasUsuario(@PathVariable Long usuarioId) {
+    public ResponseEntity<List<SecretariaReservaResumenDto>> consultarReservasUsuario(@PathVariable("usuarioId") Long usuarioId) {
         return ResponseEntity.ok(secretariaService.obtenerReservasPorUsuario(usuarioId));
     }
 }
