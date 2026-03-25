@@ -1,7 +1,13 @@
 package com.deustosport.my_app.entity;
 
+
+
+import com.deustosport.my_app.enums.Rol;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -32,6 +38,10 @@ public class Usuario {
 
     @Column(name = "es_socio", nullable = false)
     private boolean esSocio = false;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private Rol rol;
 
     public Usuario() {
     }
@@ -73,4 +83,8 @@ public class Usuario {
 
     public boolean isEsSocio() { return esSocio; }
     public void setEsSocio(boolean esSocio) { this.esSocio = esSocio; }
+
+  
+    public Rol getRol() { return rol; }
+    public void setRol(Rol rol) { this.rol = rol; }
 }

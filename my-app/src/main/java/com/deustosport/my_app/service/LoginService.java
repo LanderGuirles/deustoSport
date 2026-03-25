@@ -6,6 +6,7 @@ import com.deustosport.my_app.dto.LoginResponse;
 import com.deustosport.my_app.dto.RegistroRequest;
 import com.deustosport.my_app.entity.Credencial;
 import com.deustosport.my_app.entity.Usuario;
+import com.deustosport.my_app.enums.Rol;
 import com.deustosport.my_app.repository.CredencialRepository;
 import com.deustosport.my_app.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,37 +30,34 @@ public class LoginService {
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    /**
-     * Registra un nuevo usuario
-     */
     @Transactional
     public LoginResponse registrarUsuario(RegistroRequest solicitud) {
-        // Verificar si el email ya existe
         String email = solicitud.getEmail().trim().toLowerCase();
         String dni = solicitud.getDni().trim().toUpperCase();
 
         if (usuarioRepository.existsByEmail(email)) {
-            return new LoginResponse(null, null, solicitud.getEmail(),
+            return new LoginResponse(null, null, solicitud.getEmail(), null,
                     "El email ya está registrado", false);
         }
 
         if (usuarioRepository.existsByDni(dni)) {
-            return new LoginResponse(null, null, solicitud.getEmail(),
+            return new LoginResponse(null, null, solicitud.getEmail(), null,
                     "El DNI ya está registrado", false);
         }
 
         try {
-            // Crear nuevo usuario
             Usuario nuevoUsuario = new Usuario();
             nuevoUsuario.setNombreCompleto(solicitud.getNombreCompleto().trim());
             nuevoUsuario.setEmail(email);
             nuevoUsuario.setDni(dni);
             nuevoUsuario.setTelefono(solicitud.getTelefono() != null ? solicitud.getTelefono().trim() : null);
             nuevoUsuario.setActivo(true);
+            
+            // --- SEGURIDAD: FORZAMOS EL ROL A CLIENTE ---
+            nuevoUsuario.setRol(Rol.CLIENTE);
 
             Usuario usuarioGuardado = usuarioRepository.save(nuevoUsuario);
 
-            // Crear credenciales
             Credencial credencial = new Credencial();
             credencial.setUsuario(usuarioGuardado);
             credencial.setPasswordHash(passwordEncoder.encode(solicitud.getPassword()));
@@ -67,92 +65,76 @@ public class LoginService {
             credencial.setFechaCreacion(LocalDateTime.now());
             credencialRepository.save(credencial);
 
-            return new LoginResponse(usuarioGuardado.getId(), usuarioGuardado.getNombreCompleto(),
-                    usuarioGuardado.getEmail(), "Usuario registrado exitosamente", true);
+            // Devolvemos el rol en la respuesta exitosa
+                return new LoginResponse(usuarioGuardado.getId(), usuarioGuardado.getNombreCompleto(),
+                    usuarioGuardado.getEmail(), toRolString(usuarioGuardado.getRol()), "Usuario registrado exitosamente", true);
         } catch (Exception e) {
-            return new LoginResponse(null, null, solicitud.getEmail(),
+            return new LoginResponse(null, null, solicitud.getEmail(), null,
                     "Error al registrar usuario: " + e.getMessage(), false);
         }
     }
 
-    /**
-     * Inicia sesión con email y contraseña
-     */
     @Transactional
     public LoginResponse iniciarSesion(LoginRequest solicitud) {
         Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(solicitud.getEmail());
 
         if (usuarioOpt.isEmpty()) {
-            return new LoginResponse(null, null, solicitud.getEmail(),
+            return new LoginResponse(null, null, solicitud.getEmail(), null,
                     "Email o contraseña incorrectos", false);
         }
 
         Usuario usuario = usuarioOpt.get();
 
         if (!usuario.isActivo()) {
-            return new LoginResponse(null, null, solicitud.getEmail(),
+            return new LoginResponse(null, null, solicitud.getEmail(), null,
                     "Usuario inactivo", false);
         }
 
         Optional<Credencial> credencialOpt = credencialRepository.findByUsuarioId(usuario.getId());
 
         if (credencialOpt.isEmpty() || !credencialOpt.get().isActivo()) {
-            return new LoginResponse(null, null, solicitud.getEmail(),
+            return new LoginResponse(null, null, solicitud.getEmail(), null,
                     "Credenciales no válidas", false);
         }
 
         Credencial credencial = credencialOpt.get();
 
-        // Verificar contraseña
         if (!passwordEncoder.matches(solicitud.getPassword(), credencial.getPasswordHash())) {
-            return new LoginResponse(null, null, solicitud.getEmail(),
+            return new LoginResponse(null, null, solicitud.getEmail(), null,
                     "Email o contraseña incorrectos", false);
         }
 
-        // Actualizar último acceso
         credencial.setUltimoAcceso(LocalDateTime.now());
         credencialRepository.save(credencial);
 
+        // Pasamos el rol en el login exitoso
         return new LoginResponse(usuario.getId(), usuario.getNombreCompleto(),
-                usuario.getEmail(), "Sesión iniciada exitosamente", true);
+            usuario.getEmail(), toRolString(usuario.getRol()), "Sesión iniciada exitosamente", true);
     }
 
-    /**
-     * Cierra la sesión del usuario (registra tiempo de cierre)
-     */
     @Transactional
     public LoginResponse cerrarSesion(Long usuarioId) {
         Objects.requireNonNull(usuarioId, "usuarioId no puede ser null");
         Optional<Usuario> usuarioOpt = usuarioRepository.findById(usuarioId);
 
         if (usuarioOpt.isEmpty()) {
-            return new LoginResponse(null, null, null,
+            return new LoginResponse(null, null, null, null,
                     "Usuario no encontrado", false);
         }
 
         Usuario usuario = usuarioOpt.get();
-
-        Optional<Credencial> credencialOpt = credencialRepository.findByUsuarioId(usuarioId);
-        if (credencialOpt.isPresent()) {
-            // Aquí podrías guardar el tiempo de cierre si tienes un campo para ello
-            // credencialOpt.get().setUltimoCierre(LocalDateTime.now());
-            // credencialRepository.save(credencialOpt.get());
-        }
+        // Lógica de credencial (omitida como en tu original)
 
         return new LoginResponse(usuario.getId(), usuario.getNombreCompleto(),
-                usuario.getEmail(), "Sesión cerrada exitosamente", true);
+            usuario.getEmail(), toRolString(usuario.getRol()), "Sesión cerrada exitosamente", true);
     }
 
-    /**
-     * Solicita recuperación de contraseña generando un token
-     */
     @Transactional
     public LoginResponse solicitarRecuperacion(String email) {
         Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
 
         if (usuarioOpt.isEmpty()) {
-            // Por seguridad, no revelamos si el email existe
-            return new LoginResponse(null, null, email,
+            return new LoginResponse(null, null, email, null,
                     "Si el email existe, recibirá instrucciones de recuperación", true);
         }
 
@@ -160,77 +142,65 @@ public class LoginService {
         Optional<Credencial> credencialOpt = credencialRepository.findByUsuarioId(usuario.getId());
 
         if (credencialOpt.isEmpty()) {
-            return new LoginResponse(null, null, email,
+            return new LoginResponse(null, null, email, null,
                     "Error: credenciales no encontradas", false);
         }
 
         try {
             Credencial credencial = credencialOpt.get();
-            // Generar token único válido por 24 horas
             String token = UUID.randomUUID().toString();
             credencial.setTokenRecuperacion(token);
             credencial.setFechaExpiracionToken(LocalDateTime.now().plusHours(24));
             credencialRepository.save(credencial);
 
-            // En producción, aquí enviarías un email con el token
-            // mailService.enviarTokenRecuperacion(email, token);
-
-            return new LoginResponse(usuario.getId(), usuario.getNombreCompleto(),
-                    usuario.getEmail(), "Instrucciones enviadas al email", true);
+                return new LoginResponse(usuario.getId(), usuario.getNombreCompleto(),
+                    usuario.getEmail(), toRolString(usuario.getRol()), "Instrucciones enviadas al email", true);
         } catch (Exception e) {
-            return new LoginResponse(null, null, email,
+            return new LoginResponse(null, null, email, null,
                     "Error al procesar solicitud de recuperación", false);
         }
     }
 
-    /**
-     * Restablece la contraseña usando el token de recuperación
-     */
     @Transactional
     public LoginResponse restablecerPassword(CambioPasswordRequest solicitud) {
         Optional<Credencial> credencialOpt = credencialRepository
                 .findByTokenRecuperacion(solicitud.getEmailOToken());
 
         if (credencialOpt.isEmpty()) {
-            return new LoginResponse(null, null, null,
+            return new LoginResponse(null, null, null, null,
                     "Token inválido o expirado", false);
         }
 
         Credencial credencial = credencialOpt.get();
 
-        // Verificar que el token no haya expirado
         if (credencial.getFechaExpiracionToken() == null ||
                 LocalDateTime.now().isAfter(credencial.getFechaExpiracionToken())) {
-            return new LoginResponse(null, null, null,
+            return new LoginResponse(null, null, null, null,
                     "Token expirado", false);
         }
 
         try {
-            // Actualizar contraseña
             credencial.setPasswordHash(passwordEncoder.encode(solicitud.getPasswordNueva()));
             credencial.setTokenRecuperacion(null);
             credencial.setFechaExpiracionToken(null);
             credencialRepository.save(credencial);
 
             Usuario usuario = credencial.getUsuario();
-            return new LoginResponse(usuario.getId(), usuario.getNombreCompleto(),
-                    usuario.getEmail(), "Contraseña actualizada exitosamente", true);
+                return new LoginResponse(usuario.getId(), usuario.getNombreCompleto(),
+                    usuario.getEmail(), toRolString(usuario.getRol()), "Contraseña actualizada exitosamente", true);
         } catch (Exception e) {
-            return new LoginResponse(null, null, null,
+            return new LoginResponse(null, null, null, null,
                     "Error al actualizar contraseña: " + e.getMessage(), false);
         }
     }
 
-    /**
-     * Cambia la contraseña de un usuario autenticado
-     */
     @Transactional
     public LoginResponse cambiarPassword(Long usuarioId, String passwordActual, String passwordNueva) {
         Objects.requireNonNull(usuarioId, "usuarioId no puede ser null");
         Optional<Usuario> usuarioOpt = usuarioRepository.findById(usuarioId);
 
         if (usuarioOpt.isEmpty()) {
-            return new LoginResponse(null, null, null,
+            return new LoginResponse(null, null, null, null,
                     "Usuario no encontrado", false);
         }
 
@@ -238,15 +208,14 @@ public class LoginService {
         Optional<Credencial> credencialOpt = credencialRepository.findByUsuarioId(usuarioId);
 
         if (credencialOpt.isEmpty()) {
-            return new LoginResponse(null, null, usuario.getEmail(),
+            return new LoginResponse(null, null, usuario.getEmail(), null,
                     "Credenciales no encontradas", false);
         }
 
         Credencial credencial = credencialOpt.get();
 
-        // Verificar contraseña actual
         if (!passwordEncoder.matches(passwordActual, credencial.getPasswordHash())) {
-            return new LoginResponse(null, null, usuario.getEmail(),
+            return new LoginResponse(null, null, usuario.getEmail(), null,
                     "Contraseña actual incorrecta", false);
         }
 
@@ -254,11 +223,15 @@ public class LoginService {
             credencial.setPasswordHash(passwordEncoder.encode(passwordNueva));
             credencialRepository.save(credencial);
 
-            return new LoginResponse(usuario.getId(), usuario.getNombreCompleto(),
-                    usuario.getEmail(), "Contraseña actualizada exitosamente", true);
+                return new LoginResponse(usuario.getId(), usuario.getNombreCompleto(),
+                    usuario.getEmail(), toRolString(usuario.getRol()), "Contraseña actualizada exitosamente", true);
         } catch (Exception e) {
-            return new LoginResponse(null, null, usuario.getEmail(),
+            return new LoginResponse(null, null, usuario.getEmail(), null,
                     "Error al cambiar contraseña: " + e.getMessage(), false);
         }
+    }
+
+    private String toRolString(Rol rol) {
+        return rol != null ? rol.name() : null;
     }
 }

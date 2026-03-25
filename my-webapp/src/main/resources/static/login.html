@@ -8,7 +8,16 @@
     /* Estilos del login extraídos de tu código original */
     :root { --bg: #0d1117; --surface: #161b22; --surface2: #1e242e; --border: #30363d; --accent: #00e5a0; --accent2: #00b37e; --text: #e6edf3; --muted: #7d8590; }
     * { box-sizing: border-box; font-family: 'DM Sans', sans-serif; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,229,160,0.08) 0%, transparent 70%); }
+    body {
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--bg);
+      background-image: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,229,160,0.08) 0%, transparent 70%);
+      background-repeat: no-repeat;
+    }
     
     .logo { position: absolute; top: 20px; left: 32px; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; color: var(--accent); cursor: pointer;}
     .logo span { color: var(--text); }
@@ -98,8 +107,15 @@
         if (res.ok && exitoso) {
           localStorage.setItem('usuarioId', data.usuarioId);
           localStorage.setItem('usuarioNombre', data.nombreCompleto);
-          
-          window.location.href = 'home.html';
+
+          const rol = (data.rol || '').toString().trim().toUpperCase();
+          localStorage.setItem('usuarioRol', rol);
+
+          if (rol === 'SECRETARIA' || rol === 'SECRETARIO') {
+            window.location.href = 'secretaria-panel.html';
+          } else {
+            window.location.href = 'home.html';
+          }
         } else {
           alertEl.style.display = 'block';
           alertEl.textContent = data.mensaje || data.error || 'Credenciales incorrectas';

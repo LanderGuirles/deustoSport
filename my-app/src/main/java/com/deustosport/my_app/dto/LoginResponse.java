@@ -4,57 +4,38 @@ public class LoginResponse {
     private Long usuarioId;
     private String nombreCompleto;
     private String email;
+    private String rol; // NUEVO
     private String mensaje;
     private boolean exitoso;
 
     public LoginResponse() {
     }
 
-    public LoginResponse(Long usuarioId, String nombreCompleto, String email, String mensaje, boolean exitoso) {
+    // Constructor actualizado
+    public LoginResponse(Long usuarioId, String nombreCompleto, String email, String rol, String mensaje, boolean exitoso) {
         this.usuarioId = usuarioId;
         this.nombreCompleto = nombreCompleto;
         this.email = email;
+        this.rol = rol;
         this.mensaje = mensaje;
         this.exitoso = exitoso;
     }
 
-    public Long getUsuarioId() {
-        return usuarioId;
-    }
+    public Long getUsuarioId() { return usuarioId; }
+    public void setUsuarioId(Long usuarioId) { this.usuarioId = usuarioId; }
 
-    public void setUsuarioId(Long usuarioId) {
-        this.usuarioId = usuarioId;
-    }
+    public String getNombreCompleto() { return nombreCompleto; }
+    public void setNombreCompleto(String nombreCompleto) { this.nombreCompleto = nombreCompleto; }
 
-    public String getNombreCompleto() {
-        return nombreCompleto;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    public void setNombreCompleto(String nombreCompleto) {
-        this.nombreCompleto = nombreCompleto;
-    }
+    public String getRol() { return rol; } // NUEVO
+    public void setRol(String rol) { this.rol = rol; } // NUEVO
 
-    public String getEmail() {
-        return email;
-    }
+    public String getMensaje() { return mensaje; }
+    public void setMensaje(String mensaje) { this.mensaje = mensaje; }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getMensaje() {
-        return mensaje;
-    }
-
-    public void setMensaje(String mensaje) {
-        this.mensaje = mensaje;
-    }
-
-    public boolean isExitoso() {
-        return exitoso;
-    }
-
-    public void setExitoso(boolean exitoso) {
-        this.exitoso = exitoso;
-    }
-}
+    public boolean isExitoso() { return exitoso; }
+    public void setExitoso(boolean exitoso) { this.exitoso = exitoso; }
+}   
