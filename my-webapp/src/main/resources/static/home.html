@@ -659,14 +659,11 @@
 			}
 
 			async function seleccionarSlot(el, fecha, hora) {
-			  // Deseleccionar anterior
 			  document.querySelectorAll('.cal-slot.seleccionado')
 			    .forEach(s => s.classList.remove('seleccionado'));
 			  el.classList.add('seleccionado');
-
 			  slotSeleccionado = { fecha, hora };
 
-			  // Calcular precio desde la API de disponibilidad
 			  try {
 			    const r = await fetch(
 			      `${API}/api/reservas/disponibilidad?pistaId=${pistaCalendario.id}`
@@ -674,15 +671,15 @@
 			    );
 			    const data = await r.json();
 			    if (!data.disponible) {
-			      toast('Esa franja acaba de quedar ocupada', 'err');
 			      el.className = 'cal-slot ocupado';
 			      el.textContent = 'ocupado';
+			      el.onclick = null;
 			      slotSeleccionado = null;
+			      toast('Esa franja acaba de quedar ocupada', 'err');
 			      return;
 			    }
 			  } catch { /* ignorar */ }
 
-			  // Obtener precio estimado
 			  const precioEst = await estimarPrecio(fecha, hora);
 			  mostrarStepPago(precioEst);
 			}
@@ -753,40 +750,60 @@
 			}
 
 			async function confirmarPagoCal() {
-			  if (!slotSeleccionado || !metodoCalSeleccionado || !currentUserId) return;
+			  if (!metodoCalSeleccionado || !currentUserId) return;
 
 			  const btn = document.getElementById('btn-confirmar-pago-cal');
 			  btn.disabled = true;
 			  btn.innerHTML = '<span class="spinner"></span> Procesando...';
 
 			  try {
-			    // 1. Crear reserva
-			    const reservaRes = await fetch(API + '/api/reservas/crear', {
-			      method: 'POST',
-			      headers: { 'Content-Type': 'application/json' },
-			      body: JSON.stringify({
-			        usuarioId:        Number(currentUserId),
-			        pistaId:          Number(pistaCalendario.id),
-			        fecha:            slotSeleccionado.fecha,
-			        horaInicio:       slotSeleccionado.hora,
-			        duracionMinutos:  60
-			      })
-			    });
-			    const reservaData = await reservaRes.json();
-			    if (!reservaRes.ok) {
-			      toast(reservaData.error || 'Error al crear la reserva', 'err');
-			      btn.disabled = false; btn.textContent = 'Pagar y confirmar';
-			      return;
-			    }
-			    reservaRecienCreada = reservaData;
+			    let reservaId;
 
-			    // 2. Pagar
+			    // ── Pagar reserva existente (flujo desde "Mis Reservas") ──
+			    if (window._pagarDirecto && reservaRecienCreada) {
+			      reservaId = reservaRecienCreada.id;
+
+			    // ── Crear nueva reserva y pagar (flujo desde el calendario) ──
+			    } else {
+			      if (!slotSeleccionado) {
+			        toast('No hay franja seleccionada', 'err');
+			        btn.disabled = false;
+			        btn.textContent = 'Pagar y confirmar';
+			        return;
+			      }
+
+			      const reservaRes = await fetch(API + '/api/reservas/crear', {
+			        method: 'POST',
+			        headers: { 'Content-Type': 'application/json' },
+			        body: JSON.stringify({
+			          usuarioId:       Number(currentUserId),
+			          pistaId:         Number(pistaCalendario.id),
+			          fecha:           slotSeleccionado.fecha,
+			          horaInicio:      slotSeleccionado.hora,
+			          duracionMinutos: 60
+			        })
+			      });
+
+			      const reservaData = await reservaRes.json();
+			      if (!reservaRes.ok) {
+			        toast(reservaData.error || 'Error al crear la reserva', 'err');
+			        btn.disabled = false;
+			        btn.textContent = 'Pagar y confirmar';
+			        return;
+			      }
+
+			      reservaRecienCreada = reservaData;
+			      reservaId = reservaData.id;
+			    }
+
+			    // ── Construir payload de pago ──
 			    const pagoPayload = {
 			      usuarioId:  Number(currentUserId),
 			      metodoPago: metodoCalSeleccionado
 			    };
+
 			    if (metodoCalSeleccionado === 'TARJETA') {
-			      pagoPayload.numeroTarjeta    = document.getElementById('cal-p-num').value.replace(/\s/g,'');
+			      pagoPayload.numeroTarjeta    = document.getElementById('cal-p-num').value.replace(/\s/g, '');
 			      pagoPayload.titularTarjeta   = document.getElementById('cal-p-tit').value;
 			      pagoPayload.caducidadTarjeta = document.getElementById('cal-p-cad').value;
 			      pagoPayload.cvv              = document.getElementById('cal-p-cvv').value;
@@ -798,30 +815,28 @@
 			      pagoPayload.iban = document.getElementById('cal-p-iban').value.trim();
 			    }
 
-			    const pagoRes = await fetch(
-			      API + '/api/reservas/' + reservaData.id + '/pagar', {
-			        method: 'POST',
-			        headers: { 'Content-Type': 'application/json' },
-			        body: JSON.stringify(pagoPayload)
-			      }
-			    );
+			    const pagoRes = await fetch(`${API}/api/reservas/${reservaId}/pagar`, {
+			      method: 'POST',
+			      headers: { 'Content-Type': 'application/json' },
+			      body: JSON.stringify(pagoPayload)
+			    });
+
 			    const pagoData = await pagoRes.json();
 
 			    if (!pagoRes.ok) {
-			      // Pago fallido: reserva queda PENDIENTE
-			      toast('Pago rechazado. Reserva guardada como PENDIENTE.', 'err');
+			      toast('Pago rechazado: ' + (pagoData.error || 'error desconocido'), 'err');
 			    } else {
 			      toast('✅ Reserva confirmada y pagada correctamente.', 'ok');
-			      // Marcar el slot como ocupado en el calendario
-			      marcarSlotOcupado(slotSeleccionado.fecha, slotSeleccionado.hora);
+			      if (slotSeleccionado) marcarSlotOcupado(slotSeleccionado.fecha, slotSeleccionado.hora);
 			    }
 
+			    window._pagarDirecto = false;
 			    closeModal('modal-calendario');
 			    const tabBtn = document.getElementById('tab-misreservas-btn');
 			    switchTab('misreservas', tabBtn);
 
 			  } catch (e) {
-			    toast('Error de conexión', 'err');
+			    toast('Error de conexión: ' + e.message, 'err');
 			  } finally {
 			    btn.disabled = false;
 			    btn.textContent = 'Pagar y confirmar';
