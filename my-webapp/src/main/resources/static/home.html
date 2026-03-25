@@ -4,496 +4,243 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DeustoSport - Mi Panel</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
-  
-  <script>
-    const currentUserId = localStorage.getItem('usuarioId');
-    const currentUserRol = (localStorage.getItem('usuarioRol') || '').trim().toUpperCase();
-    const allowedHomeRoles = ['CLIENTE', 'USUARIO'];
-    if (!currentUserId || !allowedHomeRoles.includes(currentUserRol)) {
-        window.location.replace('login.html');
-    }
-  </script>
-
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
   <style>
     :root {
-      --bg: #0d1117;
-      --surface: #161b22;
-      --surface2: #1e242e;
-      --border: #30363d;
-      --accent: #00e5a0;
-      --accent2: #00b37e;
+      --bg: #0d1117; --surface: #161b22; --surface2: #1e242e;
+      --border: #30363d; --accent: #00e5a0; --accent2: #00b37e;
       --accent-dim: rgba(0,229,160,0.12);
-      --warn: #f0a500;
-      --danger: #f85149;
-      --success: #3fb950;
-      --text: #e6edf3;
-      --muted: #7d8590;
-      --radius: 12px;
+      --warn: #f0a500; --danger: #f85149; --success: #3fb950;
+      --text: #e6edf3; --muted: #7d8590; --radius: 12px;
     }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
 
     /* ── NAV ── */
-    nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 32px;
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      background: rgba(13,17,23,0.95);
-      backdrop-filter: blur(12px);
-      z-index: 100;
-    }
-    .logo {
-      font-family: 'Syne', sans-serif;
-      font-weight: 800;
-      font-size: 22px;
-      color: var(--accent);
-      letter-spacing: -0.5px;
-    }
-    .logo span { color: var(--text); }
-    .nav-user {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 14px;
-      color: var(--muted);
-    }
-    .nav-user strong { color: var(--text); }
-    .btn-ghost {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      padding: 6px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 13px;
-      transition: all .2s;
-    }
-    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    nav{display:flex;align-items:center;justify-content:space-between;
+        padding:16px 32px;border-bottom:1px solid var(--border);
+        position:sticky;top:0;background:rgba(13,17,23,.95);
+        backdrop-filter:blur(12px);z-index:100;}
+    .logo{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;
+          color:var(--accent);letter-spacing:-.5px;}
+    .logo span{color:var(--text);}
+    .nav-user{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--muted);}
+    .nav-user strong{color:var(--text);}
+    .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted);
+               padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;
+               transition:all .2s;font-family:'DM Sans',sans-serif;}
+    .btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
 
-    /* ── MAIN APP ── */
-    #page-app { padding: 0 0 60px; display: block; }
+    /* ── HERO ── */
+    .hero{padding:40px 32px 28px;border-bottom:1px solid var(--border);
+          background:radial-gradient(ellipse 60% 40% at 20% 0%,rgba(0,229,160,.06) 0%,transparent 70%);}
+    .hero-inner{max-width:1100px;margin:0 auto;}
+    .hero h2{font-family:'Syne',sans-serif;font-size:34px;font-weight:800;margin-bottom:6px;}
+    .hero h2 em{color:var(--accent);font-style:normal;}
+    .hero p{color:var(--muted);font-size:15px;}
 
-    .hero {
-      padding: 48px 32px 32px;
-      border-bottom: 1px solid var(--border);
-      background: radial-gradient(ellipse 60% 40% at 20% 0%, rgba(0,229,160,0.06) 0%, transparent 70%);
-    }
-    .hero-inner { max-width: 1100px; margin: 0 auto; }
-    .hero h2 {
-      font-family: 'Syne', sans-serif;
-      font-size: 36px;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-    .hero h2 em { color: var(--accent); font-style: normal; }
-    .hero p { color: var(--muted); font-size: 15px; }
-
-    .container { max-width: 1100px; margin: 0 auto; padding: 0 32px; }
+    /* ── LAYOUT ── */
+    .container{max-width:1100px;margin:0 auto;padding:0 32px;}
 
     /* ── TABS ── */
-    .tabs {
-      display: flex;
-      gap: 4px;
-      margin: 28px 0 24px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 0;
-    }
-    .tab-btn {
-      background: transparent;
-      border: none;
-      color: var(--muted);
-      padding: 10px 20px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -1px;
-      transition: all .2s;
-      font-family: 'DM Sans', sans-serif;
-    }
-    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-    .tab-btn:hover:not(.active) { color: var(--text); }
+    .tabs{display:flex;gap:4px;margin:28px 0 24px;border-bottom:1px solid var(--border);}
+    .tab-btn{background:transparent;border:none;color:var(--muted);padding:10px 20px;
+             font-size:14px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;
+             margin-bottom:-1px;transition:all .2s;font-family:'DM Sans',sans-serif;}
+    .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+    .tab-btn:hover:not(.active){color:var(--text);}
+    .tab-content{display:none;}
+    .tab-content.active{display:block;}
 
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
+    /* ── SECTION ── */
+    .section-header{display:flex;align-items:baseline;gap:10px;margin-bottom:20px;}
+    .section-header h3{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;}
+    .badge{font-size:11px;padding:2px 8px;border-radius:20px;
+           background:var(--accent-dim);color:var(--accent);font-weight:600;}
 
-    /* ── SECTION HEADER ── */
-    .section-header {
-      display: flex;
-      align-items: baseline;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    .section-header h3 {
-      font-family: 'Syne', sans-serif;
-      font-size: 20px;
-      font-weight: 700;
-    }
-    .badge {
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 20px;
-      background: var(--accent-dim);
-      color: var(--accent);
-      font-weight: 600;
-    }
+    /* ── TARIFA SELECTOR ── */
+    .pista-selector{margin-bottom:24px;}
+    .pista-selector select{
+      width:100%;max-width:400px;padding:11px 14px;
+      background:var(--surface);border:1px solid var(--border);
+      color:var(--text);border-radius:10px;font-size:14px;
+      font-family:'DM Sans',sans-serif;cursor:pointer;}
+    .pista-selector select:focus{outline:none;border-color:var(--accent);}
 
-    /* ── TARIFAS GRID ── */
-    .tarifas-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 14px;
-      margin-bottom: 40px;
-    }
-    .tarifa-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px 20px;
-      transition: border-color .2s;
-    }
-    .tarifa-card:hover { border-color: var(--accent); }
-    .tarifa-sport {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--accent);
-      margin-bottom: 8px;
-    }
-    .tarifa-label {
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text);
-      margin-bottom: 4px;
-    }
-    .tarifa-horario {
-      font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 12px;
-    }
-    .tarifa-precio {
-      font-family: 'Syne', sans-serif;
-      font-size: 26px;
-      font-weight: 800;
-      color: var(--accent);
-    }
-    .tarifa-precio span { font-size: 13px; font-weight: 400; color: var(--muted); }
+    /* ── TARIFA GROUPS ── */
+    .tarifa-grupo{margin-bottom:28px;}
+    .tarifa-grupo-titulo{font-size:13px;font-weight:600;color:var(--accent);
+                         text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+    .tarifas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
+    .tarifa-card{background:var(--surface);border:1px solid var(--border);
+                 border-radius:var(--radius);padding:16px 18px;transition:border-color .2s;}
+    .tarifa-card:hover{border-color:var(--accent);}
+    .tarifa-horario{font-size:13px;color:var(--muted);margin-bottom:8px;}
+    .tarifa-precio{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--accent);}
+    .tarifa-precio span{font-size:13px;font-weight:400;color:var(--muted);}
+    .tarifa-badge{display:inline-block;font-size:10px;font-weight:700;
+                  text-transform:uppercase;letter-spacing:.5px;padding:2px 8px;
+                  border-radius:4px;margin-bottom:8px;}
+    .tarifa-badge.valle{background:rgba(0,229,160,.15);color:var(--accent);}
+    .tarifa-badge.punta{background:rgba(240,165,0,.15);color:var(--warn);}
+    .tarifa-badge.finde{background:rgba(56,139,253,.15);color:#388bfd;}
 
-    /* ── PISTAS ── */
-    .pistas-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 16px;
-    }
-    .pista-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
-      cursor: pointer;
-      transition: all .2s;
-      position: relative;
-      overflow: hidden;
-    }
-    .pista-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: var(--accent);
-      opacity: 0;
-      transition: opacity .2s;
-    }
-    .pista-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-    .pista-card:hover::before { opacity: 1; }
-    .pista-sport-tag {
-      display: inline-block;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      padding: 3px 10px;
-      border-radius: 6px;
-      margin-bottom: 10px;
-    }
-    .tag-padel { background: rgba(0,229,160,0.12); color: var(--accent); }
-    .tag-tenis { background: rgba(240,165,0,0.12); color: var(--warn); }
-    .tag-futbol { background: rgba(56,139,253,0.12); color: #388bfd; }
-    .pista-name {
-      font-family: 'Syne', sans-serif;
-      font-size: 17px;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-    .pista-meta { font-size: 13px; color: var(--muted); }
-    .pista-meta span { color: var(--text); }
-    .btn-reservar {
-      margin-top: 14px;
-      width: 100%;
-      background: var(--accent-dim);
-      color: var(--accent);
-      border: 1px solid rgba(0,229,160,0.3);
-      padding: 9px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all .2s;
-      font-family: 'DM Sans', sans-serif;
-    }
-    .btn-reservar:hover { background: var(--accent); color: #0d1117; }
-
-    /* ── MODAL ── */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.7);
-      z-index: 200;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    .modal-overlay.open { display: flex; }
-    .modal {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 32px;
-      width: 100%;
-      max-width: 480px;
-      max-height: 90vh;
-      overflow-y: auto;
-    }
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 24px;
-    }
-    .modal-header h3 {
-      font-family: 'Syne', sans-serif;
-      font-size: 20px;
-      font-weight: 700;
-    }
-    .modal-header p { font-size: 13px; color: var(--muted); margin-top: 4px; }
-    .btn-close {
-      background: transparent;
-      border: none;
-      color: var(--muted);
-      font-size: 22px;
-      cursor: pointer;
-      padding: 0 4px;
-      line-height: 1;
-    }
-    .btn-close:hover { color: var(--text); }
-
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .field { margin-bottom: 18px; }
-    .field label {
-      display: block;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--muted);
-      margin-bottom: 6px;
-      text-transform: uppercase;
-      letter-spacing: .5px;
-    }
-    .field input, .field select {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 11px 14px;
-      border-radius: 10px;
-      font-size: 14px;
-      font-family: 'DM Sans', sans-serif;
-      transition: border-color .2s;
-    }
-    .field input:focus, .field select:focus { outline: none; border-color: var(--accent); }
-    .btn-primary {
-      width: 100%;
-      background: var(--accent);
-      color: #0d1117;
-      border: none;
-      padding: 13px;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 700;
-      font-family: 'Syne', sans-serif;
-      cursor: pointer;
-      transition: background .2s, transform .1s;
-    }
-    .btn-primary:hover { background: var(--accent2); }
-    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-
-    .price-preview {
-      background: var(--surface2);
-      border-radius: 10px;
-      padding: 14px 16px;
-      margin: 16px 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .price-preview .label { font-size: 13px; color: var(--muted); }
-    .price-preview .value {
-      font-family: 'Syne', sans-serif;
-      font-size: 22px;
-      font-weight: 800;
-      color: var(--accent);
-    }
+    /* ── PISTAS GRID ── */
+    .pistas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;}
+    .pista-card{background:var(--surface);border:1px solid var(--border);
+                border-radius:var(--radius);padding:20px;cursor:pointer;
+                transition:all .2s;position:relative;overflow:hidden;}
+    .pista-card::before{content:'';position:absolute;top:0;left:0;right:0;
+                        height:3px;background:var(--accent);opacity:0;transition:opacity .2s;}
+    .pista-card:hover{border-color:var(--accent);transform:translateY(-2px);}
+    .pista-card:hover::before{opacity:1;}
+    .pista-sport-tag{display:inline-block;font-size:11px;font-weight:700;
+                     text-transform:uppercase;letter-spacing:1px;padding:3px 10px;
+                     border-radius:6px;margin-bottom:10px;}
+    .tag-padel{background:rgba(0,229,160,.12);color:var(--accent);}
+    .tag-tenis{background:rgba(240,165,0,.12);color:var(--warn);}
+    .tag-futbol{background:rgba(56,139,253,.12);color:#388bfd;}
+    .pista-name{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin-bottom:6px;}
+    .pista-meta{font-size:13px;color:var(--muted);}
+    .pista-meta span{color:var(--text);}
+    .btn-reservar{margin-top:14px;width:100%;background:var(--accent-dim);
+                  color:var(--accent);border:1px solid rgba(0,229,160,.3);
+                  padding:9px;border-radius:8px;font-size:13px;font-weight:600;
+                  cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;}
+    .btn-reservar:hover{background:var(--accent);color:#0d1117;}
 
     /* ── RESERVAS ── */
-    .reservas-list { display: flex; flex-direction: column; gap: 14px; }
-    .reserva-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-    .reserva-info { flex: 1; min-width: 200px; }
-    .reserva-pista {
-      font-family: 'Syne', sans-serif;
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-    .reserva-meta { font-size: 13px; color: var(--muted); }
-    .reserva-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .status-pill {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .5px;
-      padding: 3px 10px;
-      border-radius: 20px;
-    }
-    .status-PENDIENTE { background: rgba(240,165,0,0.15); color: var(--warn); }
-    .status-CONFIRMADA { background: rgba(63,185,80,0.15); color: var(--success); }
-    .status-CANCELADA { background: rgba(248,81,73,0.12); color: var(--danger); }
-    .status-COMPLETADA { background: rgba(125,133,144,0.15); color: var(--muted); }
+    .reservas-list{display:flex;flex-direction:column;gap:14px;}
+    .reserva-card{background:var(--surface);border:1px solid var(--border);
+                  border-radius:var(--radius);padding:18px 20px;
+                  display:flex;align-items:center;justify-content:space-between;
+                  flex-wrap:wrap;gap:16px;}
+    .reserva-info{flex:1;min-width:200px;}
+    .reserva-pista{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px;}
+    .reserva-meta{font-size:13px;color:var(--muted);}
+    .reserva-actions{display:flex;gap:8px;flex-wrap:wrap;}
+    .status-pill{font-size:11px;font-weight:700;text-transform:uppercase;
+                 letter-spacing:.5px;padding:3px 10px;border-radius:20px;}
+    .status-PENDIENTE{background:rgba(240,165,0,.15);color:var(--warn);}
+    .status-CONFIRMADA{background:rgba(63,185,80,.15);color:var(--success);}
+    .status-CANCELADA{background:rgba(248,81,73,.12);color:var(--danger);}
+    .status-COMPLETADA{background:rgba(125,133,144,.15);color:var(--muted);}
+    .btn-pagar{background:var(--success);color:#0d1117;border:none;
+               padding:7px 16px;border-radius:8px;font-size:13px;font-weight:700;
+               cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .2s;}
+    .btn-pagar:hover{opacity:.85;}
+    .btn-cancel-r{background:transparent;border:1px solid var(--border);color:var(--muted);
+                  padding:7px 14px;border-radius:8px;font-size:13px;cursor:pointer;
+                  font-family:'DM Sans',sans-serif;transition:all .2s;}
+    .btn-cancel-r:hover{border-color:var(--danger);color:var(--danger);}
 
-    .btn-pagar {
-      background: var(--success);
-      color: #0d1117;
-      border: none;
-      padding: 7px 16px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: 'DM Sans', sans-serif;
-      transition: opacity .2s;
-    }
-    .btn-pagar:hover { opacity: .85; }
-    .btn-cancel-reserva {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      padding: 7px 14px;
-      border-radius: 8px;
-      font-size: 13px;
-      cursor: pointer;
-      font-family: 'DM Sans', sans-serif;
-      transition: all .2s;
-    }
-    .btn-cancel-reserva:hover { border-color: var(--danger); color: var(--danger); }
+    /* ── CALENDAR ── */
+    .cal-grid{display:grid;grid-template-columns:52px repeat(7,minmax(80px,1fr));
+              font-size:11px;min-width:620px;}
+    .cal-corner{background:var(--surface2);}
+    .cal-header-cell{background:var(--surface2);padding:8px 4px;text-align:center;
+                     font-weight:600;font-size:12px;border-bottom:1px solid var(--border);
+                     border-left:1px solid var(--border);}
+    .cal-header-cell.hoy{color:var(--accent);}
+    .cal-time-label{background:var(--surface2);padding:0 6px;text-align:right;
+                    color:var(--muted);font-size:10px;display:flex;align-items:center;
+                    justify-content:flex-end;border-bottom:1px solid var(--border);
+                    border-right:1px solid var(--border);min-height:44px;}
+    .cal-slot{min-height:44px;border-bottom:1px solid rgba(48,54,61,.5);
+              border-left:1px solid rgba(48,54,61,.5);display:flex;
+              align-items:center;justify-content:center;font-size:10px;
+              transition:background .15s;}
+    .cal-slot.libre{background:rgba(0,229,160,.06);cursor:pointer;}
+    .cal-slot.libre:hover{background:rgba(0,229,160,.25);}
+    .cal-slot.ocupado{background:rgba(248,81,73,.12);color:rgba(248,81,73,.8);
+                      cursor:not-allowed;font-size:9px;}
+    .cal-slot.pasado{background:rgba(125,133,144,.04);cursor:default;}
+    .cal-slot.seleccionado{background:rgba(0,229,160,.4) !important;}
+    .cal-leyenda{display:flex;gap:16px;margin-top:10px;font-size:12px;color:var(--muted);}
+    .cal-leyenda span{display:flex;align-items:center;gap:5px;}
+    .cal-leyenda span::before{content:'';width:12px;height:12px;border-radius:3px;display:inline-block;}
+    .cal-leyenda .leg-libre::before{background:rgba(0,229,160,.3);}
+    .cal-leyenda .leg-ocup::before{background:rgba(248,81,73,.3);}
+    .cal-leyenda .leg-pas::before{background:rgba(125,133,144,.15);}
 
-    /* ── PAGO MODAL ── */
-    .metodo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
-    .metodo-btn {
-      background: var(--surface2);
-      border: 2px solid var(--border);
-      color: var(--muted);
-      padding: 12px 8px;
-      border-radius: 10px;
-      text-align: center;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 600;
-      transition: all .2s;
-      font-family: 'DM Sans', sans-serif;
-    }
-    .metodo-btn:hover { border-color: var(--accent); color: var(--accent); }
-    .metodo-btn.selected { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
-    .metodo-icon { font-size: 22px; display: block; margin-bottom: 4px; }
-    .pago-fields { display: none; }
-    .pago-fields.active { display: block; }
+    /* ── MODALS ── */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);
+                   z-index:200;align-items:center;justify-content:center;padding:20px;}
+    .modal-overlay.open{display:flex;}
+    .modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;
+           padding:28px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;}
+    .modal-wide{max-width:780px;}
+    .modal-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;}
+    .modal-header h3{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;}
+    .modal-header p{font-size:13px;color:var(--muted);margin-top:4px;}
+    .btn-close{background:transparent;border:none;color:var(--muted);font-size:22px;
+               cursor:pointer;padding:0 4px;line-height:1;}
+    .btn-close:hover{color:var(--text);}
+    .field{margin-bottom:16px;}
+    .field label{display:block;font-size:13px;font-weight:500;color:var(--muted);
+                 margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+    .field input{width:100%;background:var(--bg);border:1px solid var(--border);
+                 color:var(--text);padding:11px 14px;border-radius:10px;font-size:14px;
+                 font-family:'DM Sans',sans-serif;transition:border-color .2s;}
+    .field input:focus{outline:none;border-color:var(--accent);}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .price-preview{background:var(--surface2);border-radius:10px;padding:14px 16px;
+                   margin:14px 0;display:flex;justify-content:space-between;align-items:center;}
+    .price-preview .label{font-size:13px;color:var(--muted);}
+    .price-preview .value{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent);}
+    .btn-primary{width:100%;background:var(--accent);color:#0d1117;border:none;
+                 padding:13px;border-radius:10px;font-size:15px;font-weight:700;
+                 font-family:'Syne',sans-serif;cursor:pointer;transition:background .2s;}
+    .btn-primary:hover{background:var(--accent2);}
+    .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+    .metodo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
+    .metodo-btn{background:var(--surface2);border:2px solid var(--border);color:var(--muted);
+                padding:12px 8px;border-radius:10px;text-align:center;cursor:pointer;
+                font-size:12px;font-weight:600;transition:all .2s;font-family:'DM Sans',sans-serif;}
+    .metodo-btn:hover{border-color:var(--accent);color:var(--accent);}
+    .metodo-btn.selected{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
+    .metodo-icon{font-size:20px;display:block;margin-bottom:4px;}
+    .pago-fields{display:none;}
+    .pago-fields.active{display:block;}
 
-    /* ── EMPTY STATE ── */
-    .empty {
-      text-align: center;
-      padding: 60px 20px;
-      color: var(--muted);
-    }
-    .empty .icon { font-size: 48px; margin-bottom: 16px; }
-    .empty p { font-size: 15px; }
-
-    /* ── LOADING ── */
-    .spinner {
-      display: inline-block;
-      width: 18px; height: 18px;
-      border: 2px solid rgba(0,229,160,0.2);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
-      vertical-align: middle;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ── TOAST ── */
-    #toast {
-      position: fixed;
-      bottom: 28px;
-      left: 50%;
-      transform: translateX(-50%) translateY(100px);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 12px 22px;
-      border-radius: 40px;
-      font-size: 14px;
-      font-weight: 500;
-      z-index: 999;
-      transition: transform .35s cubic-bezier(.34,1.56,.64,1);
-      pointer-events: none;
-      white-space: nowrap;
-    }
-    #toast.show { transform: translateX(-50%) translateY(0); }
-    #toast.ok { border-color: var(--success); color: var(--success); }
-    #toast.err { border-color: var(--danger); color: var(--danger); }
-
-    @media (max-width: 600px) {
-      nav { padding: 12px 16px; }
-      .hero { padding: 28px 16px 20px; }
-      .container { padding: 0 16px; }
-      .metodo-grid { grid-template-columns: 1fr; }
-      .form-row { grid-template-columns: 1fr; }
+    /* ── MISC ── */
+    .empty{text-align:center;padding:60px 20px;color:var(--muted);}
+    .empty .icon{font-size:48px;margin-bottom:16px;}
+    .spinner{display:inline-block;width:18px;height:18px;
+             border:2px solid rgba(0,229,160,.2);border-top-color:var(--accent);
+             border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    #toast{position:fixed;bottom:28px;left:50%;
+           transform:translateX(-50%) translateY(100px);
+           background:var(--surface);border:1px solid var(--border);
+           color:var(--text);padding:12px 22px;border-radius:40px;
+           font-size:14px;font-weight:500;z-index:999;
+           transition:transform .35s cubic-bezier(.34,1.56,.64,1);
+           pointer-events:none;white-space:nowrap;}
+    #toast.show{transform:translateX(-50%) translateY(0);}
+    #toast.ok{border-color:var(--success);color:var(--success);}
+    #toast.err{border-color:var(--danger);color:var(--danger);}
+    @media(max-width:600px){
+      nav{padding:12px 16px;}
+      .hero{padding:24px 16px 16px;}
+      .container{padding:0 16px;}
+      .metodo-grid{grid-template-columns:1fr;}
+      .form-row{grid-template-columns:1fr;}
     }
   </style>
 </head>
 <body>
 
-<nav id="main-nav">
+<script>
+  const currentUserId  = localStorage.getItem('usuarioId');
+  const currentUserRol = (localStorage.getItem('usuarioRol') || '').trim().toUpperCase();
+  if (!currentUserId || !['CLIENTE','USUARIO'].includes(currentUserRol)) {
+    window.location.replace('login.html');
+  }
+</script>
+
+<!-- ── NAV ── -->
+<nav>
   <div class="logo">Deusto<span>Sport</span></div>
   <div class="nav-user">
     <span>Hola, <strong id="nav-nombre">—</strong></span>
@@ -501,31 +248,40 @@
   </div>
 </nav>
 
-<div id="page-app" class="page active">
+<!-- ── APP ── -->
+<div id="page-app">
   <div class="hero">
     <div class="hero-inner">
-      <h2>Reserva tu <em>pista</em></h2>
-      <p>Consulta tarifas, elige pista, horario y paga en segundos.</p>
+      <h2>Bienvenido a <em>DeustoSport</em></h2>
+      <p>Consulta tarifas, reserva una pista y gestiona tus reservas.</p>
     </div>
   </div>
 
   <div class="container">
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('tarifas', this)">📋 Tarifas</button>
-      <button class="tab-btn" onclick="switchTab('pistas', this)">🏟️ Pistas</button>
-      <button class="tab-btn" onclick="switchTab('misreservas', this)" id="tab-reservas-btn">📅 Mis Reservas</button>
+      <button class="tab-btn active" onclick="switchTab('tarifas',this)">📋 Tarifas</button>
+      <button class="tab-btn" onclick="switchTab('pistas',this)">🏟️ Reservar</button>
+      <button class="tab-btn" id="tab-misreservas-btn"
+              onclick="switchTab('misreservas',this)">📅 Mis Reservas</button>
     </div>
 
+    <!-- ── TAB TARIFAS ── -->
     <div id="tab-tarifas" class="tab-content active">
-      <div class="section-header">
-        <h3>Tarifas vigentes</h3>
-        <span class="badge" id="tarifas-count">—</span>
+      <div class="section-header"><h3>Consultar tarifas por pista</h3></div>
+      <div class="pista-selector">
+        <select id="select-pista-tarifa" onchange="cargarTarifasPorPista(this.value)">
+          <option value="">— Selecciona una pista —</option>
+        </select>
       </div>
-      <div id="tarifas-container" class="tarifas-grid">
-        <div class="empty"><div class="spinner"></div></div>
+      <div id="tarifas-container">
+        <div class="empty">
+          <div class="icon">📋</div>
+          <p>Selecciona una pista para ver sus tarifas</p>
+        </div>
       </div>
     </div>
 
+    <!-- ── TAB RESERVAR ── -->
     <div id="tab-pistas" class="tab-content">
       <div class="section-header">
         <h3>Pistas disponibles</h3>
@@ -536,535 +292,661 @@
       </div>
     </div>
 
+    <!-- ── TAB MIS RESERVAS ── -->
     <div id="tab-misreservas" class="tab-content">
       <div class="section-header">
         <h3>Mis reservas</h3>
-        <button class="btn-ghost" onclick="loadMisReservas()" style="margin-left:auto;font-size:12px">↻ Actualizar</button>
+        <button class="btn-ghost" onclick="loadMisReservas()"
+                style="margin-left:auto;font-size:12px">↻ Actualizar</button>
       </div>
       <div id="reservas-container" class="reservas-list"></div>
     </div>
   </div>
 </div>
 
-<div class="modal-overlay" id="modal-reserva">
-  <div class="modal">
-    <div class="modal-header">
-      <div>
-        <h3>Nueva reserva</h3>
-        <p id="modal-pista-label">—</p>
-      </div>
-      <button class="btn-close" onclick="closeModal('modal-reserva')">×</button>
-    </div>
+<!-- ══ MODAL CALENDARIO ══ -->
+<div class="modal-overlay" id="modal-calendario">
+  <div class="modal modal-wide">
 
-    <div class="field">
-      <label>Fecha</label>
-      <input type="date" id="reserva-fecha" />
-    </div>
-    <div class="form-row">
-      <div class="field">
-        <label>Hora de inicio</label>
-        <input type="time" id="reserva-hora" step="3600" min="08:00" max="21:00" />
-      </div>
-      <div class="field">
-        <label>Duración</label>
-        <select id="reserva-duracion">
-          <option value="60">60 min</option>
-          <option value="90">90 min</option>
-          <option value="120">120 min</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="price-preview">
-      <span class="label">Precio estimado</span>
-      <span class="value" id="precio-preview">—</span>
-    </div>
-
-    <button class="btn-primary" id="btn-confirmar-reserva" onclick="confirmarReserva()">Confirmar reserva</button>
-  </div>
-</div>
-
-<div class="modal-overlay" id="modal-pago">
-  <div class="modal">
-    <div class="modal-header">
-      <div>
-        <h3>Pagar reserva</h3>
-        <p id="modal-pago-label">—</p>
-      </div>
-      <button class="btn-close" onclick="closeModal('modal-pago')">×</button>
-    </div>
-
-    <div class="metodo-grid">
-      <button class="metodo-btn" onclick="selectMetodo('TARJETA', this)">
-        <span class="metodo-icon">💳</span>Tarjeta
-      </button>
-      <button class="metodo-btn" onclick="selectMetodo('BIZUM', this)">
-        <span class="metodo-icon">📱</span>Bizum
-      </button>
-      <button class="metodo-btn" onclick="selectMetodo('TRANSFERENCIA', this)">
-        <span class="metodo-icon">🏦</span>Transferencia
-      </button>
-    </div>
-
-    <div class="pago-fields" id="fields-TARJETA">
-      <div class="field">
-        <label>Número de tarjeta</label>
-        <input type="text" id="p-numero" placeholder="4111 1111 1111 1111" maxlength="19" />
-      </div>
-      <div class="field">
-        <label>Titular</label>
-        <input type="text" id="p-titular" placeholder="Nombre Apellido" />
-      </div>
-      <div class="form-row">
-        <div class="field">
-          <label>Caducidad</label>
-          <input type="text" id="p-caducidad" placeholder="MM/AA" maxlength="5" />
+    <!-- Step 1: Calendario -->
+    <div id="cal-step-1">
+      <div class="modal-header">
+        <div>
+          <h3 id="cal-titulo">Reservar pista</h3>
+          <p id="cal-subtitulo">Haz clic en una franja libre para reservar</p>
         </div>
-        <div class="field">
-          <label>CVV</label>
-          <input type="text" id="p-cvv" placeholder="123" maxlength="4" />
+        <button class="btn-close" onclick="closeModal('modal-calendario')">×</button>
+      </div>
+      <div id="cal-loading" style="text-align:center;padding:20px;color:var(--muted);">
+        <span class="spinner"></span> Cargando disponibilidad...
+      </div>
+      <div id="cal-grid-wrapper" style="overflow-x:auto;display:none;">
+        <div id="cal-grid" class="cal-grid"></div>
+        <div class="cal-leyenda">
+          <span class="leg-libre">Libre</span>
+          <span class="leg-ocup">Ocupado</span>
+          <span class="leg-pas">No disponible</span>
         </div>
       </div>
     </div>
 
-    <div class="pago-fields" id="fields-BIZUM">
-      <div class="field">
-        <label>Teléfono Bizum</label>
-        <input type="text" id="p-telefono" placeholder="612345678" />
-      </div>
-    </div>
-
-    <div class="pago-fields" id="fields-TRANSFERENCIA">
-      <div class="field">
-        <label>IBAN</label>
-        <input type="text" id="p-iban" placeholder="ES9121000418450200051332" />
-      </div>
-    </div>
-
-    <div class="price-preview" id="pago-price-preview" style="margin-top:16px">
-      <span class="label">Total a pagar</span>
-      <span class="value" id="pago-total">—</span>
-    </div>
-
-    <button class="btn-primary" id="btn-confirmar-pago" onclick="confirmarPago()">Pagar ahora</button>
-  </div>
-</div>
-
-<div id="toast"></div>
-
-<script>
-// ═══════════════════ ESTADO GLOBAL ═══════════════════
-let pistasGlobal = [];
-let reservasGlobal = [];
-let pistaSeleccionada = null;
-let reservaParaPagar = null;
-let metodoSeleccionado = null;
-
-// INIT
-document.addEventListener('DOMContentLoaded', () => {
-  const nombre = localStorage.getItem('usuarioNombre') || 'Usuario';
-  document.getElementById('nav-nombre').textContent = nombre.split(' ')[0];
-  
-  loadTarifas();
-  loadPistas();
-});
-
-// ═══════════════════ UTILIDADES ═══════════════════
-function toast(msg, type='ok') {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'show ' + type;
-  clearTimeout(t._timer);
-  t._timer = setTimeout(() => { t.className = ''; }, 3200);
-}
-
-function switchTab(name, btn) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('tab-' + name).classList.add('active');
-  if (name === 'misreservas') loadMisReservas();
-}
-
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-function sportClass(deporte) {
-  if (!deporte) return '';
-  const d = deporte.toUpperCase();
-  if (d === 'PADEL') return 'tag-padel';
-  if (d === 'TENIS') return 'tag-tenis';
-  return 'tag-futbol';
-}
-
-function fmtEur(v) {
-  return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(v || 0);
-}
-
-function fmtFecha(s) {
-  if (!s) return '—';
-  return new Date(s + 'T00:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
-}
-
-function logout() {
-  localStorage.clear();
-  window.location.href = 'index.html';
-}
-
-// ═══════════════════ TARIFAS ═══════════════════
-async function loadTarifas() {
-  const container = document.getElementById('tarifas-container');
-  container.innerHTML = '<div class="empty"><div class="spinner"></div></div>';
-
-  try {
-    const res = await fetch('http://localhost:8080/api/tarifas/activas');
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const tarifas = await res.json();
-
-    document.getElementById('tarifas-count').textContent = tarifas.length + ' tarifas';
-
-    if (!tarifas.length) {
-      container.innerHTML = '<div class="empty"><div class="icon">📋</div><p>No hay tarifas activas</p></div>';
-      return;
-    }
-
-    const dias = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-
-    container.innerHTML = tarifas.map(t => `
-      <div class="tarifa-card">
-        <div class="tarifa-sport">${t.tipoDeporte || '—'}</div>
-        <div class="tarifa-label">${dias[t.diaSemana] || 'Día ' + t.diaSemana}</div>
-        <div class="tarifa-horario">⏰ ${(t.horaInicio || '').substring(0,5)} – ${(t.horaFin || '').substring(0,5)}</div>
-        <div class="tarifa-precio">${fmtEur(t.precioPorHora)} <span>/ hora</span></div>
-      </div>
-    `).join('');
-  } catch (e) {
-    container.innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>Error al cargar tarifas.</p></div>`;
-  }
-}
-
-// ═══════════════════ PISTAS ═══════════════════
-async function loadPistas() {
-  const container = document.getElementById('pistas-container');
-  container.innerHTML = '<div class="empty"><div class="spinner"></div></div>';
-
-  try {
-    const res = await fetch('http://localhost:8080/api/pistas');
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const pistas = await res.json();
-
-    pistasGlobal = pistas.filter(p => p.activa);
-    document.getElementById('pistas-count').textContent = pistasGlobal.length + ' pistas';
-
-    if (!pistasGlobal.length) {
-      container.innerHTML = '<div class="empty"><div class="icon">🏟️</div><p>No hay pistas registradas</p></div>';
-      return;
-    }
-
-    container.innerHTML = pistasGlobal.map(p => `
-      <div class="pista-card">
-        <div class="pista-sport-tag ${sportClass(p.tipoDeporte)}">${p.tipoDeporte || '—'}</div>
-        <div class="pista-name">${p.nombre || '—'}</div>
-        <div class="pista-meta">
-          🏢 ${p.instalacionNombre || '—'} &nbsp;|&nbsp; 👥 Max <span>${p.maxJugadores || '—'}</span> jugadores
+    <!-- Step 2: Pago -->
+    <div id="cal-step-2" style="display:none;">
+      <div class="modal-header">
+        <div>
+          <h3>Confirmar y pagar</h3>
+          <p id="cal-pago-subtitulo">—</p>
         </div>
-        <button class="btn-reservar" onclick="abrirReserva(${p.id})">
-          Reservar pista →
+        <button class="btn-close" onclick="cancelarYVolverCal()">← Volver</button>
+      </div>
+      <div class="price-preview">
+        <span class="label">Total a pagar</span>
+        <span class="value" id="cal-precio">—</span>
+      </div>
+      <div class="metodo-grid">
+        <button class="metodo-btn" onclick="selectMetodoCal('TARJETA',this)">
+          <span class="metodo-icon">💳</span>Tarjeta
+        </button>
+        <button class="metodo-btn" onclick="selectMetodoCal('BIZUM',this)">
+          <span class="metodo-icon">📱</span>Bizum
+        </button>
+        <button class="metodo-btn" onclick="selectMetodoCal('TRANSFERENCIA',this)">
+          <span class="metodo-icon">🏦</span>Transferencia
         </button>
       </div>
-    `).join('');
-  } catch (e) {
-    container.innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>Error al cargar pistas.</p></div>`;
-  }
-}
+      <div class="pago-fields" id="cal-f-TARJETA">
+        <div class="field"><label>Número de tarjeta</label>
+          <input type="text" id="cal-p-num" placeholder="4111 1111 1111 1111" maxlength="19"/></div>
+        <div class="field"><label>Titular</label>
+          <input type="text" id="cal-p-tit" placeholder="Nombre Apellido"/></div>
+        <div class="form-row">
+          <div class="field"><label>Caducidad</label>
+			<input type="text" id="cal-p-cad" placeholder="MM/AA" maxlength="5"/></div>
+			<div class="field"><label>CVV</label>
+			<input type="text" id="cal-p-cvv" placeholder="123" maxlength="4"/></div>
+			</div>
+			</div>
+			<div class="pago-fields" id="cal-f-BIZUM">
+			<div class="field"><label>Teléfono Bizum</label>
+			<input type="text" id="cal-p-biz" placeholder="612345678"/></div>
+			</div>
+			<div class="pago-fields" id="cal-f-TRANSFERENCIA">
+			<div class="field"><label>IBAN</label>
+			<input type="text" id="cal-p-iban" placeholder="ES9121000418450200051332"/></div>
+			</div>
+			<button class="btn-primary" id="btn-confirmar-pago-cal"
+			           onclick="confirmarPagoCal()" disabled>Pagar y confirmar</button>
+			</div>
 
-// ═══════════════════ RESERVAR ═══════════════════
-function abrirReserva(pistaId) {
-  pistaSeleccionada = pistasGlobal.find(p => p.id === pistaId);
-  document.getElementById('modal-pista-label').textContent = 
-    (pistaSeleccionada.nombre || '—') + ' · ' + (pistaSeleccionada.tipoDeporte || '—');
+			  </div>
+			</div>
+			<div id="toast"></div>
+			<script>
+			// ═══════════════════════════════════════════
+			//  CONSTANTES Y ESTADO GLOBAL
+			// ═══════════════════════════════════════════
+			const API = 'http://localhost:8080';
+			let pistasGlobal        = [];
+			let reservasGlobal      = [];
+			let pistaCalendario     = null;
+			let reservaParaPagar    = null;
+			let metodoCalSeleccionado = null;
+			let slotSeleccionado    = null;
+			let reservaRecienCreada = null;
 
-  const hoy = new Date();
-  hoy.setDate(hoy.getDate() + 1);
-  const minDate = hoy.toISOString().split('T')[0];
-  document.getElementById('reserva-fecha').min = minDate;
-  document.getElementById('reserva-fecha').value = minDate;
-  document.getElementById('reserva-hora').value = '10:00';
-  document.getElementById('precio-preview').textContent = '—';
-  openModal('modal-reserva');
-}
+			// franjas horarias del calendario (cada 1 h, de 8 a 22)
+			const HORAS = ['08:00','09:00','10:00','11:00','12:00','13:00',
+			               '14:00','15:00','16:00','17:00','18:00','19:00',
+			               '20:00','21:00'];
 
-['reserva-fecha','reserva-hora','reserva-duracion'].forEach(id => {
-  document.getElementById(id).addEventListener('change', calcularPrecioPreview);
-});
+			// ═══════════════════════════════════════════
+			//  INIT
+			// ═══════════════════════════════════════════
+			document.addEventListener('DOMContentLoaded', () => {
+			  const nombre = localStorage.getItem('usuarioNombre') || 'Usuario';
+			  document.getElementById('nav-nombre').textContent = nombre.split(' ')[0];
+			  loadPistas();
+			});
 
-// Parsea hora y asegura que tenga formato "HH:mm" siempre
-function formatearHora(horaStr) {
-  if (!horaStr) return null;
-  const parts = horaStr.split(':');
-  if (parts.length < 2) return null;
-  return parts[0].padStart(2, '0') + ':' + parts[1].substring(0,2);
-}
+			// ═══════════════════════════════════════════
+			//  UTILIDADES
+			// ═══════════════════════════════════════════
+			function toast(msg, type = 'ok') {
+			  const t = document.getElementById('toast');
+			  t.textContent = msg;
+			  t.className   = 'show ' + type;
+			  clearTimeout(t._t);
+			  t._t = setTimeout(() => { t.className = ''; }, 3200);
+			}
 
-async function calcularPrecioPreview() {
-  if (!pistaSeleccionada) return;
-  const fecha    = document.getElementById('reserva-fecha').value;
-  const horaIni  = document.getElementById('reserva-hora').value;
-  const duracion = document.getElementById('reserva-duracion').value;
+			function switchTab(name, btn) {
+			  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+			  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+			  btn.classList.add('active');
+			  document.getElementById('tab-' + name).classList.add('active');
+			  if (name === 'misreservas') loadMisReservas();
+			}
 
-  if (!fecha || !horaIni) return;
+			function openModal(id)  { document.getElementById(id).classList.add('open'); }
+			function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-  const horaLimpia = formatearHora(horaIni);
+			function sportClass(dep) {
+			  if (!dep) return '';
+			  const d = dep.toUpperCase();
+			  if (d === 'PADEL')  return 'tag-padel';
+			  if (d === 'TENIS')  return 'tag-tenis';
+			  return 'tag-futbol';
+			}
 
-  try {
-    const res = await fetch(
-      `http://localhost:8080/api/reservas/disponibilidad?pistaId=${pistaSeleccionada.id}&fecha=${fecha}&horaInicio=${horaLimpia}&duracionMinutos=${duracion}`
-    );
-    const data = await res.json();
-    if (!data.disponible) {
-      document.getElementById('precio-preview').textContent = '⚠️ No disponible';
-      return;
-    }
-    document.getElementById('precio-preview').textContent = 'Disponible ✓';
-  } catch (_) {
-    document.getElementById('precio-preview').textContent = '—';
-  }
-}
+			function fmtEur(v) {
+			  return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
+			                 .format(v || 0);
+			}
 
-async function confirmarReserva() {
-  if (!pistaSeleccionada || !currentUserId) return;
+			function fmtFecha(s) {
+			  if (!s) return '—';
+			  return new Date(s + 'T00:00').toLocaleDateString('es-ES',
+			    { weekday: 'short', day: 'numeric', month: 'short' });
+			}
 
-  const fecha    = document.getElementById('reserva-fecha').value;
-  const horaIni  = document.getElementById('reserva-hora').value;
-  const duracion = parseInt(document.getElementById('reserva-duracion').value);
+			function getHoy7() {
+			  const dias = [];
+			  for (let i = 0; i < 7; i++) {
+			    const d = new Date();
+			    d.setDate(d.getDate() + i);
+			    dias.push(d.toISOString().split('T')[0]);
+			  }
+			  return dias;
+			}
 
-  if (!fecha || !horaIni) { toast('Completa fecha y hora', 'err'); return; }
+			function logout() {
+			  localStorage.clear();
+			  window.location.href = 'index.html';
+			}
 
-  const horaLimpia = formatearHora(horaIni);
-  
-  const h = parseInt(horaLimpia.split(':')[0], 10);
-  const m = parseInt(horaLimpia.split(':')[1], 10);
-  const finMinutos = (h * 60) + m + duracion;
+			// ═══════════════════════════════════════════
+			//  PISTAS
+			// ═══════════════════════════════════════════
+			async function loadPistas() {
+			  const container = document.getElementById('pistas-container');
+			  container.innerHTML = '<div class="empty"><div class="spinner"></div></div>';
+			  try {
+			    const res   = await fetch(API + '/api/pistas');
+			    const pistas = await res.json();
+			    pistasGlobal = pistas.filter(p => p.activa);
+			    document.getElementById('pistas-count').textContent = pistasGlobal.length + ' pistas';
 
-  if (h < 8 || finMinutos > 22 * 60) {
-      toast('Horario fuera de las tarifas (08:00 - 22:00)', 'err');
-      return;
-  }
+			    // poblar select de tarifas
+			    const sel = document.getElementById('select-pista-tarifa');
+			    pistasGlobal.forEach(p => {
+			      const opt = document.createElement('option');
+			      opt.value       = p.id;
+			      opt.textContent = p.nombre + ' (' + p.tipoDeporte + ')';
+			      sel.appendChild(opt);
+			    });
 
-  const btn = document.getElementById('btn-confirmar-reserva');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Reservando...';
+			    if (!pistasGlobal.length) {
+			      container.innerHTML =
+			        '<div class="empty"><div class="icon">🏟️</div><p>No hay pistas registradas</p></div>';
+			      return;
+			    }
 
-  try {
-    const res = await fetch('http://localhost:8080/api/reservas/crear', {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Accept': 'application/json' 
-      },
-      body: JSON.stringify({
-        usuarioId: Number(currentUserId),
-        pistaId: Number(pistaSeleccionada.id),
-        fecha: fecha,
-        horaInicio: horaLimpia,
-        duracionMinutos: duracion
-      })
-    });
+			    container.innerHTML = pistasGlobal.map(p => `
+			      <div class="pista-card">
+			        <div class="pista-sport-tag ${sportClass(p.tipoDeporte)}">${p.tipoDeporte}</div>
+			        <div class="pista-name">${p.nombre}</div>
+			        <div class="pista-meta">
+			          🏢 ${p.instalacionNombre || '—'} &nbsp;|&nbsp;
+			          👥 Max <span>${p.maxJugadores}</span> jugadores
+			        </div>
+			        <button class="btn-reservar" onclick="abrirCalendario(${p.id})">
+			          Ver disponibilidad y reservar →
+			        </button>
+			      </div>`).join('');
+			  } catch {
+			    container.innerHTML =
+			      '<div class="empty"><div class="icon">⚠️</div><p>Error al cargar pistas.</p></div>';
+			  }
+			}
 
-    const text = await res.text();
-    let data = {};
-    try { data = JSON.parse(text); } catch(_) {}
+			// ═══════════════════════════════════════════
+			//  TARIFAS POR PISTA
+			// ═══════════════════════════════════════════
+			async function cargarTarifasPorPista(pistaId) {
+			  const container = document.getElementById('tarifas-container');
+			  if (!pistaId) {
+			    container.innerHTML =
+			      '<div class="empty"><div class="icon">📋</div><p>Selecciona una pista para ver sus tarifas</p></div>';
+			    return;
+			  }
+			  container.innerHTML = '<div class="empty"><div class="spinner"></div></div>';
+			  try {
+			    const res     = await fetch(API + '/api/tarifas/pista/' + pistaId);
+			    const tarifas = await res.json();
 
-    if (!res.ok) {
-      toast(data.error || data.mensaje || 'Error al procesar reserva', 'err');
-      return;
-    }
+			    if (!tarifas.length) {
+			      container.innerHTML =
+			        '<div class="empty"><div class="icon">📋</div><p>No hay tarifas configuradas para esta pista</p></div>';
+			      return;
+			    }
 
-    closeModal('modal-reserva');
-    toast('✅ Reserva creada. ¡Recuerda pagarla!', 'ok');
+			    const dias = ['','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
 
-    const tabBtn = document.getElementById('tab-reservas-btn');
-    switchTab('misreservas', tabBtn);
+			    // agrupar por tipo (valle / punta / finde)
+			    const valle = tarifas.filter(t => t.diaSemana <= 5 && t.horaFin.startsWith('17'));
+			    const punta = tarifas.filter(t => t.diaSemana <= 5 && t.horaInicio.startsWith('17'));
+			    const finde = tarifas.filter(t => t.diaSemana >= 6);
 
-  } catch (e) {
-    toast('Error de conexión', 'err');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Confirmar reserva';
-  }
-}
+			    function renderGrupo(titulo, tipo, lista) {
+			      if (!lista.length) return '';
+			      return `
+			        <div class="tarifa-grupo">
+			          <div class="tarifa-grupo-titulo">${titulo}</div>
+			          <div class="tarifas-grid">
+			            ${lista.map(t => `
+			              <div class="tarifa-card">
+			                <span class="tarifa-badge ${tipo}">${tipo}</span>
+			                <div class="tarifa-horario">⏰ ${t.horaInicio.substring(0,5)} – ${t.horaFin.substring(0,5)}</div>
+			                <div class="tarifa-horario">📅 ${dias[t.diaSemana]}</div>
+			                <div class="tarifa-precio">${fmtEur(t.precioPorHora)} <span>/ hora</span></div>
+			              </div>`).join('')}
+			          </div>
+			        </div>`;
+			    }
 
-// ═══════════════════ MIS RESERVAS ═══════════════════
-async function loadMisReservas() {
-  if (!currentUserId) return;
-  const container = document.getElementById('reservas-container');
-  container.innerHTML = '<div class="empty"><div class="spinner"></div></div>';
+			    container.innerHTML =
+			      renderGrupo('Hora valle — Lunes a Viernes (08:00 – 17:00)', 'valle', valle) +
+			      renderGrupo('Hora punta — Lunes a Viernes (17:00 – 22:00)', 'punta', punta) +
+			      renderGrupo('Fin de semana', 'finde', finde);
 
-  try {
-    const res = await fetch(`http://localhost:8080/api/reservas/usuario/${currentUserId}`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const reservas = await res.json();
+			  } catch {
+			    container.innerHTML =
+			      '<div class="empty"><div class="icon">⚠️</div><p>Error al cargar tarifas.</p></div>';
+			  }
+			}
 
-    reservasGlobal = reservas;
+			// ═══════════════════════════════════════════
+			//  CALENDARIO
+			// ═══════════════════════════════════════════
+			async function abrirCalendario(pistaId) {
+			  pistaCalendario   = pistasGlobal.find(p => p.id === pistaId);
+			  slotSeleccionado  = null;
+			  reservaRecienCreada = null;
 
-    if (!reservasGlobal.length) {
-      container.innerHTML = '<div class="empty"><div class="icon">📅</div><p>Aún no tienes reservas.<br>¡Reserva una pista!</p></div>';
-      return;
-    }
+			  document.getElementById('cal-titulo').textContent    = pistaCalendario.nombre;
+			  document.getElementById('cal-subtitulo').textContent = pistaCalendario.tipoDeporte
+			    + ' — Haz clic en una franja libre para reservar';
 
-    reservasGlobal.sort((a, b) => {
-      const da = new Date((a.fechaReserva || '') + 'T' + (a.horaInicio || '00:00'));
-      const db = new Date((b.fechaReserva || '') + 'T' + (b.horaInicio || '00:00'));
-      return db - da;
-    });
+			  document.getElementById('cal-step-1').style.display = 'block';
+			  document.getElementById('cal-step-2').style.display = 'none';
+			  document.getElementById('cal-loading').style.display = 'block';
+			  document.getElementById('cal-grid-wrapper').style.display = 'none';
 
-    container.innerHTML = reservasGlobal.map(r => {
-      const esPasada = new Date((r.fechaReserva || '') + 'T' + (r.horaInicio || '00:00')) < new Date();
-      const acciones = (!esPasada && r.estado !== 'CANCELADA')
-        ? `<div class="reserva-actions">
-            ${r.estado === 'PENDIENTE'
-              ? `<button class="btn-pagar" onclick="abrirPago(${r.id})">Pagar</button>`
-              : ''}
-            <button class="btn-cancel-reserva" onclick="cancelarReserva(${r.id})">Cancelar</button>
-          </div>`
-        : '';
+			  openModal('modal-calendario');
 
-      return `
-        <div class="reserva-card">
-          <div class="reserva-info">
-            <div class="reserva-pista">
-              ${r.pistaNombre || '—'}
-              <span style="font-size:12px;color:var(--muted);font-weight:400">${r.tipoDeporte || ''}</span>
-            </div>
-            <div class="reserva-meta">
-              📅 ${fmtFecha(r.fechaReserva)}
-              &nbsp;⏰ ${r.horaInicio ? r.horaInicio.substring(0,5) : '—'} – ${r.horaFin ? r.horaFin.substring(0,5) : '—'}
-              &nbsp;💶 ${fmtEur(r.precioTotal)}
-              ${r.metodoPago ? '&nbsp;💳 ' + r.metodoPago : ''}
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-            <span class="status-pill status-${r.estado}">${r.estado}</span>
-            ${acciones}
-          </div>
-        </div>
-      `;
-    }).join('');
+			  try {
+			    const hoy  = new Date().toISOString().split('T')[0];
+			    const url  = API + '/api/reservas/pista/' + pistaId + '/semana?fecha=' + hoy;
+			    const res  = await fetch(url);
+			    const ocupados = await res.json();  // [{fecha,horaInicio,horaFin}, ...]
 
-  } catch (e) {
-    container.innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>Error al cargar reservas.</p></div>`;
-  }
-}
+			    renderCalendario(ocupados);
+			  } catch (e) {
+			    document.getElementById('cal-loading').textContent = 'Error al cargar disponibilidad.';
+			  }
+			}
 
-async function cancelarReserva(reservaId) {
-  if (!confirm('¿Cancelar esta reserva?')) return;
-  try {
-    const res = await fetch(
-      `http://localhost:8080/api/reservas/${reservaId}/cancelar?usuarioId=${currentUserId}`,
-      { method: 'POST' }
-    );
-    if (res.ok) {
-      toast('Reserva cancelada', 'ok');
-      loadMisReservas();
-    } else {
-      const text = await res.text();
-      let msg = 'No se pudo cancelar';
-      try { msg = JSON.parse(text).error || msg; } catch(_) {}
-      toast(msg, 'err');
-    }
-  } catch(e) { toast('Error de conexión', 'err'); }
-}
+			function renderCalendario(ocupados) {
+			  const dias   = getHoy7();
+			  const ahora  = new Date();
 
-// ═══════════════════ PAGO ═══════════════════
-function abrirPago(reservaId) {
-  reservaParaPagar = reservasGlobal.find(r => r.id === reservaId);
-  metodoSeleccionado = null;
-  document.getElementById('modal-pago-label').textContent =
-    `${reservaParaPagar.pistaNombre || '—'} · ${fmtFecha(reservaParaPagar.fechaReserva)} · ${fmtEur(reservaParaPagar.precioTotal)}`;
-  document.getElementById('pago-total').textContent = fmtEur(reservaParaPagar.precioTotal);
+			  // Construir set de keys para búsqueda rápida
+			  const ocupSet = new Set(
+			    ocupados.map(o => o.fecha + '_' + o.horaInicio.substring(0,5))
+			  );
 
-  document.querySelectorAll('.metodo-btn').forEach(b => b.classList.remove('selected'));
-  document.querySelectorAll('.pago-fields').forEach(f => f.classList.remove('active'));
-  document.getElementById('btn-confirmar-pago').disabled = true;
+			  const grid = document.getElementById('cal-grid');
+			  grid.innerHTML = '';
 
-  openModal('modal-pago');
-}
+			  const diasNombres = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 
-function selectMetodo(metodo, btn) {
-  metodoSeleccionado = metodo;
-  document.querySelectorAll('.metodo-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-  document.querySelectorAll('.pago-fields').forEach(f => f.classList.remove('active'));
-  const fields = document.getElementById('fields-' + metodo);
-  if (fields) fields.classList.add('active');
-  document.getElementById('btn-confirmar-pago').disabled = false;
-}
+			  // ── Cabecera ──
+			  const corner = document.createElement('div');
+			  corner.className = 'cal-corner';
+			  corner.style.cssText = 'border-bottom:1px solid var(--border);border-right:1px solid var(--border);';
+			  grid.appendChild(corner);
 
-async function confirmarPago() {
-  if (!reservaParaPagar || !metodoSeleccionado || !currentUserId) return;
+			  dias.forEach((fecha, i) => {
+			    const d   = new Date(fecha + 'T12:00:00');
+			    const hdr = document.createElement('div');
+			    hdr.className = 'cal-header-cell' + (i === 0 ? ' hoy' : '');
+			    hdr.innerHTML = `<div>${diasNombres[d.getDay()]}</div><div style="font-size:15px;font-weight:700">${d.getDate()}</div>`;
+			    grid.appendChild(hdr);
+			  });
 
-  const payload = {
-    usuarioId: Number(currentUserId),
-    metodoPago: metodoSeleccionado
-  };
+			  // ── Filas por hora ──
+			  HORAS.forEach(hora => {
+			    const [h] = hora.split(':').map(Number);
 
-  if (metodoSeleccionado === 'TARJETA') {
-    payload.numeroTarjeta   = document.getElementById('p-numero').value.replace(/\s/g,'');
-    payload.titularTarjeta  = document.getElementById('p-titular').value;
-    payload.caducidadTarjeta = document.getElementById('p-caducidad').value;
-    payload.cvv             = document.getElementById('p-cvv').value;
-    if (!payload.numeroTarjeta || !payload.titularTarjeta || !payload.caducidadTarjeta || !payload.cvv) {
-      toast('Completa todos los datos de la tarjeta', 'err'); return;
-    }
-  } else if (metodoSeleccionado === 'BIZUM') {
-    payload.telefonoBizum = document.getElementById('p-telefono').value.trim();
-    if (!payload.telefonoBizum) { toast('Introduce el teléfono Bizum', 'err'); return; }
-  } else if (metodoSeleccionado === 'TRANSFERENCIA') {
-    payload.iban = document.getElementById('p-iban').value.trim();
-    if (!payload.iban) { toast('Introduce el IBAN', 'err'); return; }
-  }
+			    const lblEl = document.createElement('div');
+			    lblEl.className = 'cal-time-label';
+			    lblEl.textContent = hora;
+			    grid.appendChild(lblEl);
 
-  const btn = document.getElementById('btn-confirmar-pago');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Procesando...';
+			    dias.forEach(fecha => {
+			      const slot     = document.createElement('div');
+			      const key      = fecha + '_' + hora;
+			      const slotDate = new Date(fecha + 'T' + hora + ':00');
+			      const pasado   = slotDate < ahora;
+			      const ocupado  = ocupSet.has(key);
 
-  try {
-    const res = await fetch(`http://localhost:8080/api/reservas/${reservaParaPagar.id}/pagar`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+			      if (pasado) {
+			        slot.className = 'cal-slot pasado';
+			      } else if (ocupado) {
+			        slot.className = 'cal-slot ocupado';
+			        slot.textContent = 'ocupado';
+			      } else {
+			        slot.className = 'cal-slot libre';
+			        slot.onclick   = () => seleccionarSlot(slot, fecha, hora);
+			      }
 
-    const text = await res.text();
-    let data = {};
-    try { data = JSON.parse(text); } catch(_) {}
+			      grid.appendChild(slot);
+			    });
+			  });
 
-    if (!res.ok) {
-      toast(data.error || 'Error al pagar', 'err');
-      return;
-    }
+			  document.getElementById('cal-loading').style.display      = 'none';
+			  document.getElementById('cal-grid-wrapper').style.display = 'block';
+			}
 
-    closeModal('modal-pago');
-    toast('✅ Pago realizado. ¡Reserva confirmada!', 'ok');
-    loadMisReservas();
+			async function seleccionarSlot(el, fecha, hora) {
+			  // Deseleccionar anterior
+			  document.querySelectorAll('.cal-slot.seleccionado')
+			    .forEach(s => s.classList.remove('seleccionado'));
+			  el.classList.add('seleccionado');
 
-  } catch (e) {
-    toast('Error de conexión', 'err');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Pagar ahora';
-  }
-}
+			  slotSeleccionado = { fecha, hora };
 
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.addEventListener('click', e => {
-    if (e.target === overlay) overlay.classList.remove('open');
-  });
-});
+			  // Calcular precio desde la API de disponibilidad
+			  try {
+			    const r = await fetch(
+			      `${API}/api/reservas/disponibilidad?pistaId=${pistaCalendario.id}`
+			      + `&fecha=${fecha}&horaInicio=${hora}&duracionMinutos=60`
+			    );
+			    const data = await r.json();
+			    if (!data.disponible) {
+			      toast('Esa franja acaba de quedar ocupada', 'err');
+			      el.className = 'cal-slot ocupado';
+			      el.textContent = 'ocupado';
+			      slotSeleccionado = null;
+			      return;
+			    }
+			  } catch { /* ignorar */ }
 
-const manana = new Date();
-manana.setDate(manana.getDate() + 1);
-document.getElementById('reserva-fecha').min = manana.toISOString().split('T')[0];
-</script>
-</body>
-</html>
+			  // Obtener precio estimado
+			  const precioEst = await estimarPrecio(fecha, hora);
+			  mostrarStepPago(precioEst);
+			}
+
+			async function estimarPrecio(fecha, hora) {
+			  try {
+			    // Usamos la tarifa de la pista vía API
+			    const res = await fetch(
+			      `${API}/api/tarifas/pista/${pistaCalendario.id}`
+			    );
+			    const tarifas = await res.json();
+			    if (!tarifas.length) return '—';
+
+			    const hNum    = parseInt(hora.split(':')[0], 10);
+			    const diaSem  = new Date(fecha + 'T12:00:00').getDay(); // 0=Dom
+			    const jsDia   = diaSem === 0 ? 7 : diaSem; // 1=Lun … 7=Dom
+
+			    const tarifa = tarifas.find(t =>
+			      t.diaSemana === jsDia &&
+			      parseInt(t.horaInicio.substring(0,2),10) <= hNum &&
+			      parseInt(t.horaFin.substring(0,2),10)    >  hNum
+			    );
+
+			    return tarifa ? fmtEur(tarifa.precioPorHora) : '—';
+			  } catch {
+			    return '—';
+			  }
+			}
+
+			function mostrarStepPago(precioEst) {
+			  document.getElementById('cal-step-1').style.display = 'none';
+			  document.getElementById('cal-step-2').style.display = 'block';
+
+			  const d = new Date(slotSeleccionado.fecha + 'T12:00:00');
+			  document.getElementById('cal-pago-subtitulo').textContent =
+			    pistaCalendario.nombre + ' · ' +
+			    d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}) +
+			    ' · ' + slotSeleccionado.hora + '–' +
+			    String(parseInt(slotSeleccionado.hora.split(':')[0],10)+1).padStart(2,'0') + ':00';
+
+			  document.getElementById('cal-precio').textContent = precioEst;
+
+			  // Reset pago
+			  metodoCalSeleccionado = null;
+			  document.querySelectorAll('.metodo-btn').forEach(b => b.classList.remove('selected'));
+			  document.querySelectorAll('.pago-fields').forEach(f => f.classList.remove('active'));
+			  document.getElementById('btn-confirmar-pago-cal').disabled = true;
+			}
+
+			function cancelarYVolverCal() {
+			  // Volver al calendario sin cerrarlo
+			  document.getElementById('cal-step-1').style.display = 'block';
+			  document.getElementById('cal-step-2').style.display = 'none';
+			  // Deseleccionar slot
+			  document.querySelectorAll('.cal-slot.seleccionado')
+			    .forEach(s => s.classList.remove('seleccionado'));
+			  slotSeleccionado = null;
+			}
+
+			function selectMetodoCal(metodo, btn) {
+			  metodoCalSeleccionado = metodo;
+			  document.querySelectorAll('.metodo-btn').forEach(b => b.classList.remove('selected'));
+			  btn.classList.add('selected');
+			  document.querySelectorAll('.pago-fields').forEach(f => f.classList.remove('active'));
+			  const fields = document.getElementById('cal-f-' + metodo);
+			  if (fields) fields.classList.add('active');
+			  document.getElementById('btn-confirmar-pago-cal').disabled = false;
+			}
+
+			async function confirmarPagoCal() {
+			  if (!slotSeleccionado || !metodoCalSeleccionado || !currentUserId) return;
+
+			  const btn = document.getElementById('btn-confirmar-pago-cal');
+			  btn.disabled = true;
+			  btn.innerHTML = '<span class="spinner"></span> Procesando...';
+
+			  try {
+			    // 1. Crear reserva
+			    const reservaRes = await fetch(API + '/api/reservas/crear', {
+			      method: 'POST',
+			      headers: { 'Content-Type': 'application/json' },
+			      body: JSON.stringify({
+			        usuarioId:        Number(currentUserId),
+			        pistaId:          Number(pistaCalendario.id),
+			        fecha:            slotSeleccionado.fecha,
+			        horaInicio:       slotSeleccionado.hora,
+			        duracionMinutos:  60
+			      })
+			    });
+			    const reservaData = await reservaRes.json();
+			    if (!reservaRes.ok) {
+			      toast(reservaData.error || 'Error al crear la reserva', 'err');
+			      btn.disabled = false; btn.textContent = 'Pagar y confirmar';
+			      return;
+			    }
+			    reservaRecienCreada = reservaData;
+
+			    // 2. Pagar
+			    const pagoPayload = {
+			      usuarioId:  Number(currentUserId),
+			      metodoPago: metodoCalSeleccionado
+			    };
+			    if (metodoCalSeleccionado === 'TARJETA') {
+			      pagoPayload.numeroTarjeta    = document.getElementById('cal-p-num').value.replace(/\s/g,'');
+			      pagoPayload.titularTarjeta   = document.getElementById('cal-p-tit').value;
+			      pagoPayload.caducidadTarjeta = document.getElementById('cal-p-cad').value;
+			      pagoPayload.cvv              = document.getElementById('cal-p-cvv').value;
+			    }
+			    if (metodoCalSeleccionado === 'BIZUM') {
+			      pagoPayload.telefonoBizum = document.getElementById('cal-p-biz').value.trim();
+			    }
+			    if (metodoCalSeleccionado === 'TRANSFERENCIA') {
+			      pagoPayload.iban = document.getElementById('cal-p-iban').value.trim();
+			    }
+
+			    const pagoRes = await fetch(
+			      API + '/api/reservas/' + reservaData.id + '/pagar', {
+			        method: 'POST',
+			        headers: { 'Content-Type': 'application/json' },
+			        body: JSON.stringify(pagoPayload)
+			      }
+			    );
+			    const pagoData = await pagoRes.json();
+
+			    if (!pagoRes.ok) {
+			      // Pago fallido: reserva queda PENDIENTE
+			      toast('Pago rechazado. Reserva guardada como PENDIENTE.', 'err');
+			    } else {
+			      toast('✅ Reserva confirmada y pagada correctamente.', 'ok');
+			      // Marcar el slot como ocupado en el calendario
+			      marcarSlotOcupado(slotSeleccionado.fecha, slotSeleccionado.hora);
+			    }
+
+			    closeModal('modal-calendario');
+			    const tabBtn = document.getElementById('tab-misreservas-btn');
+			    switchTab('misreservas', tabBtn);
+
+			  } catch (e) {
+			    toast('Error de conexión', 'err');
+			  } finally {
+			    btn.disabled = false;
+			    btn.textContent = 'Pagar y confirmar';
+			  }
+			}
+
+			function marcarSlotOcupado(fecha, hora) {
+			  // Buscar el elemento del calendario si sigue abierto y marcarlo
+			  document.querySelectorAll('.cal-slot.seleccionado').forEach(s => {
+			    s.className    = 'cal-slot ocupado';
+			    s.textContent  = 'ocupado';
+			    s.onclick      = null;
+			  });
+			}
+
+			// ═══════════════════════════════════════════
+			//  MIS RESERVAS
+			// ═══════════════════════════════════════════
+			async function loadMisReservas() {
+			  if (!currentUserId) return;
+			  const container = document.getElementById('reservas-container');
+			  container.innerHTML = '<div class="empty"><div class="spinner"></div></div>';
+			  try {
+			    const res      = await fetch(API + '/api/reservas/usuario/' + currentUserId);
+			    reservasGlobal = await res.json();
+
+			    if (!reservasGlobal.length) {
+			      container.innerHTML =
+			        '<div class="empty"><div class="icon">📅</div><p>Aún no tienes reservas.</p></div>';
+			      return;
+			    }
+
+			    reservasGlobal.sort((a, b) =>
+			      new Date(b.fechaReserva + 'T' + b.horaInicio) -
+			      new Date(a.fechaReserva + 'T' + a.horaInicio));
+
+			    container.innerHTML = reservasGlobal.map(r => {
+			      const esPasada = new Date(r.fechaReserva + 'T' + r.horaInicio) < new Date();
+			      const acciones = (!esPasada && r.estado !== 'CANCELADA') ? `
+			        <div class="reserva-actions">
+			          ${r.estado === 'PENDIENTE'
+			            ? `<button class="btn-pagar" onclick="abrirPagoReserva(${r.id})">Pagar</button>`
+			            : ''}
+			          <button class="btn-cancel-r" onclick="cancelarReserva(${r.id})">Cancelar</button>
+			        </div>` : '';
+
+			      return `
+			        <div class="reserva-card">
+			          <div class="reserva-info">
+			            <div class="reserva-pista">
+			              ${r.pistaNombre || '—'}
+			              <span style="font-size:12px;color:var(--muted);font-weight:400">${r.tipoDeporte || ''}</span>
+			            </div>
+			            <div class="reserva-meta">
+			              📅 ${fmtFecha(r.fechaReserva)} &nbsp;
+			              ⏰ ${r.horaInicio?.substring(0,5) || '—'} – ${r.horaFin?.substring(0,5) || '—'} &nbsp;
+			              💶 ${fmtEur(r.precioTotal)}
+			              ${r.metodoPago ? '&nbsp;💳 ' + r.metodoPago : ''}
+			              ${r.referenciaPago ? '&nbsp;🔖 ' + r.referenciaPago : ''}
+			            </div>
+			          </div>
+			          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+			            <span class="status-pill status-${r.estado}">${r.estado}</span>
+			            ${acciones}
+			          </div>
+			        </div>`;
+			    }).join('');
+
+			  } catch {
+			    container.innerHTML =
+			      '<div class="empty"><div class="icon">⚠️</div><p>Error al cargar reservas.</p></div>';
+			  }
+			}
+
+			async function cancelarReserva(reservaId) {
+			  if (!confirm('¿Cancelar esta reserva?')) return;
+			  try {
+			    const res = await fetch(
+			      `${API}/api/reservas/${reservaId}/cancelar?usuarioId=${currentUserId}`,
+			      { method: 'POST' }
+			    );
+			    if (res.ok) { toast('Reserva cancelada', 'ok'); loadMisReservas(); }
+			    else {
+			      const d = await res.json();
+			      toast(d.error || 'No se pudo cancelar', 'err');
+			    }
+			  } catch { toast('Error de conexión', 'err'); }
+			}
+
+			// Pagar una reserva ya existente (PENDIENTE)
+			async function abrirPagoReserva(reservaId) {
+			  reservaParaPagar = reservasGlobal.find(r => r.id === reservaId);
+			  if (!reservaParaPagar) return;
+
+			  pistaCalendario = pistasGlobal.find(p => p.id === reservaParaPagar.pistaId) || {};
+			  slotSeleccionado = {
+			    fecha: reservaParaPagar.fechaReserva,
+			    hora:  reservaParaPagar.horaInicio?.substring(0,5) || ''
+			  };
+
+			  const precioEst = fmtEur(reservaParaPagar.precioTotal);
+			  mostrarStepPago(precioEst);
+
+			  // Sobreescribir id para el pago directo
+			  reservaRecienCreada = reservaParaPagar;
+			  document.getElementById('cal-step-2').dataset.reservaId = reservaId;
+
+			  // Parchear confirmarPagoCal para saltarse la creación
+			  window._pagarDirecto = true;
+			  openModal('modal-calendario');
+			  document.getElementById('cal-step-1').style.display = 'none';
+			  document.getElementById('cal-step-2').style.display = 'block';
+			}
+
+			// ═══════════════════════════════════════════
+			//  CERRAR MODAL AL CLIC FUERA
+			// ═══════════════════════════════════════════
+			document.querySelectorAll('.modal-overlay').forEach(o => {
+			  o.addEventListener('click', e => {
+			    if (e.target === o) {
+			      closeModal(o.id);
+			      window._pagarDirecto = false;
+			    }
+			  });
+			});
+			</script>
+			</body>
+			</html>

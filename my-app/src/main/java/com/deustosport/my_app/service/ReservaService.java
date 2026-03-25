@@ -13,44 +13,50 @@ import com.deustosport.my_app.repository.UsuarioRepository;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 public class ReservaService {
 
-    private static final Pattern PATRON_TARJETA = Pattern.compile("^\\d{16}$");
+    private static final Pattern PATRON_TARJETA  = Pattern.compile("^\\d{16}$");
     private static final Pattern PATRON_CADUCIDAD = Pattern.compile("^(0[1-9]|1[0-2])/[0-9]{2}$");
-    private static final Pattern PATRON_CVV = Pattern.compile("^\\d{3,4}$");
-    private static final Pattern PATRON_BIZUM = Pattern.compile("^(\\+34)?[6789]\\d{8}$");
+    private static final Pattern PATRON_CVV       = Pattern.compile("^\\d{3,4}$");
+    private static final Pattern PATRON_BIZUM     = Pattern.compile("^(\\+34)?[6789]\\d{8}$");
 
-    private final ReservaRepository reservaRepository;
-    private final PistaRepository pistaRepository;
-    private final UsuarioRepository usuarioRepository;
-    private final TarifaService tarifaService;
-    private final PagoService pagoService;
+    private final ReservaRepository  reservaRepository;
+    private final PistaRepository    pistaRepository;
+    private final UsuarioRepository  usuarioRepository;
+    private final TarifaService      tarifaService;
+    private final PagoService        pagoService;
 
     public ReservaService(ReservaRepository reservaRepository,
-            PistaRepository pistaRepository,
-            UsuarioRepository usuarioRepository,
-            TarifaService tarifaService,
-            @Lazy PagoService pagoService) {
+                          PistaRepository pistaRepository,
+                          UsuarioRepository usuarioRepository,
+                          TarifaService tarifaService,
+                          @Lazy PagoService pagoService) {
         this.reservaRepository = reservaRepository;
-        this.pistaRepository = pistaRepository;
+        this.pistaRepository   = pistaRepository;
         this.usuarioRepository = usuarioRepository;
-        this.tarifaService = tarifaService;
-        this.pagoService = pagoService;
+        this.tarifaService     = tarifaService;
+        this.pagoService       = pagoService;
     }
 
+    // ─── Crear reserva ────────────────────────────────────────────────────────
     @Transactional
-    public Reserva crearReserva(Long usuarioId, Long pistaId, LocalDate fecha,
-            LocalTime horaInicio, Integer duracionMinutos) {
+    public Reserva crearReserva(Long usuarioId, Long pistaId,
+                                LocalDate fecha, LocalTime horaInicio,
+                                Integer duracionMinutos) {
         Objects.requireNonNull(usuarioId, "usuarioId no puede ser null");
-        Objects.requireNonNull(pistaId, "pistaId no puede ser null");
+        Objects.requireNonNull(pistaId,   "pistaId no puede ser null");
 
         if (fecha.isBefore(LocalDate.now()) ||
                 (fecha.isEqual(LocalDate.now()) && horaInicio.isBefore(LocalTime.now()))) {
@@ -83,23 +89,26 @@ public class ReservaService {
         BigDecimal precioTotal = tarifaService.calcularPrecio(
                 pista.getTipoDeporte(), fecha, horaInicio, horaFin, usuario.isEsSocio());
 
-        Reserva nuevaReserva = new Reserva();
-        nuevaReserva.setUsuario(usuario);
-        nuevaReserva.setPista(pista);
-        nuevaReserva.setFechaReserva(fecha);
-        nuevaReserva.setHoraInicio(horaInicio);
-        nuevaReserva.setHoraFin(horaFin);
-        nuevaReserva.setPrecioTotal(precioTotal);
-        nuevaReserva.setEstado(EstadoReserva.PENDIENTE);
-        nuevaReserva.setCreditosUsados(0);
+        Reserva r = new Reserva();
+        r.setUsuario(usuario);
+        r.setPista(pista);
+        r.setFechaReserva(fecha);
+        r.setHoraInicio(horaInicio);
+        r.setHoraFin(horaFin);
+        r.setPrecioTotal(precioTotal);
+        r.setEstado(EstadoReserva.PENDIENTE);
+        r.setCreditosUsados(0);
 
-        return reservaRepository.save(nuevaReserva);
+        return reservaRepository.save(r);
     }
 
+    // ─── Pagar reserva ────────────────────────────────────────────────────────
     @Transactional
-    public Reserva pagarReserva(Long reservaId, Long usuarioId, MetodoPago metodoPago,
-            String numeroTarjeta, String titularTarjeta, String caducidadTarjeta,
-            String cvv, String telefonoBizum, String iban) {
+    public Reserva pagarReserva(Long reservaId, Long usuarioId,
+                                MetodoPago metodoPago,
+                                String numeroTarjeta, String titularTarjeta,
+                                String caducidadTarjeta, String cvv,
+                                String telefonoBizum, String iban) {
         Objects.requireNonNull(reservaId, "reservaId no puede ser null");
         Objects.requireNonNull(usuarioId, "usuarioId no puede ser null");
 
@@ -109,15 +118,12 @@ public class ReservaService {
         if (!reserva.getUsuario().getId().equals(usuarioId)) {
             throw new SecurityException("No tienes permiso para pagar esta reserva.");
         }
-
         if (reserva.getEstado() == EstadoReserva.CANCELADA) {
             throw new IllegalStateException("No se puede pagar una reserva cancelada.");
         }
-
         if (reserva.getEstado() == EstadoReserva.CONFIRMADA || reserva.getFechaPago() != null) {
-            throw new IllegalStateException("La reserva ya esta pagada.");
+            throw new IllegalStateException("La reserva ya está pagada.");
         }
-
         if (reserva.getFechaReserva().isBefore(LocalDate.now()) ||
                 (reserva.getFechaReserva().isEqual(LocalDate.now()) &&
                         reserva.getHoraInicio().isBefore(LocalTime.now()))) {
@@ -127,7 +133,9 @@ public class ReservaService {
         validarDatosPago(metodoPago, numeroTarjeta, titularTarjeta,
                 caducidadTarjeta, cvv, telefonoBizum, iban);
 
-        String ibanFinal = (iban != null && !iban.isBlank()) ? iban : null;
+        String ibanFinal = (iban != null && !iban.isBlank())
+                ? iban
+                : "SIMULADO00000000000000";
 
         Pago pago = pagoService.procesarPagoInterno(reservaId, ibanFinal, metodoPago);
 
@@ -139,43 +147,28 @@ public class ReservaService {
         return reservaRepository.save(reserva);
     }
 
+    // ─── Mis reservas ─────────────────────────────────────────────────────────
     @Transactional(readOnly = true)
     public List<ReservaResponse> obtenerMisReservas(Long usuarioId) {
         List<Reserva> reservas = reservaRepository.findByUsuarioId(usuarioId);
-        
-        return reservas.stream().map(reserva -> {
-            ReservaResponse dto = new ReservaResponse();
-            dto.setId(reserva.getId());
-            dto.setUsuarioId(reserva.getUsuario().getId());
-            if (reserva.getPista() != null) {
-                dto.setPistaId(reserva.getPista().getId());
-                dto.setPistaNombre(reserva.getPista().getNombre());
-                dto.setTipoDeporte(reserva.getPista().getTipoDeporte()); 
-            }
-            dto.setFechaReserva(reserva.getFechaReserva());
-            dto.setHoraInicio(reserva.getHoraInicio());
-            dto.setHoraFin(reserva.getHoraFin());
-            dto.setPrecioTotal(reserva.getPrecioTotal());
-            dto.setEstado(reserva.getEstado());
-            return dto;
-        }).toList();
+        return reservas.stream().map(this::toDto).collect(Collectors.toList());
     }
 
+    // ─── Cancelar reserva ─────────────────────────────────────────────────────
     @Transactional
     public Reserva cancelarReserva(Long reservaId, Long usuarioId) {
         Objects.requireNonNull(reservaId, "reservaId no puede ser null");
         Objects.requireNonNull(usuarioId, "usuarioId no puede ser null");
+
         Reserva reserva = reservaRepository.findById(reservaId)
                 .orElseThrow(() -> new IllegalArgumentException("Reserva no encontrada"));
 
         if (!reserva.getUsuario().getId().equals(usuarioId)) {
             throw new SecurityException("No tienes permiso para cancelar esta reserva.");
         }
-
         if (reserva.getEstado() == EstadoReserva.CANCELADA) {
             throw new IllegalStateException("La reserva ya está cancelada.");
         }
-
         if (reserva.getFechaReserva().isBefore(LocalDate.now()) ||
                 (reserva.getFechaReserva().isEqual(LocalDate.now()) &&
                         reserva.getHoraInicio().isBefore(LocalTime.now()))) {
@@ -186,83 +179,110 @@ public class ReservaService {
         return reservaRepository.save(reserva);
     }
 
+    // ─── Disponibilidad ───────────────────────────────────────────────────────
     public boolean consultarDisponibilidad(Long pistaId, LocalDate fecha,
-            LocalTime horaInicio, LocalTime horaFin) {
+                                           LocalTime horaInicio, LocalTime horaFin) {
         Objects.requireNonNull(pistaId, "pistaId no puede ser null");
 
         Pista pista = pistaRepository.findById(pistaId)
-                .orElseThrow(() -> new IllegalArgumentException("Pista no encontrada con ID: " + pistaId));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Pista no encontrada con ID: " + pistaId));
 
-        if (!estaDentroDeHorarioInstalacion(pista, horaInicio, horaFin)) {
-            return false;
-        }
+        if (!estaDentroDeHorario(pista, horaInicio, horaFin)) return false;
 
         return reservaRepository.findConflictingReservations(
                 pistaId, fecha, horaInicio, horaFin).isEmpty();
     }
 
-    private void validarHorarioInstalacion(Pista pista, LocalTime horaInicio, LocalTime horaFin) {
-        if (!estaDentroDeHorarioInstalacion(pista, horaInicio, horaFin)) {
-            LocalTime apertura = pista.getInstalacion().getHoraApertura();
-            LocalTime cierre = pista.getInstalacion().getHoraCierre();
+    // ─── Slots ocupados por pista y rango de fechas (para el calendario) ──────
+    @Transactional(readOnly = true)
+    public List<Map<String, String>> obtenerOcupadosPorPistaYRango(
+            Long pistaId, LocalDate inicio, LocalDate fin) {
+
+        return reservaRepository.findActivasByPistaAndRango(pistaId, inicio, fin)
+                .stream()
+                .map(r -> {
+                    Map<String, String> m = new LinkedHashMap<>();
+                    m.put("fecha",      r.getFechaReserva().toString());
+                    m.put("horaInicio", r.getHoraInicio().toString());
+                    m.put("horaFin",    r.getHoraFin().toString());
+                    return m;
+                })
+                .collect(Collectors.toList());
+    }
+
+    // ─── Helpers ──────────────────────────────────────────────────────────────
+    private ReservaResponse toDto(Reserva r) {
+        ReservaResponse dto = new ReservaResponse();
+        dto.setId(r.getId());
+        dto.setUsuarioId(r.getUsuario().getId());
+        dto.setPistaId(r.getPista() != null ? r.getPista().getId() : null);
+        dto.setPistaNombre(r.getPista() != null ? r.getPista().getNombre() : "—");
+        dto.setTipoDeporte(r.getPista() != null ? r.getPista().getTipoDeporte() : null);
+        dto.setFechaReserva(r.getFechaReserva());
+        dto.setHoraInicio(r.getHoraInicio());
+        dto.setHoraFin(r.getHoraFin());
+        dto.setPrecioTotal(r.getPrecioTotal());
+        dto.setEstado(r.getEstado());
+        dto.setMetodoPago(r.getMetodoPago());
+        dto.setReferenciaPago(r.getReferenciaPago());
+        dto.setFechaPago(r.getFechaPago());
+        return dto;
+    }
+
+    private void validarHorarioInstalacion(Pista pista,
+                                           LocalTime horaInicio, LocalTime horaFin) {
+        if (!estaDentroDeHorario(pista, horaInicio, horaFin)) {
+            LocalTime ap = pista.getInstalacion().getHoraApertura();
+            LocalTime ci = pista.getInstalacion().getHoraCierre();
             throw new IllegalArgumentException(
-                    "El horario solicitado está fuera del horario general de la instalación ("
-                            + apertura + " - " + cierre + ").");
+                    "Horario fuera del horario general de la instalación (" + ap + " - " + ci + ").");
         }
     }
 
-    private boolean estaDentroDeHorarioInstalacion(Pista pista, LocalTime horaInicio, LocalTime horaFin) {
-        if (pista.getInstalacion() == null || pista.getInstalacion().getHoraApertura() == null
-                || pista.getInstalacion().getHoraCierre() == null) {
-            return true;
-        }
-
-        LocalTime apertura = pista.getInstalacion().getHoraApertura();
-        LocalTime cierre = pista.getInstalacion().getHoraCierre();
-
-        return !horaInicio.isBefore(apertura) && !horaFin.isAfter(cierre);
+    private boolean estaDentroDeHorario(Pista pista,
+                                        LocalTime horaInicio, LocalTime horaFin) {
+        if (pista.getInstalacion() == null) return true;
+        LocalTime ap = pista.getInstalacion().getHoraApertura();
+        LocalTime ci = pista.getInstalacion().getHoraCierre();
+        if (ap == null || ci == null) return true;
+        return !horaInicio.isBefore(ap) && !horaFin.isAfter(ci);
     }
 
-    private void validarDatosPago(MetodoPago metodoPago, String numeroTarjeta,
-            String titularTarjeta, String caducidadTarjeta, String cvv,
-            String telefonoBizum, String iban) {
+    private void validarDatosPago(MetodoPago metodoPago,
+                                  String numeroTarjeta, String titularTarjeta,
+                                  String caducidadTarjeta, String cvv,
+                                  String telefonoBizum, String iban) {
         if (metodoPago == null) {
-            throw new IllegalArgumentException("Debes indicar un metodo de pago valido.");
+            throw new IllegalArgumentException("Debes indicar un método de pago válido.");
         }
         if (metodoPago == MetodoPago.TARJETA) {
-            String numeroLimpio = limpiar(numeroTarjeta).replace(" ", "");
-            if (!PATRON_TARJETA.matcher(numeroLimpio).matches()) {
-                throw new IllegalArgumentException("Numero de tarjeta invalido. Debe tener 16 digitos.");
-            }
-            if (limpiar(titularTarjeta).length() < 3) {
-                throw new IllegalArgumentException("El titular de la tarjeta no es valido.");
-            }
-            if (!PATRON_CADUCIDAD.matcher(limpiar(caducidadTarjeta)).matches()) {
+            String num = limpiar(numeroTarjeta).replace(" ", "");
+            if (!PATRON_TARJETA.matcher(num).matches())
+                throw new IllegalArgumentException("Número de tarjeta inválido. Debe tener 16 dígitos.");
+            if (limpiar(titularTarjeta).length() < 3)
+                throw new IllegalArgumentException("El titular de la tarjeta no es válido.");
+            if (!PATRON_CADUCIDAD.matcher(limpiar(caducidadTarjeta)).matches())
                 throw new IllegalArgumentException("La caducidad debe tener formato MM/AA.");
-            }
-            if (!PATRON_CVV.matcher(limpiar(cvv)).matches()) {
-                throw new IllegalArgumentException("El CVV es invalido.");
-            }
+            if (!PATRON_CVV.matcher(limpiar(cvv)).matches())
+                throw new IllegalArgumentException("El CVV es inválido.");
         }
         if (metodoPago == MetodoPago.BIZUM) {
-            String telefonoLimpio = limpiar(telefonoBizum).replace(" ", "");
-            if (!PATRON_BIZUM.matcher(telefonoLimpio).matches()) {
-                throw new IllegalArgumentException("Telefono Bizum invalido.");
-            }
+            String tel = limpiar(telefonoBizum).replace(" ", "");
+            if (!PATRON_BIZUM.matcher(tel).matches())
+                throw new IllegalArgumentException("Teléfono Bizum inválido.");
         }
         if (metodoPago == MetodoPago.TRANSFERENCIA) {
-            if (iban == null || iban.isBlank()) {
+            if (iban == null || iban.isBlank())
                 throw new IllegalArgumentException("El IBAN es obligatorio para transferencia.");
-            }
-            String ibanLimpio = iban.toUpperCase().replaceAll("\\s", "");
-            if (!ibanLimpio.matches("^[A-Z]{2}[0-9]{2}[A-Z0-9]{4,30}$")) {
+            String ibanL = iban.toUpperCase().replaceAll("\\s", "");
+            if (!ibanL.matches("^[A-Z]{2}[0-9]{2}[A-Z0-9]{4,30}$"))
                 throw new IllegalArgumentException(
-                        "Formato de IBAN no valido. Ejemplo: ES9121000418450200051332");
-            }
+                        "Formato de IBAN no válido. Ejemplo: ES9121000418450200051332");
         }
     }
 
-    private String limpiar(String valor) {
-        return valor == null ? "" : valor.trim();
+    private String limpiar(String v) {
+        return v == null ? "" : v.trim();
     }
 }

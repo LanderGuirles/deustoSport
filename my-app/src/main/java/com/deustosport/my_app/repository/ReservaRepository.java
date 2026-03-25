@@ -36,4 +36,13 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
     );
 
     List<Reserva> findByFechaReservaAndEstado(LocalDate fecha, EstadoReserva estado);
+
+    @Query("SELECT r FROM Reserva r WHERE r.pista.id = :pistaId " +
+           "AND r.fechaReserva BETWEEN :inicio AND :fin " +
+           "AND r.estado != 'CANCELADA'")
+    List<Reserva> findActivasByPistaAndRango(
+            @Param("pistaId") Long pistaId,
+            @Param("inicio") LocalDate inicio,
+            @Param("fin") LocalDate fin
+    );
 }

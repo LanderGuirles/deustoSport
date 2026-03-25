@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -29,14 +30,18 @@ public class ReservaController {
     @Operation(summary = "Crear nueva reserva")
     public ResponseEntity<?> crearReserva(@RequestBody ReservaRequest request) {
         try {
-            if (request.getUsuarioId() == null || request.getPistaId() == null ||
-                    request.getFecha() == null || request.getHoraInicio() == null) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Faltan datos obligatorios para la reserva"));
+            if (request.getUsuarioId() == null || request.getPistaId() == null
+                    || request.getFecha() == null || request.getHoraInicio() == null) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Faltan datos obligatorios para la reserva"));
             }
-            Integer duracion = request.getDuracionMinutos() != null ? request.getDuracionMinutos() : 60;
+            Integer duracion = request.getDuracionMinutos() != null
+                    ? request.getDuracionMinutos() : 60;
+
             Reserva reserva = reservaService.crearReserva(
                     request.getUsuarioId(), request.getPistaId(),
                     request.getFecha(), request.getHoraInicio(), duracion);
+
             ReservaResponse dto = new ReservaResponse();
             dto.setId(reserva.getId());
             dto.setUsuarioId(reserva.getUsuario().getId());
@@ -49,78 +54,112 @@ public class ReservaController {
             dto.setPrecioTotal(reserva.getPrecioTotal());
             dto.setEstado(reserva.getEstado());
             return ResponseEntity.ok(dto);
+
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Error inesperado al procesar la reserva."));
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "Error inesperado al procesar la reserva."));
         }
     }
 
     @GetMapping("/usuario/{usuarioId}")
-    @Operation(summary = "Obtener mis reservas", description = "Devuelve el historial de reservas de un usuario")
-    public ResponseEntity<List<ReservaResponse>> obtenerMisReservas(@PathVariable("usuarioId") Long usuarioId) {
-        List<ReservaResponse> reservas = reservaService.obtenerMisReservas(usuarioId);
-        return ResponseEntity.ok(reservas);
+    @Operation(summary = "Obtener reservas de un usuario")
+    public ResponseEntity<List<ReservaResponse>> obtenerMisReservas(
+            @PathVariable("usuarioId") Long usuarioId) {
+        return ResponseEntity.ok(reservaService.obtenerMisReservas(usuarioId));
     }
 
     @PostMapping("/{reservaId}/cancelar")
     @Operation(summary = "Cancelar reserva")
-    public ResponseEntity<?> cancelarReserva(@PathVariable("reservaId") Long reservaId, @RequestParam("usuarioId") Long usuarioId) {
+    public ResponseEntity<?> cancelarReserva(
+            @PathVariable("reservaId") Long reservaId,
+            @RequestParam("usuarioId") Long usuarioId) {
         try {
-            Reserva reservaCancelada = reservaService.cancelarReserva(reservaId, usuarioId);
-            return ResponseEntity.ok(reservaCancelada);
+            Reserva r = reservaService.cancelarReserva(reservaId, usuarioId);
+            return ResponseEntity.ok(r);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
     @PostMapping("/{reservaId}/pagar")
-    @Operation(summary = "Pagar reserva", description = "Paga con TARJETA, BIZUM o TRANSFERENCIA. TRANSFERENCIA requiere IBAN.")
-    public ResponseEntity<?> pagarReserva(@PathVariable("reservaId") Long reservaId,
+    @Operation(summary = "Pagar reserva",
+               description = "Métodos: TARJETA, BIZUM, TRANSFERENCIA (requiere IBAN).")
+    public ResponseEntity<?> pagarReserva(
+            @PathVariable("reservaId") Long reservaId,
             @RequestBody PagoReservaRequest request) {
         try {
             if (request.getUsuarioId() == null || request.getMetodoPago() == null) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Debes indicar usuarioId y metodoPago."));
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Debes indicar usuarioId y metodoPago."));
             }
-            Reserva reservaPagada = reservaService.pagarReserva(
+            Reserva pagada = reservaService.pagarReserva(
                     reservaId, request.getUsuarioId(), request.getMetodoPago(),
                     request.getNumeroTarjeta(), request.getTitularTarjeta(),
                     request.getCaducidadTarjeta(), request.getCvv(),
                     request.getTelefonoBizum(), request.getIban());
-            ReservaResponse response = new ReservaResponse();
-            response.setId(reservaPagada.getId());
-            response.setUsuarioId(reservaPagada.getUsuario().getId());
-            response.setPistaId(reservaPagada.getPista().getId());
-            response.setPistaNombre(reservaPagada.getPista().getNombre());
-            response.setTipoDeporte(reservaPagada.getPista().getTipoDeporte());
-            response.setFechaReserva(reservaPagada.getFechaReserva());
-            response.setHoraInicio(reservaPagada.getHoraInicio());
-            response.setHoraFin(reservaPagada.getHoraFin());
-            response.setPrecioTotal(reservaPagada.getPrecioTotal());
-            response.setEstado(reservaPagada.getEstado());
-            response.setMetodoPago(reservaPagada.getMetodoPago());
-            response.setReferenciaPago(reservaPagada.getReferenciaPago());
-            response.setFechaPago(reservaPagada.getFechaPago());
-            return ResponseEntity.ok(response);
+
+            ReservaResponse resp = new ReservaResponse();
+            resp.setId(pagada.getId());
+            resp.setUsuarioId(pagada.getUsuario().getId());
+            resp.setPistaId(pagada.getPista().getId());
+            resp.setPistaNombre(pagada.getPista().getNombre());
+            resp.setTipoDeporte(pagada.getPista().getTipoDeporte());
+            resp.setFechaReserva(pagada.getFechaReserva());
+            resp.setHoraInicio(pagada.getHoraInicio());
+            resp.setHoraFin(pagada.getHoraFin());
+            resp.setPrecioTotal(pagada.getPrecioTotal());
+            resp.setEstado(pagada.getEstado());
+            resp.setMetodoPago(pagada.getMetodoPago());
+            resp.setReferenciaPago(pagada.getReferenciaPago());
+            resp.setFechaPago(pagada.getFechaPago());
+            return ResponseEntity.ok(resp);
+
         } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Error inesperado al procesar el pago."));
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "Error inesperado al procesar el pago."));
         }
     }
 
     @GetMapping("/disponibilidad")
-    @Operation(summary = "Consultar disponibilidad")
-    public ResponseEntity<?> consultarDisponibilidad(@RequestParam("pistaId") Long pistaId,
-            @RequestParam("fecha") String fecha, @RequestParam("horaInicio") String horaInicio,
+    @Operation(summary = "Consultar disponibilidad de franja horaria")
+    public ResponseEntity<?> consultarDisponibilidad(
+            @RequestParam("pistaId") Long pistaId,
+            @RequestParam("fecha") String fecha,
+            @RequestParam("horaInicio") String horaInicio,
             @RequestParam(name = "duracionMinutos", defaultValue = "60") Integer duracionMinutos) {
         try {
-            boolean disponible = reservaService.consultarDisponibilidad(pistaId,
-                    LocalDate.parse(fecha), LocalTime.parse(horaInicio),
+            boolean disponible = reservaService.consultarDisponibilidad(
+                    pistaId,
+                    LocalDate.parse(fecha),
+                    LocalTime.parse(horaInicio),
                     LocalTime.parse(horaInicio).plusMinutes(duracionMinutos));
             return ResponseEntity.ok(Map.of("disponible", disponible));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Error al consultar disponibilidad: " + e.getMessage()));
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Error al consultar disponibilidad: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/pista/{pistaId}/semana")
+    @Operation(summary = "Slots ocupados de una pista para los próximos 7 días",
+               description = "Devuelve lista de {fecha, horaInicio, horaFin} con reservas activas.")
+    public ResponseEntity<?> obtenerOcupadosSemana(
+            @PathVariable("pistaId") Long pistaId,
+            @RequestParam(name = "fecha", required = false) String fecha) {
+        try {
+            LocalDate inicio = (fecha != null && !fecha.isBlank())
+                    ? LocalDate.parse(fecha)
+                    : LocalDate.now();
+            LocalDate fin = inicio.plusDays(6);
+            return ResponseEntity.ok(
+                    reservaService.obtenerOcupadosPorPistaYRango(pistaId, inicio, fin));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Error al obtener disponibilidad: " + e.getMessage()));
         }
     }
 }
