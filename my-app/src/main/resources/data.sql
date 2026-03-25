@@ -10,6 +10,15 @@ VALUES ('María López',       'maria@deustosport.com',  '22222222B', '666333444
 INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, rol)
 VALUES ('Carlos Rodríguez',  'carlos@deustosport.com', '33333333C', '666555666', true, false, 'COORDINADOR');
 
+INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, rol)
+VALUES ('Laura Fernández',  'laura@deustosport.com',  '44444444D', '666777888', true, false, 'CLIENTE');
+
+INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, rol)
+VALUES ('Iker Martínez',    'iker@deustosport.com',   '55555555E', '666999000', true, true,  'CLIENTE');
+
+INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, rol)
+VALUES ('Nerea Sánchez',    'nerea@deustosport.com',  '66666666F', '666123789', true, false, 'CLIENTE');
+
 -- ============================================================
 -- CREDENCIALES  (password: password123)
 -- Hash BCrypt de "password123":
@@ -23,6 +32,15 @@ VALUES (2, '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36DxYJ3e', true,
 
 INSERT INTO credenciales (usuario_id, password_hash, activo, fecha_creacion)
 VALUES (3, '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36DxYJ3e', true, NOW());
+
+INSERT INTO credenciales (usuario_id, password_hash, activo, fecha_creacion)
+VALUES (4, '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36DxYJ3e', true, NOW());
+
+INSERT INTO credenciales (usuario_id, password_hash, activo, fecha_creacion)
+VALUES (5, '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36DxYJ3e', true, NOW());
+
+INSERT INTO credenciales (usuario_id, password_hash, activo, fecha_creacion)
+VALUES (6, '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36DxYJ3e', true, NOW());
 
 -- ============================================================
 -- INSTALACIONES
