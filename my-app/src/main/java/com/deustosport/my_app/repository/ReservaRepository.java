@@ -26,7 +26,7 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
 
     @Query("SELECT r FROM Reserva r WHERE r.pista.id = :pistaId " +
            "AND r.fechaReserva = :fecha " +
-           "AND r.estado != 'CANCELADA' " +
+           "AND r.estado != com.deustosport.my_app.enums.EstadoReserva.CANCELADA " +
            "AND NOT (r.horaFin <= :horaInicio OR r.horaInicio >= :horaFin)")
     List<Reserva> findConflictingReservations(
             @Param("pistaId") Long pistaId,
@@ -39,7 +39,7 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
 
     @Query("SELECT r FROM Reserva r WHERE r.pista.id = :pistaId " +
            "AND r.fechaReserva BETWEEN :inicio AND :fin " +
-           "AND r.estado != 'CANCELADA'")
+           "AND r.estado != com.deustosport.my_app.enums.EstadoReserva.CANCELADA")
     List<Reserva> findActivasByPistaAndRango(
             @Param("pistaId") Long pistaId,
             @Param("inicio") LocalDate inicio,

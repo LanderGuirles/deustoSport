@@ -297,7 +297,7 @@
       <div class="section-header">
         <h3>Mis reservas</h3>
         <button class="btn-ghost" onclick="loadMisReservas()"
-                style="margin-left:auto;font-size:12px">↻ Actualizar</button>
+                style="margin-left:auto;font-size:12px">Actualizar</button>
       </div>
       <div id="reservas-container" class="reservas-list"></div>
     </div>
@@ -337,7 +337,7 @@
           <h3>Confirmar y pagar</h3>
           <p id="cal-pago-subtitulo">—</p>
         </div>
-        <button class="btn-close" onclick="cancelarYVolverCal()">← Volver</button>
+        <button class="btn-close" onclick="cancelarYVolverCal()">Volver</button>
       </div>
       <div class="price-preview">
         <span class="label">Total a pagar</span>
@@ -487,7 +487,7 @@
 
 			    if (!pistasGlobal.length) {
 			      container.innerHTML =
-			        '<div class="empty"><div class="icon">🏟️</div><p>No hay pistas registradas</p></div>';
+			        '<div class="empty"><div class="icon"></div><p>No hay pistas registradas</p></div>';
 			      return;
 			    }
 
@@ -826,7 +826,7 @@
 			    if (!pagoRes.ok) {
 			      toast('Pago rechazado: ' + (pagoData.error || 'error desconocido'), 'err');
 			    } else {
-			      toast('✅ Reserva confirmada y pagada correctamente.', 'ok');
+			      toast('Reserva confirmada y pagada correctamente.', 'ok');
 			      if (slotSeleccionado) marcarSlotOcupado(slotSeleccionado.fecha, slotSeleccionado.hora);
 			    }
 
@@ -865,7 +865,7 @@
 
 			    if (!reservasGlobal.length) {
 			      container.innerHTML =
-			        '<div class="empty"><div class="icon">📅</div><p>Aún no tienes reservas.</p></div>';
+			        '<div class="empty"><div class="icon"></div><p>Aún no tienes reservas.</p></div>';
 			      return;
 			    }
 
@@ -894,8 +894,8 @@
 			              ${fmtFecha(r.fechaReserva)} &nbsp;
 			              ${r.horaInicio?.substring(0,5) || '—'} – ${r.horaFin?.substring(0,5) || '—'} &nbsp;
 			              ${fmtEur(r.precioTotal)}
-			              ${r.metodoPago ? '&nbsp;💳 ' + r.metodoPago : ''}
-			              ${r.referenciaPago ? '&nbsp;🔖 ' + r.referenciaPago : ''}
+			              ${r.metodoPago ? '&nbsp; ' + r.metodoPago : ''}
+			              ${r.referenciaPago ? '&nbsp; ' + r.referenciaPago : ''}
 			            </div>
 			          </div>
 			          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
@@ -907,7 +907,7 @@
 
 			  } catch {
 			    container.innerHTML =
-			      '<div class="empty"><div class="icon">⚠️</div><p>Error al cargar reservas.</p></div>';
+			      '<div class="empty"><div class="icon"></div><p>Error al cargar reservas.</p></div>';
 			  }
 			}
 

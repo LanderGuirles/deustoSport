@@ -94,6 +94,9 @@ public class TarifaService {
 
         BigDecimal precio = tarifaRepository
                 .findActiveByDeporteDiaAndFecha(tipoDeporte, diaSemana, fecha)
+                .stream()
+                .filter(t -> !horaInicio.isBefore(t.getHoraInicio()) && !horaFin.isAfter(t.getHoraFin()))
+                .findFirst()
                 .map(t -> {
                     long min   = java.time.Duration.between(horaInicio, horaFin).toMinutes();
                     BigDecimal h = new BigDecimal(min)
