@@ -3,6 +3,8 @@ package com.deustosport.my_app.controller;
 import com.deustosport.my_app.dto.CambioPasswordRequest;
 import com.deustosport.my_app.dto.LoginRequest;
 import com.deustosport.my_app.dto.LoginResponse;
+import com.deustosport.my_app.dto.ActualizarPerfilRequest;
+import com.deustosport.my_app.dto.PerfilUsuarioResponse;
 import com.deustosport.my_app.dto.RegistroRequest;
 import com.deustosport.my_app.service.LoginService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,7 +13,9 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -121,4 +125,35 @@ public class LoginController {
                 ResponseEntity.ok(response) :
                 ResponseEntity.badRequest().body(response);
     }
+
+        @GetMapping("/perfil")
+        @Operation(summary = "Obtener perfil", description = "Obtiene los datos del perfil del usuario autenticado")
+        public ResponseEntity<PerfilUsuarioResponse> obtenerPerfil(@RequestHeader("X-Usuario-Id") Long usuarioId) {
+                if (usuarioId == null || usuarioId <= 0) {
+                        return ResponseEntity.badRequest().body(
+                                        new PerfilUsuarioResponse(null, null, null, null, null, "ID de usuario no válido", false));
+                }
+
+                PerfilUsuarioResponse response = loginService.obtenerPerfil(usuarioId);
+                return response.isExitoso()
+                                ? ResponseEntity.ok(response)
+                                : ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        @PutMapping("/perfil")
+        @Operation(summary = "Actualizar perfil", description = "Actualiza nombre y teléfono del usuario autenticado")
+        public ResponseEntity<PerfilUsuarioResponse> actualizarPerfil(
+                        @RequestHeader("X-Usuario-Id") Long usuarioId,
+                        @Valid @RequestBody ActualizarPerfilRequest solicitud) {
+
+                if (usuarioId == null || usuarioId <= 0) {
+                        return ResponseEntity.badRequest().body(
+                                        new PerfilUsuarioResponse(null, null, null, null, null, "ID de usuario no válido", false));
+                }
+
+                PerfilUsuarioResponse response = loginService.actualizarPerfil(usuarioId, solicitud);
+                return response.isExitoso()
+                                ? ResponseEntity.ok(response)
+                                : ResponseEntity.badRequest().body(response);
+        }
 }

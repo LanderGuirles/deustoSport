@@ -3,6 +3,8 @@ package com.deustosport.my_app.service;
 import com.deustosport.my_app.dto.CambioPasswordRequest;
 import com.deustosport.my_app.dto.LoginRequest;
 import com.deustosport.my_app.dto.LoginResponse;
+import com.deustosport.my_app.dto.ActualizarPerfilRequest;
+import com.deustosport.my_app.dto.PerfilUsuarioResponse;
 import com.deustosport.my_app.dto.RegistroRequest;
 import com.deustosport.my_app.entity.Credencial;
 import com.deustosport.my_app.entity.Usuario;
@@ -234,6 +236,48 @@ public class LoginService {
         } catch (Exception e) {
             return new LoginResponse(null, null, usuario.getEmail(), null,
                     "Error al cambiar contraseña: " + e.getMessage(), false);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public PerfilUsuarioResponse obtenerPerfil(Long usuarioId) {
+        Objects.requireNonNull(usuarioId, "usuarioId no puede ser null");
+        Optional<Usuario> usuarioOpt = usuarioRepository.findById(usuarioId);
+
+        if (usuarioOpt.isEmpty()) {
+            return new PerfilUsuarioResponse(null, null, null, null, null,
+                    "Usuario no encontrado", false);
+        }
+
+        Usuario usuario = usuarioOpt.get();
+        return new PerfilUsuarioResponse(usuario.getId(), usuario.getNombreCompleto(), usuario.getEmail(),
+                usuario.getTelefono(), toRolString(usuario.getRol()), "Perfil obtenido correctamente", true);
+    }
+
+    @Transactional
+    public PerfilUsuarioResponse actualizarPerfil(Long usuarioId, ActualizarPerfilRequest solicitud) {
+        Objects.requireNonNull(usuarioId, "usuarioId no puede ser null");
+        Optional<Usuario> usuarioOpt = usuarioRepository.findById(usuarioId);
+
+        if (usuarioOpt.isEmpty()) {
+            return new PerfilUsuarioResponse(null, null, null, null, null,
+                    "Usuario no encontrado", false);
+        }
+
+        try {
+            Usuario usuario = usuarioOpt.get();
+            usuario.setNombreCompleto(solicitud.getNombreCompleto().trim());
+
+            String telefono = solicitud.getTelefono();
+            usuario.setTelefono(telefono == null || telefono.isBlank() ? null : telefono.trim());
+
+            Usuario usuarioActualizado = usuarioRepository.save(usuario);
+            return new PerfilUsuarioResponse(usuarioActualizado.getId(), usuarioActualizado.getNombreCompleto(),
+                    usuarioActualizado.getEmail(), usuarioActualizado.getTelefono(),
+                    toRolString(usuarioActualizado.getRol()), "Perfil actualizado correctamente", true);
+        } catch (Exception e) {
+            return new PerfilUsuarioResponse(null, null, null, null, null,
+                    "Error al actualizar perfil: " + e.getMessage(), false);
         }
     }
 

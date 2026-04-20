@@ -30,6 +30,9 @@
                padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;
                transition:all .2s;font-family:'DM Sans',sans-serif;}
     .btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+	.form-alert{margin-top:12px;padding:10px 12px;border-radius:8px;font-size:13px;display:none;}
+	.form-alert.ok{display:block;background:rgba(63,185,80,.12);border:1px solid rgba(63,185,80,.35);color:var(--success);}
+	.form-alert.err{display:block;background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.35);color:var(--danger);}
 
     /* ── HERO ── */
     .hero{padding:40px 32px 28px;border-bottom:1px solid var(--border);
@@ -244,6 +247,7 @@
   <div class="logo">Deusto<span>Sport</span></div>
   <div class="nav-user">
     <span>Hola, <strong id="nav-nombre">—</strong></span>
+		<button class="btn-ghost" onclick="openProfileModal()">Mi perfil</button>
     <button class="btn-ghost" onclick="logout()">Cerrar sesión</button>
   </div>
 </nav>
@@ -380,6 +384,29 @@
 
 			  </div>
 			</div>
+
+<div class="modal-overlay" id="modal-perfil">
+	<div class="modal">
+		<div class="modal-header">
+			<div>
+				<h3>Mi perfil</h3>
+				<p>Actualiza tu nombre y teléfono de contacto</p>
+			</div>
+			<button class="btn-close" onclick="closeModal('modal-perfil')">×</button>
+		</div>
+		<div class="field">
+			<label for="perfil-nombre">Nombre completo</label>
+			<input type="text" id="perfil-nombre" placeholder="Tu nombre completo" maxlength="120"/>
+		</div>
+		<div class="field">
+			<label for="perfil-telefono">Teléfono (opcional)</label>
+			<input type="text" id="perfil-telefono" placeholder="Ej: 666111222" maxlength="15"/>
+		</div>
+		<button class="btn-primary" id="btn-guardar-perfil" onclick="saveProfile()">Guardar cambios</button>
+		<div id="perfil-alert" class="form-alert"></div>
+	</div>
+</div>
+
 			<div id="toast"></div>
 			<script>
 			// ═══════════════════════════════════════════
@@ -462,6 +489,93 @@
 			function logout() {
 			  localStorage.clear();
 			  window.location.href = 'index.html';
+			}
+
+			async function openProfileModal() {
+			  const alertEl = document.getElementById('perfil-alert');
+			  alertEl.className = 'form-alert';
+			  alertEl.textContent = '';
+			  openModal('modal-perfil');
+
+			  try {
+			    const res = await fetch(`${API}/api/auth/perfil`, {
+			      headers: {
+			        'Accept': 'application/json',
+			        'X-Usuario-Id': currentUserId
+			      }
+			    });
+			    const data = await res.json();
+
+			    if (!res.ok || !data.exitoso) {
+			      throw new Error(data.mensaje || 'No se pudo cargar tu perfil');
+			    }
+
+			    document.getElementById('perfil-nombre').value = data.nombreCompleto || '';
+			    document.getElementById('perfil-telefono').value = data.telefono || '';
+			  } catch (e) {
+			    alertEl.className = 'form-alert err';
+			    alertEl.textContent = e.message || 'Error al cargar el perfil';
+			  }
+			}
+
+			async function saveProfile() {
+			  const nombre = document.getElementById('perfil-nombre').value.trim();
+			  const telefono = document.getElementById('perfil-telefono').value.trim();
+			  const alertEl = document.getElementById('perfil-alert');
+			  const btn = document.getElementById('btn-guardar-perfil');
+
+			  alertEl.className = 'form-alert';
+			  alertEl.textContent = '';
+
+			  if (nombre.length < 2) {
+			    alertEl.className = 'form-alert err';
+			    alertEl.textContent = 'El nombre debe tener al menos 2 caracteres';
+			    return;
+			  }
+
+			  if (telefono && !/^\+?[0-9]{9,15}$/.test(telefono)) {
+			    alertEl.className = 'form-alert err';
+			    alertEl.textContent = 'El teléfono debe contener entre 9 y 15 dígitos';
+			    return;
+			  }
+
+			  btn.disabled = true;
+			  btn.textContent = 'Guardando...';
+
+			  try {
+			    const res = await fetch(`${API}/api/auth/perfil`, {
+			      method: 'PUT',
+			      headers: {
+			        'Content-Type': 'application/json',
+			        'Accept': 'application/json',
+			        'X-Usuario-Id': currentUserId
+			      },
+			      body: JSON.stringify({
+			        nombreCompleto: nombre,
+			        telefono: telefono
+			      })
+			    });
+
+			    const data = await res.json();
+			    if (!res.ok || !data.exitoso) {
+			      throw new Error(data.mensaje || 'No se pudo actualizar el perfil');
+			    }
+
+			    localStorage.setItem('usuarioNombre', data.nombreCompleto || nombre);
+			    document.getElementById('nav-nombre').textContent = (data.nombreCompleto || nombre).split(' ')[0];
+
+			    alertEl.className = 'form-alert ok';
+			    alertEl.textContent = 'Perfil actualizado correctamente';
+			    toast('Datos actualizados', 'ok');
+
+			    setTimeout(() => closeModal('modal-perfil'), 700);
+			  } catch (e) {
+			    alertEl.className = 'form-alert err';
+			    alertEl.textContent = e.message || 'Error al actualizar el perfil';
+			  } finally {
+			    btn.disabled = false;
+			    btn.textContent = 'Guardar cambios';
+			  }
 			}
 
 			// ═══════════════════════════════════════════
