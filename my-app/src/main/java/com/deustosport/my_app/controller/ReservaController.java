@@ -53,6 +53,11 @@ public class ReservaController {
             dto.setHoraFin(reserva.getHoraFin());
             dto.setPrecioTotal(reserva.getPrecioTotal());
             dto.setEstado(reserva.getEstado());
+            dto.setDescuentoSocioAplicado(reserva.getUsuario().isEsSocio());
+            if (reserva.getUsuario().isEsSocio()) {
+                // Calcular precio sin descuento para mostrar al usuario
+                dto.setPrecioOriginal(reserva.getPrecioTotal()); // Se calcula en toDto para listas
+            }
             return ResponseEntity.ok(dto);
 
         } catch (IllegalArgumentException | IllegalStateException e) {
@@ -160,6 +165,28 @@ public class ReservaController {
         } catch (Exception e) {
             return ResponseEntity.badRequest()
                     .body(Map.of("error", "Error al obtener disponibilidad: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/precio-estimado")
+    @Operation(summary = "Estimar precio de una reserva",
+               description = "Calcula el precio estimado incluyendo descuento de socio si aplica.")
+    public ResponseEntity<?> estimarPrecio(
+            @RequestParam("pistaId") Long pistaId,
+            @RequestParam("usuarioId") Long usuarioId,
+            @RequestParam("fecha") String fecha,
+            @RequestParam("horaInicio") String horaInicio,
+            @RequestParam(name = "duracionMinutos", defaultValue = "60") Integer duracionMinutos) {
+        try {
+            Map<String, Object> resultado = reservaService.calcularPrecioEstimado(
+                    pistaId, usuarioId,
+                    LocalDate.parse(fecha),
+                    LocalTime.parse(horaInicio),
+                    duracionMinutos);
+            return ResponseEntity.ok(resultado);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Error al estimar precio: " + e.getMessage()));
         }
     }
 }

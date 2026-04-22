@@ -7,6 +7,7 @@ public class PerfilUsuarioResponse {
     private String email;
     private String telefono;
     private String rol;
+    private boolean esSocio;
     private String mensaje;
     private boolean exitoso;
 
@@ -14,12 +15,13 @@ public class PerfilUsuarioResponse {
     }
 
     public PerfilUsuarioResponse(Long usuarioId, String nombreCompleto, String email, String telefono,
-            String rol, String mensaje, boolean exitoso) {
+            String rol, boolean esSocio, String mensaje, boolean exitoso) {
         this.usuarioId = usuarioId;
         this.nombreCompleto = nombreCompleto;
         this.email = email;
         this.telefono = telefono;
         this.rol = rol;
+        this.esSocio = esSocio;
         this.mensaje = mensaje;
         this.exitoso = exitoso;
     }
@@ -62,6 +64,14 @@ public class PerfilUsuarioResponse {
 
     public void setRol(String rol) {
         this.rol = rol;
+    }
+
+    public boolean isEsSocio() {
+        return esSocio;
+    }
+
+    public void setEsSocio(boolean esSocio) {
+        this.esSocio = esSocio;
     }
 
     public String getMensaje() {

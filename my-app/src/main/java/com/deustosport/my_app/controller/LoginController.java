@@ -44,8 +44,7 @@ public class LoginController {
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest solicitud) {
         if (solicitud.getEmail() == null || solicitud.getPassword() == null) {
             return ResponseEntity.badRequest()
-                    // Añadimos un null extra para el campo 'rol'
-                    .body(new LoginResponse(null, null, null, null, 
+                    .body(new LoginResponse(null, null, null, null, false,
                             "Email y contraseña son requeridos", false));
         }
  
@@ -60,8 +59,7 @@ public class LoginController {
     public ResponseEntity<LoginResponse> logout(@RequestHeader("X-Usuario-Id") Long usuarioId) {
         if (usuarioId == null || usuarioId <= 0) {
             return ResponseEntity.badRequest()
-                    // Añadimos un null extra para el campo 'rol'
-                    .body(new LoginResponse(null, null, null, null, 
+                    .body(new LoginResponse(null, null, null, null, false,
                             "ID de usuario no válido", false));
         }
  
@@ -75,8 +73,7 @@ public class LoginController {
     public ResponseEntity<LoginResponse> solicitarRecuperacion(@RequestParam("email") String email) {
         if (email == null || email.isBlank()) {
             return ResponseEntity.badRequest()
-                    // Añadimos un null extra para el campo 'rol'
-                    .body(new LoginResponse(null, null, null, null, 
+                    .body(new LoginResponse(null, null, null, null, false,
                             "Email es requerido", false));
         }
  
@@ -88,8 +85,7 @@ public class LoginController {
     public ResponseEntity<LoginResponse> restablecerPassword(@RequestBody CambioPasswordRequest solicitud) {
         if (solicitud.getEmailOToken() == null || solicitud.getPasswordNueva() == null) {
             return ResponseEntity.badRequest()
-                    // Añadimos un null extra para el campo 'rol'
-                    .body(new LoginResponse(null, null, null, null, 
+                    .body(new LoginResponse(null, null, null, null, false,
                             "Token y contraseña nueva son requeridos", false));
         }
  
@@ -106,15 +102,13 @@ public class LoginController {
  
         if (usuarioId == null || usuarioId <= 0) {
             return ResponseEntity.badRequest()
-                    // Añadimos un null extra para el campo 'rol'
-                    .body(new LoginResponse(null, null, null, null, 
+                    .body(new LoginResponse(null, null, null, null, false,
                             "ID de usuario no válido", false));
         }
  
         if (solicitud.getEmailOToken() == null || solicitud.getPasswordNueva() == null) {
             return ResponseEntity.badRequest()
-                    // Añadimos un null extra para el campo 'rol'
-                    .body(new LoginResponse(null, null, null, null, 
+                    .body(new LoginResponse(null, null, null, null, false,
                             "Contraseña actual y nueva son requeridas", false));
         }
  
@@ -131,7 +125,7 @@ public class LoginController {
         public ResponseEntity<PerfilUsuarioResponse> obtenerPerfil(@RequestHeader("X-Usuario-Id") Long usuarioId) {
                 if (usuarioId == null || usuarioId <= 0) {
                         return ResponseEntity.badRequest().body(
-                                        new PerfilUsuarioResponse(null, null, null, null, null, "ID de usuario no válido", false));
+                                        new PerfilUsuarioResponse(null, null, null, null, null, false, "ID de usuario no válido", false));
                 }
 
                 PerfilUsuarioResponse response = loginService.obtenerPerfil(usuarioId);
@@ -148,7 +142,7 @@ public class LoginController {
 
                 if (usuarioId == null || usuarioId <= 0) {
                         return ResponseEntity.badRequest().body(
-                                        new PerfilUsuarioResponse(null, null, null, null, null, "ID de usuario no válido", false));
+                                        new PerfilUsuarioResponse(null, null, null, null, null, false, "ID de usuario no válido", false));
                 }
 
                 PerfilUsuarioResponse response = loginService.actualizarPerfil(usuarioId, solicitud);

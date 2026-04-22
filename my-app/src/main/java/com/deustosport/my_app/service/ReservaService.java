@@ -243,7 +243,49 @@ public class ReservaService {
         dto.setMetodoPago(r.getMetodoPago());
         dto.setReferenciaPago(r.getReferenciaPago());
         dto.setFechaPago(r.getFechaPago());
+
+        // Información de descuento de socio
+        boolean esSocio = r.getUsuario().isEsSocio();
+        dto.setDescuentoSocioAplicado(esSocio);
+        if (esSocio && r.getPista() != null) {
+            BigDecimal precioSinDescuento = tarifaService.calcularPrecio(
+                    r.getPista().getTipoDeporte(), r.getFechaReserva(),
+                    r.getHoraInicio(), r.getHoraFin(), false);
+            dto.setPrecioOriginal(precioSinDescuento);
+        } else {
+            dto.setPrecioOriginal(r.getPrecioTotal());
+        }
+
         return dto;
+    }
+
+    // ─── Precio estimado ─────────────────────────────────────────────────────
+    @Transactional(readOnly = true)
+    public Map<String, Object> calcularPrecioEstimado(Long pistaId, Long usuarioId,
+                                                      LocalDate fecha, LocalTime horaInicio,
+                                                      Integer duracionMinutos) {
+        Pista pista = pistaRepository.findById(pistaId)
+                .orElseThrow(() -> new IllegalArgumentException("Pista no encontrada"));
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+        LocalTime horaFin = horaInicio.plusMinutes(duracionMinutos);
+        boolean esSocio = usuario.isEsSocio();
+
+        BigDecimal precioSinDescuento = tarifaService.calcularPrecio(
+                pista.getTipoDeporte(), fecha, horaInicio, horaFin, false);
+        BigDecimal precioFinal = tarifaService.calcularPrecio(
+                pista.getTipoDeporte(), fecha, horaInicio, horaFin, esSocio);
+
+        Map<String, Object> resultado = new LinkedHashMap<>();
+        resultado.put("precioOriginal", precioSinDescuento);
+        resultado.put("precioFinal", precioFinal);
+        resultado.put("esSocio", esSocio);
+        resultado.put("descuentoAplicado", esSocio);
+        if (esSocio) {
+            resultado.put("importeDescuento", precioSinDescuento.subtract(precioFinal));
+        }
+        return resultado;
     }
 
     private void validarHorarioInstalacion(Pista pista,

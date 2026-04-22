@@ -230,6 +230,16 @@
       .metodo-grid{grid-template-columns:1fr;}
       .form-row{grid-template-columns:1fr;}
     }
+    .badge-socio{display:inline-block;background:rgba(0,229,160,0.15);color:var(--accent);
+                 font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;
+                 text-transform:uppercase;letter-spacing:.5px;margin-left:8px;}
+    .descuento-info{background:rgba(0,229,160,0.08);border:1px solid rgba(0,229,160,0.25);
+                    border-radius:10px;padding:10px 14px;margin:8px 0;
+                    font-size:13px;color:var(--accent);display:flex;
+                    align-items:center;gap:8px;}
+    .descuento-info .icon{font-size:16px;}
+    .precio-tachado{text-decoration:line-through;color:var(--muted);font-size:14px;
+                    font-weight:400;margin-right:8px;}
   </style>
 </head>
 <body>
@@ -246,7 +256,9 @@
 <nav>
   <div class="logo">Deusto<span>Sport</span></div>
   <div class="nav-user">
-    <span>Hola, <strong id="nav-nombre">—</strong></span>
+    <span>Hola, <strong id="nav-nombre">—</strong>
+      <span id="nav-socio-badge" class="badge-socio" style="display:none;">Socio</span>
+    </span>
 		<button class="btn-ghost" onclick="openProfileModal()">Mi perfil</button>
     <button class="btn-ghost" onclick="logout()">Cerrar sesión</button>
   </div>
@@ -345,7 +357,14 @@
       </div>
       <div class="price-preview">
         <span class="label">Total a pagar</span>
-        <span class="value" id="cal-precio">—</span>
+        <div>
+          <span class="precio-tachado" id="cal-precio-original" style="display:none;"></span>
+          <span class="value" id="cal-precio">—</span>
+        </div>
+      </div>
+      <div class="descuento-info" id="cal-descuento-info" style="display:none;">
+        <span class="icon">🌟</span>
+        <span>Descuento de socio aplicado: <strong id="cal-descuento-porcentaje"></strong></span>
       </div>
       <div class="metodo-grid">
         <button class="metodo-btn" onclick="selectMetodoCal('TARJETA',this)">
@@ -432,6 +451,11 @@
 			document.addEventListener('DOMContentLoaded', () => {
 			  const nombre = localStorage.getItem('usuarioNombre') || 'Usuario';
 			  document.getElementById('nav-nombre').textContent = nombre.split(' ')[0];
+			  // Mostrar badge de socio
+			  const esSocio = localStorage.getItem('esSocio') === 'true';
+			  if (esSocio) {
+			    document.getElementById('nav-socio-badge').style.display = 'inline-block';
+			  }
 			  loadPistas();
 			});
 
@@ -800,26 +824,22 @@
 
 			async function estimarPrecio(fecha, hora) {
 			  try {
-			    // Usamos la tarifa de la pista vía API
 			    const res = await fetch(
-			      `${API}/api/tarifas/pista/${pistaCalendario.id}`
+			      `${API}/api/reservas/precio-estimado?pistaId=${pistaCalendario.id}`
+			      + `&usuarioId=${currentUserId}`
+			      + `&fecha=${fecha}&horaInicio=${hora}&duracionMinutos=60`
 			    );
-			    const tarifas = await res.json();
-			    if (!tarifas.length) return '—';
+			    const data = await res.json();
+			    if (data.error) return { precioFinal: '—', precioOriginal: null, descuento: false };
 
-			    const hNum    = parseInt(hora.split(':')[0], 10);
-			    const diaSem  = new Date(fecha + 'T12:00:00').getDay(); // 0=Dom
-			    const jsDia   = diaSem === 0 ? 7 : diaSem; // 1=Lun … 7=Dom
-
-			    const tarifa = tarifas.find(t =>
-			      t.diaSemana === jsDia &&
-			      parseInt(t.horaInicio.substring(0,2),10) <= hNum &&
-			      parseInt(t.horaFin.substring(0,2),10)    >  hNum
-			    );
-
-			    return tarifa ? fmtEur(tarifa.precioPorHora) : '—';
+			    return {
+			      precioFinal: fmtEur(data.precioFinal),
+			      precioOriginal: data.descuentoAplicado ? fmtEur(data.precioOriginal) : null,
+			      descuento: data.descuentoAplicado === true,
+			      importeDescuento: data.importeDescuento ? fmtEur(data.importeDescuento) : null
+			    };
 			  } catch {
-			    return '—';
+			    return { precioFinal: '—', precioOriginal: null, descuento: false };
 			  }
 			}
 
@@ -834,7 +854,32 @@
 			    ' · ' + slotSeleccionado.hora + '–' +
 			    String(parseInt(slotSeleccionado.hora.split(':')[0],10)+1).padStart(2,'0') + ':00';
 
-			  document.getElementById('cal-precio').textContent = precioEst;
+			  // Mostrar precio con/sin descuento
+			  const esObjeto = typeof precioEst === 'object' && precioEst !== null;
+			  const precioTexto = esObjeto ? precioEst.precioFinal : precioEst;
+			  document.getElementById('cal-precio').textContent = precioTexto;
+
+			  const precioOrigEl = document.getElementById('cal-precio-original');
+			  const descuentoInfoEl = document.getElementById('cal-descuento-info');
+
+			  if (esObjeto && precioEst.descuento && precioEst.precioOriginal) {
+			    precioOrigEl.textContent = precioEst.precioOriginal;
+			    precioOrigEl.style.display = 'inline';
+			    descuentoInfoEl.style.display = 'flex';
+			    // Cargar porcentaje de descuento desde config
+			    fetch(`${API}/api/configuracion/descuento-socio`)
+			      .then(r => r.json())
+			      .then(cfg => {
+			        document.getElementById('cal-descuento-porcentaje').textContent =
+			          (cfg.porcentaje || 20) + '%';
+			      })
+			      .catch(() => {
+			        document.getElementById('cal-descuento-porcentaje').textContent = '20%';
+			      });
+			  } else {
+			    precioOrigEl.style.display = 'none';
+			    descuentoInfoEl.style.display = 'none';
+			  }
 
 			  // Reset pago
 			  metodoCalSeleccionado = null;
