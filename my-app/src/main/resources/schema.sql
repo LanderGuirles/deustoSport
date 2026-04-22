@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
     telefono        VARCHAR(20),
     activo          BOOLEAN NOT NULL DEFAULT TRUE,
     es_socio        BOOLEAN NOT NULL DEFAULT FALSE,
+    billetera       NUMERIC(10,2) NOT NULL DEFAULT 0,
     rol             VARCHAR(20)  NOT NULL
 );
 

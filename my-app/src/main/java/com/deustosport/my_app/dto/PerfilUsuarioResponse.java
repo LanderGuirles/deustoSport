@@ -1,5 +1,7 @@
 package com.deustosport.my_app.dto;
 
+import java.math.BigDecimal;
+
 public class PerfilUsuarioResponse {
 
     private Long usuarioId;
@@ -8,6 +10,7 @@ public class PerfilUsuarioResponse {
     private String telefono;
     private String rol;
     private boolean esSocio;
+    private BigDecimal billetera;
     private String mensaje;
     private boolean exitoso;
 
@@ -15,13 +18,14 @@ public class PerfilUsuarioResponse {
     }
 
     public PerfilUsuarioResponse(Long usuarioId, String nombreCompleto, String email, String telefono,
-            String rol, boolean esSocio, String mensaje, boolean exitoso) {
+            String rol, boolean esSocio, BigDecimal billetera, String mensaje, boolean exitoso) {
         this.usuarioId = usuarioId;
         this.nombreCompleto = nombreCompleto;
         this.email = email;
         this.telefono = telefono;
         this.rol = rol;
         this.esSocio = esSocio;
+        this.billetera = billetera;
         this.mensaje = mensaje;
         this.exitoso = exitoso;
     }
@@ -72,6 +76,14 @@ public class PerfilUsuarioResponse {
 
     public void setEsSocio(boolean esSocio) {
         this.esSocio = esSocio;
+    }
+
+    public BigDecimal getBilletera() {
+        return billetera;
+    }
+
+    public void setBilletera(BigDecimal billetera) {
+        this.billetera = billetera;
     }
 
     public String getMensaje() {

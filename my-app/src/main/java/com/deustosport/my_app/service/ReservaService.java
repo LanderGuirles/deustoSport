@@ -93,6 +93,14 @@ public class ReservaService {
         BigDecimal precioTotal = tarifaService.calcularPrecio(
                 pista.getTipoDeporte(), fecha, horaInicio, horaFin, usuario.isEsSocio());
 
+        // ── Comprobar saldo suficiente ──
+        if (usuario.getBilletera().compareTo(precioTotal) < 0) {
+            throw new IllegalStateException(
+                    "Saldo insuficiente. Tu billetera tiene " +
+                    usuario.getBilletera().toPlainString() + "€ pero la reserva cuesta " +
+                    precioTotal.toPlainString() + "€. Recarga tu saldo para continuar.");
+        }
+
         Reserva r = new Reserva();
         r.setUsuario(usuario);
         r.setPista(pista);
@@ -149,6 +157,12 @@ public class ReservaService {
         reserva.setEstado(EstadoReserva.CONFIRMADA);
 
         Reserva reservaFinal = reservaRepository.save(reserva);
+
+        // ── Descontar saldo de la billetera ──
+        Usuario usuario = reserva.getUsuario();
+        BigDecimal nuevoSaldo = usuario.getBilletera().subtract(reserva.getPrecioTotal());
+        usuario.setBilletera(nuevoSaldo);
+        usuarioRepository.save(usuario);
 
         // Enviar correo de confirmación de reserva
         emailService.enviarEmailConfirmacionReserva(
@@ -282,6 +296,8 @@ public class ReservaService {
         resultado.put("precioFinal", precioFinal);
         resultado.put("esSocio", esSocio);
         resultado.put("descuentoAplicado", esSocio);
+        resultado.put("billetera", usuario.getBilletera());
+        resultado.put("saldoSuficiente", usuario.getBilletera().compareTo(precioFinal) >= 0);
         if (esSocio) {
             resultado.put("importeDescuento", precioSinDescuento.subtract(precioFinal));
         }

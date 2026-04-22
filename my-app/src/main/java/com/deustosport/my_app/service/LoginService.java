@@ -42,12 +42,12 @@ public class LoginService {
 
         if (usuarioRepository.existsByEmail(email)) {
             return new LoginResponse(null, null, solicitud.getEmail(), null,
-                    false, "El email ya está registrado", false);
+                    false, null, "El email ya está registrado", false);
         }
 
         if (usuarioRepository.existsByDni(dni)) {
             return new LoginResponse(null, null, solicitud.getEmail(), null,
-                    false, "El DNI ya está registrado", false);
+                    false, null, "El DNI ya está registrado", false);
         }
 
         try {
@@ -73,10 +73,11 @@ public class LoginService {
             // Devolvemos el rol y esSocio en la respuesta exitosa
                 return new LoginResponse(usuarioGuardado.getId(), usuarioGuardado.getNombreCompleto(),
                     usuarioGuardado.getEmail(), toRolString(usuarioGuardado.getRol()),
-                    usuarioGuardado.isEsSocio(), "Usuario registrado exitosamente", true);
+                    usuarioGuardado.isEsSocio(), usuarioGuardado.getBilletera(),
+                    "Usuario registrado exitosamente", true);
         } catch (Exception e) {
             return new LoginResponse(null, null, solicitud.getEmail(), null,
-                    false, "Error al registrar usuario: " + e.getMessage(), false);
+                    false, null, "Error al registrar usuario: " + e.getMessage(), false);
         }
     }
 
@@ -86,28 +87,28 @@ public class LoginService {
 
         if (usuarioOpt.isEmpty()) {
             return new LoginResponse(null, null, solicitud.getEmail(), null,
-                    false, "Email o contraseña incorrectos", false);
+                    false, null, "Email o contraseña incorrectos", false);
         }
 
         Usuario usuario = usuarioOpt.get();
 
         if (!usuario.isActivo()) {
             return new LoginResponse(null, null, solicitud.getEmail(), null,
-                    false, "Usuario inactivo", false);
+                    false, null, "Usuario inactivo", false);
         }
 
         Optional<Credencial> credencialOpt = credencialRepository.findByUsuarioId(usuario.getId());
 
         if (credencialOpt.isEmpty() || !credencialOpt.get().isActivo()) {
             return new LoginResponse(null, null, solicitud.getEmail(), null,
-                    false, "Credenciales no válidas", false);
+                    false, null, "Credenciales no válidas", false);
         }
 
         Credencial credencial = credencialOpt.get();
 
         if (!passwordEncoder.matches(solicitud.getPassword(), credencial.getPasswordHash())) {
             return new LoginResponse(null, null, solicitud.getEmail(), null,
-                    false, "Email o contraseña incorrectos", false);
+                    false, null, "Email o contraseña incorrectos", false);
         }
 
         credencial.setUltimoAcceso(LocalDateTime.now());
@@ -116,7 +117,8 @@ public class LoginService {
         // Pasamos el rol y esSocio en el login exitoso
         return new LoginResponse(usuario.getId(), usuario.getNombreCompleto(),
             usuario.getEmail(), toRolString(usuario.getRol()),
-            usuario.isEsSocio(), "Sesión iniciada exitosamente", true);
+            usuario.isEsSocio(), usuario.getBilletera(),
+            "Sesión iniciada exitosamente", true);
     }
 
     @Transactional
@@ -126,7 +128,7 @@ public class LoginService {
 
         if (usuarioOpt.isEmpty()) {
             return new LoginResponse(null, null, null, null,
-                    false, "Usuario no encontrado", false);
+                    false, null, "Usuario no encontrado", false);
         }
 
         Usuario usuario = usuarioOpt.get();
@@ -134,7 +136,8 @@ public class LoginService {
 
         return new LoginResponse(usuario.getId(), usuario.getNombreCompleto(),
             usuario.getEmail(), toRolString(usuario.getRol()),
-            usuario.isEsSocio(), "Sesión cerrada exitosamente", true);
+            usuario.isEsSocio(), usuario.getBilletera(),
+            "Sesión cerrada exitosamente", true);
     }
 
     @Transactional
@@ -143,7 +146,7 @@ public class LoginService {
 
         if (usuarioOpt.isEmpty()) {
             return new LoginResponse(null, null, email, null,
-                    false, "Si el email existe, recibirá instrucciones de recuperación", true);
+                    false, null, "Si el email existe, recibirá instrucciones de recuperación", true);
         }
 
         Usuario usuario = usuarioOpt.get();
@@ -151,7 +154,7 @@ public class LoginService {
 
         if (credencialOpt.isEmpty()) {
             return new LoginResponse(null, null, email, null,
-                    false, "Error: credenciales no encontradas", false);
+                    false, null, "Error: credenciales no encontradas", false);
         }
 
         try {
@@ -166,10 +169,11 @@ public class LoginService {
 
             return new LoginResponse(usuario.getId(), usuario.getNombreCompleto(),
                     usuario.getEmail(), toRolString(usuario.getRol()),
-                    usuario.isEsSocio(), "Instrucciones enviadas al email", true);
+                    usuario.isEsSocio(), usuario.getBilletera(),
+                    "Instrucciones enviadas al email", true);
         } catch (Exception e) {
             return new LoginResponse(null, null, email, null,
-                    false, "Error al procesar solicitud de recuperación", false);
+                    false, null, "Error al procesar solicitud de recuperación", false);
         }
     }
 
@@ -180,7 +184,7 @@ public class LoginService {
 
         if (credencialOpt.isEmpty()) {
             return new LoginResponse(null, null, null, null,
-                    false, "Token inválido o expirado", false);
+                    false, null, "Token inválido o expirado", false);
         }
 
         Credencial credencial = credencialOpt.get();
@@ -188,7 +192,7 @@ public class LoginService {
         if (credencial.getFechaExpiracionToken() == null ||
                 LocalDateTime.now().isAfter(credencial.getFechaExpiracionToken())) {
             return new LoginResponse(null, null, null, null,
-                    false, "Token expirado", false);
+                    false, null, "Token expirado", false);
         }
 
         try {
@@ -200,10 +204,11 @@ public class LoginService {
             Usuario usuario = credencial.getUsuario();
                 return new LoginResponse(usuario.getId(), usuario.getNombreCompleto(),
                     usuario.getEmail(), toRolString(usuario.getRol()),
-                    usuario.isEsSocio(), "Contraseña actualizada exitosamente", true);
+                    usuario.isEsSocio(), usuario.getBilletera(),
+                    "Contraseña actualizada exitosamente", true);
         } catch (Exception e) {
             return new LoginResponse(null, null, null, null,
-                    false, "Error al actualizar contraseña: " + e.getMessage(), false);
+                    false, null, "Error al actualizar contraseña: " + e.getMessage(), false);
         }
     }
 
@@ -214,7 +219,7 @@ public class LoginService {
 
         if (usuarioOpt.isEmpty()) {
             return new LoginResponse(null, null, null, null,
-                    false, "Usuario no encontrado", false);
+                    false, null, "Usuario no encontrado", false);
         }
 
         Usuario usuario = usuarioOpt.get();
@@ -222,14 +227,14 @@ public class LoginService {
 
         if (credencialOpt.isEmpty()) {
             return new LoginResponse(null, null, usuario.getEmail(), null,
-                    false, "Credenciales no encontradas", false);
+                    false, null, "Credenciales no encontradas", false);
         }
 
         Credencial credencial = credencialOpt.get();
 
         if (!passwordEncoder.matches(passwordActual, credencial.getPasswordHash())) {
             return new LoginResponse(null, null, usuario.getEmail(), null,
-                    false, "Contraseña actual incorrecta", false);
+                    false, null, "Contraseña actual incorrecta", false);
         }
 
         try {
@@ -238,10 +243,11 @@ public class LoginService {
 
                 return new LoginResponse(usuario.getId(), usuario.getNombreCompleto(),
                     usuario.getEmail(), toRolString(usuario.getRol()),
-                    usuario.isEsSocio(), "Contraseña actualizada exitosamente", true);
+                    usuario.isEsSocio(), usuario.getBilletera(),
+                    "Contraseña actualizada exitosamente", true);
         } catch (Exception e) {
             return new LoginResponse(null, null, usuario.getEmail(), null,
-                    false, "Error al cambiar contraseña: " + e.getMessage(), false);
+                    false, null, "Error al cambiar contraseña: " + e.getMessage(), false);
         }
     }
 
@@ -252,13 +258,14 @@ public class LoginService {
 
         if (usuarioOpt.isEmpty()) {
             return new PerfilUsuarioResponse(null, null, null, null, null,
-                    false, "Usuario no encontrado", false);
+                    false, null, "Usuario no encontrado", false);
         }
 
         Usuario usuario = usuarioOpt.get();
         return new PerfilUsuarioResponse(usuario.getId(), usuario.getNombreCompleto(), usuario.getEmail(),
                 usuario.getTelefono(), toRolString(usuario.getRol()),
-                usuario.isEsSocio(), "Perfil obtenido correctamente", true);
+                usuario.isEsSocio(), usuario.getBilletera(),
+                "Perfil obtenido correctamente", true);
     }
 
     @Transactional
@@ -268,7 +275,7 @@ public class LoginService {
 
         if (usuarioOpt.isEmpty()) {
             return new PerfilUsuarioResponse(null, null, null, null, null,
-                    false, "Usuario no encontrado", false);
+                    false, null, "Usuario no encontrado", false);
         }
 
         try {
@@ -282,10 +289,11 @@ public class LoginService {
             return new PerfilUsuarioResponse(usuarioActualizado.getId(), usuarioActualizado.getNombreCompleto(),
                     usuarioActualizado.getEmail(), usuarioActualizado.getTelefono(),
                     toRolString(usuarioActualizado.getRol()),
-                    usuarioActualizado.isEsSocio(), "Perfil actualizado correctamente", true);
+                    usuarioActualizado.isEsSocio(), usuarioActualizado.getBilletera(),
+                    "Perfil actualizado correctamente", true);
         } catch (Exception e) {
             return new PerfilUsuarioResponse(null, null, null, null, null,
-                    false, "Error al actualizar perfil: " + e.getMessage(), false);
+                    false, null, "Error al actualizar perfil: " + e.getMessage(), false);
         }
     }
 

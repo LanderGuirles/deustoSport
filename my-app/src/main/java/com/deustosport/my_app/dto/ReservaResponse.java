@@ -27,4 +27,5 @@ public class ReservaResponse {
     private MetodoPago metodoPago;
     private String referenciaPago;
     private LocalDateTime fechaPago;
+    private BigDecimal saldoRestante;
 }

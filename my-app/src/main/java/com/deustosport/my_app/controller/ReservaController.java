@@ -119,6 +119,7 @@ public class ReservaController {
             resp.setMetodoPago(pagada.getMetodoPago());
             resp.setReferenciaPago(pagada.getReferenciaPago());
             resp.setFechaPago(pagada.getFechaPago());
+            resp.setSaldoRestante(pagada.getUsuario().getBilletera());
             return ResponseEntity.ok(resp);
 
         } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {

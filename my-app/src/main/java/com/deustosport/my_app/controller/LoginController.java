@@ -29,6 +29,9 @@ public class LoginController {
  
     @Autowired
     private LoginService loginService;
+
+    @Autowired
+    private com.deustosport.my_app.repository.UsuarioRepository usuarioRepository;
  
     @PostMapping("/registro")
     @Operation(summary = "Registrar nuevo usuario", description = "Crea una nueva cuenta de usuario con email y contraseña")
@@ -45,7 +48,7 @@ public class LoginController {
         if (solicitud.getEmail() == null || solicitud.getPassword() == null) {
             return ResponseEntity.badRequest()
                     .body(new LoginResponse(null, null, null, null, false,
-                            "Email y contraseña son requeridos", false));
+                            null, "Email y contraseña son requeridos", false));
         }
  
         LoginResponse response = loginService.iniciarSesion(solicitud);
@@ -60,7 +63,7 @@ public class LoginController {
         if (usuarioId == null || usuarioId <= 0) {
             return ResponseEntity.badRequest()
                     .body(new LoginResponse(null, null, null, null, false,
-                            "ID de usuario no válido", false));
+                            null, "ID de usuario no válido", false));
         }
  
         LoginResponse response = loginService.cerrarSesion(usuarioId);
@@ -74,7 +77,7 @@ public class LoginController {
         if (email == null || email.isBlank()) {
             return ResponseEntity.badRequest()
                     .body(new LoginResponse(null, null, null, null, false,
-                            "Email es requerido", false));
+                            null, "Email es requerido", false));
         }
  
         LoginResponse response = loginService.solicitarRecuperacion(email);
@@ -86,7 +89,7 @@ public class LoginController {
         if (solicitud.getEmailOToken() == null || solicitud.getPasswordNueva() == null) {
             return ResponseEntity.badRequest()
                     .body(new LoginResponse(null, null, null, null, false,
-                            "Token y contraseña nueva son requeridos", false));
+                            null, "Token y contraseña nueva son requeridos", false));
         }
  
         LoginResponse response = loginService.restablecerPassword(solicitud);
@@ -103,13 +106,13 @@ public class LoginController {
         if (usuarioId == null || usuarioId <= 0) {
             return ResponseEntity.badRequest()
                     .body(new LoginResponse(null, null, null, null, false,
-                            "ID de usuario no válido", false));
+                            null, "ID de usuario no válido", false));
         }
  
         if (solicitud.getEmailOToken() == null || solicitud.getPasswordNueva() == null) {
             return ResponseEntity.badRequest()
                     .body(new LoginResponse(null, null, null, null, false,
-                            "Contraseña actual y nueva son requeridas", false));
+                            null, "Contraseña actual y nueva son requeridas", false));
         }
  
         LoginResponse response = loginService.cambiarPassword(usuarioId,
@@ -125,7 +128,7 @@ public class LoginController {
         public ResponseEntity<PerfilUsuarioResponse> obtenerPerfil(@RequestHeader("X-Usuario-Id") Long usuarioId) {
                 if (usuarioId == null || usuarioId <= 0) {
                         return ResponseEntity.badRequest().body(
-                                        new PerfilUsuarioResponse(null, null, null, null, null, false, "ID de usuario no válido", false));
+                                        new PerfilUsuarioResponse(null, null, null, null, null, false, null, "ID de usuario no válido", false));
                 }
 
                 PerfilUsuarioResponse response = loginService.obtenerPerfil(usuarioId);
@@ -142,12 +145,46 @@ public class LoginController {
 
                 if (usuarioId == null || usuarioId <= 0) {
                         return ResponseEntity.badRequest().body(
-                                        new PerfilUsuarioResponse(null, null, null, null, null, false, "ID de usuario no válido", false));
+                                        new PerfilUsuarioResponse(null, null, null, null, null, false, null, "ID de usuario no válido", false));
                 }
 
                 PerfilUsuarioResponse response = loginService.actualizarPerfil(usuarioId, solicitud);
                 return response.isExitoso()
                                 ? ResponseEntity.ok(response)
                                 : ResponseEntity.badRequest().body(response);
+        }
+
+        @PostMapping("/recargar-billetera")
+        @Operation(summary = "Recargar billetera", description = "Añade saldo a la billetera del usuario")
+        public ResponseEntity<?> recargarBilletera(@RequestBody java.util.Map<String, Object> body) {
+                try {
+                        Long usuarioId = Long.valueOf(body.get("usuarioId").toString());
+                        java.math.BigDecimal cantidad = new java.math.BigDecimal(body.get("cantidad").toString());
+
+                        if (cantidad.compareTo(java.math.BigDecimal.ZERO) <= 0) {
+                                return ResponseEntity.badRequest()
+                                        .body(java.util.Map.of("error", "La cantidad debe ser mayor que 0"));
+                        }
+
+                        var usuarioOpt = loginService.obtenerPerfil(usuarioId);
+                        if (!usuarioOpt.isExitoso()) {
+                                return ResponseEntity.badRequest()
+                                        .body(java.util.Map.of("error", "Usuario no encontrado"));
+                        }
+
+                        // Recargar directamente
+                        com.deustosport.my_app.entity.Usuario usuario = usuarioRepository.findById(usuarioId)
+                                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+                        usuario.setBilletera(usuario.getBilletera().add(cantidad));
+                        usuarioRepository.save(usuario);
+
+                        return ResponseEntity.ok(java.util.Map.of(
+                                "mensaje", "Billetera recargada correctamente",
+                                "billetera", usuario.getBilletera()
+                        ));
+                } catch (Exception e) {
+                        return ResponseEntity.badRequest()
+                                .body(java.util.Map.of("error", "Error al recargar: " + e.getMessage()));
+                }
         }
 }
