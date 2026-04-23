@@ -246,6 +246,41 @@
             flex-wrap: wrap;
         }
 
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .stat-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-family: 'Syne', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--accent);
+            letter-spacing: -.3px;
+        }
+
+        .stat-value.small {
+            font-size: 24px;
+            color: var(--text);
+        }
+
         @media (max-width: 768px) {
             .layout {
                 padding: 20px 16px;
@@ -275,6 +310,30 @@
             </div>
         </div>
     </div>
+
+    <section class="card">
+        <div class="actions" style="justify-content:space-between; margin-top:0; margin-bottom:10px;">
+            <h2 style="margin:0;">Recaudacion del mes actual</h2>
+            <button class="btn-secondary" id="refreshRecaudacionBtn">Recargar recaudacion</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Mes</div>
+                <div class="stat-value small" id="mesActualLabel">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total recaudado</div>
+                <div class="stat-value" id="totalRecaudadoMes">0,00 EUR</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Pagos completados</div>
+                <div class="stat-value small" id="totalPagosMes">0</div>
+            </div>
+        </div>
+
+        <div class="status info" id="recaudacionStatus">Leyendo recaudacion...</div>
+    </section>
 
     <section class="card">
         <h2 style="margin:0 0 14px;">Descuento para socios</h2>
@@ -377,6 +436,7 @@
 
 <script>
     const API_URL = 'http://localhost:8080/api/tarifas';
+    const PAGOS_API_URL = 'http://localhost:8080/api/pagos';
     let tarifaEnEdicionId = null;
     let tarifasCache = [];
 
@@ -410,6 +470,45 @@
 
     function normalizeDate(val) {
         return val || null;
+    }
+
+    function formatCurrencyEur(value) {
+        return new Intl.NumberFormat('es-ES', {
+            style: 'currency',
+            currency: 'EUR'
+        }).format(Number(value || 0));
+    }
+
+    function capitalize(text) {
+        if (!text) {
+            return '';
+        }
+        return text.charAt(0).toUpperCase() + text.slice(1);
+    }
+
+    async function loadRecaudacionMesActual() {
+        const recaudacionStatus = document.getElementById('recaudacionStatus');
+        setStatus(recaudacionStatus, 'Leyendo recaudacion del mes actual...', 'info');
+
+        try {
+            const res = await fetch(`${PAGOS_API_URL}/recaudacion/mes-actual`);
+            if (!res.ok) {
+                throw new Error('No se pudo cargar la recaudacion del mes.');
+            }
+
+            const data = await res.json();
+            const mesNombre = capitalize(data.mesNombre || '');
+
+            document.getElementById('mesActualLabel').textContent = `${mesNombre} ${data.anio}`;
+            document.getElementById('totalRecaudadoMes').textContent = formatCurrencyEur(data.totalRecaudado);
+            document.getElementById('totalPagosMes').textContent = `${data.totalPagos ?? 0}`;
+
+            setStatus(recaudacionStatus,
+                `Recaudacion de ${mesNombre} ${data.anio}: ${formatCurrencyEur(data.totalRecaudado)}.`,
+                'ok');
+        } catch (error) {
+            setStatus(recaudacionStatus, error.message, 'err');
+        }
     }
 
     function tarifaPayloadFromForm() {
@@ -566,6 +665,7 @@
     document.getElementById('clearBtn').addEventListener('click', resetForm);
     document.getElementById('cancelEditBtn').addEventListener('click', resetForm);
     document.getElementById('refreshBtn').addEventListener('click', loadTarifas);
+    document.getElementById('refreshRecaudacionBtn').addEventListener('click', loadRecaudacionMesActual);
 
     window.editarTarifa = editarTarifa;
     window.desactivarTarifa = desactivarTarifa;
@@ -573,6 +673,7 @@
     resetForm();
     loadTarifas();
     loadDescuentoSocio();
+    loadRecaudacionMesActual();
 
     // ═══ DESCUENTO SOCIO ═══
     async function loadDescuentoSocio() {
