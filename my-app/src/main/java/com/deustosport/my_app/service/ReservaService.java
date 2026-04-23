@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -185,10 +186,9 @@ public class ReservaService {
         if (reserva.getEstado() == EstadoReserva.CANCELADA) {
             throw new IllegalStateException("La reserva ya está cancelada.");
         }
-        if (reserva.getFechaReserva().isBefore(LocalDate.now()) ||
-                (reserva.getFechaReserva().isEqual(LocalDate.now()) &&
-                        reserva.getHoraInicio().isBefore(LocalTime.now()))) {
-            throw new IllegalStateException("No se pueden cancelar reservas pasadas.");
+        LocalDateTime fechaHoraReserva = LocalDateTime.of(reserva.getFechaReserva(), reserva.getHoraInicio());
+        if (!fechaHoraReserva.isAfter(LocalDateTime.now().plusHours(24))) {
+            throw new IllegalStateException("Solo se puede cancelar una reserva con mas de 24 horas de antelacion.");
         }
 
         reserva.setEstado(EstadoReserva.CANCELADA);

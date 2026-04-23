@@ -181,4 +181,46 @@ class ReservaServiceTest {
         assertEquals(EstadoReserva.CONFIRMADA, pagada.getEstado());
         verify(pagoService).procesarPagoInterno(eq(200L), eq(iban), eq(MetodoPago.TRANSFERENCIA));
     }
+
+        @Test
+        void cancelarReserva_conMasDe24h_cancelaCorrectamente() {
+                Reserva reserva = new Reserva();
+                reserva.setId(300L);
+                reserva.setUsuario(usuario);
+                reserva.setPista(pista);
+                reserva.setFechaReserva(LocalDate.now().plusDays(2));
+                reserva.setHoraInicio(LocalTime.of(10, 0));
+                reserva.setHoraFin(LocalTime.of(11, 0));
+                reserva.setEstado(EstadoReserva.CONFIRMADA);
+
+                when(reservaRepository.findById(300L)).thenReturn(Optional.of(reserva));
+                when(reservaRepository.save(isA(Reserva.class))).thenAnswer(inv -> inv.getArgument(0));
+
+                Reserva cancelada = reservaService.cancelarReserva(300L, 10L);
+
+                assertEquals(EstadoReserva.CANCELADA, cancelada.getEstado());
+                verify(reservaRepository).save(reserva);
+        }
+
+        @Test
+        void cancelarReserva_con24hOMenos_lanzaExcepcion() {
+                LocalDateTime inicioEnMenosDe24h = LocalDateTime.now().plusHours(23).withSecond(0).withNano(0);
+
+                Reserva reserva = new Reserva();
+                reserva.setId(301L);
+                reserva.setUsuario(usuario);
+                reserva.setPista(pista);
+                reserva.setFechaReserva(inicioEnMenosDe24h.toLocalDate());
+                reserva.setHoraInicio(inicioEnMenosDe24h.toLocalTime());
+                reserva.setHoraFin(reserva.getHoraInicio().plusHours(1));
+                reserva.setEstado(EstadoReserva.CONFIRMADA);
+
+                when(reservaRepository.findById(301L)).thenReturn(Optional.of(reserva));
+
+                IllegalStateException ex = assertThrows(IllegalStateException.class,
+                                () -> reservaService.cancelarReserva(301L, 10L));
+
+                assertTrue(ex.getMessage().contains("24 horas"));
+                verify(reservaRepository, never()).save(any());
+        }
 }
