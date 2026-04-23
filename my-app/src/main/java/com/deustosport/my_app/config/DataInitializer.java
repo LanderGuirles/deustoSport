@@ -65,27 +65,27 @@ public class DataInitializer implements CommandLineRunner {
 
         // ── Usuarios ─────────────────────────────────────────────────
         jdbcTemplate.update(
-            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, rol) VALUES (?,?,?,?,?,?,?)",
-            "Juan García", "juan@deustosport.com", "11111111A", "666111222", true, false, "CLIENTE");
+            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol) VALUES (?,?,?,?,?,?,?,?)",
+            "Juan García", "juan@deustosport.com", "11111111A", "666111222", true, false, 50.00, "CLIENTE");
         jdbcTemplate.update(
-            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, rol) VALUES (?,?,?,?,?,?,?)",
-            "María López", "maria@deustosport.com", "22222222B", "666333444", true, true, "SECRETARIA");
+            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol) VALUES (?,?,?,?,?,?,?,?)",
+            "María López", "maria@deustosport.com", "22222222B", "666333444", true, true, 100.00, "SECRETARIA");
         jdbcTemplate.update(
-            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, rol) VALUES (?,?,?,?,?,?,?)",
-            "Carlos Rodríguez", "carlos@deustosport.com", "33333333C", "666555666", true, false, "COORDINADOR");
+            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol) VALUES (?,?,?,?,?,?,?,?)",
+            "Carlos Rodríguez", "carlos@deustosport.com", "33333333C", "666555666", true, false, 75.00, "COORDINADOR");
         jdbcTemplate.update(
-            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, rol) VALUES (?,?,?,?,?,?,?)",
-            "Laura Fernández", "laura@deustosport.com", "44444444D", "666777888", true, false, "CLIENTE");
+            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol) VALUES (?,?,?,?,?,?,?,?)",
+            "Laura Fernández", "laura@deustosport.com", "44444444D", "666777888", true, false, 30.00, "CLIENTE");
         jdbcTemplate.update(
-            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, rol) VALUES (?,?,?,?,?,?,?)",
-            "Iker Martínez", "iker@deustosport.com", "55555555E", "666999000", true, true, "CLIENTE");
+            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol) VALUES (?,?,?,?,?,?,?,?)",
+            "Iker Martínez", "iker@deustosport.com", "55555555E", "666999000", true, true, 120.00, "CLIENTE");
         jdbcTemplate.update(
-            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, rol) VALUES (?,?,?,?,?,?,?)",
-            "Nerea Sánchez", "nerea@deustosport.com", "66666666F", "666123789", true, false, "CLIENTE");
+            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol) VALUES (?,?,?,?,?,?,?,?)",
+            "Nerea Sánchez", "nerea@deustosport.com", "66666666F", "666123789", true, false, 5.00, "CLIENTE");
         jdbcTemplate.update(
-            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, rol) VALUES (?,?,?,?,?,?,?)",
+            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol) VALUES (?,?,?,?,?,?,?,?)",
             "Ayuntamiento de Bilbao", "ayuntamiento.bilbao@deustosport.com",
-            "77777777G", "944204200", true, false, "AYUNTAMIENTO");
+            "77777777G", "944204200", true, false, 0.00, "AYUNTAMIENTO");
 
         // ── Credenciales ─────────────────────────────────────────────
         LocalDateTime ahora = LocalDateTime.now();

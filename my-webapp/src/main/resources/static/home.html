@@ -230,6 +230,34 @@
       .metodo-grid{grid-template-columns:1fr;}
       .form-row{grid-template-columns:1fr;}
     }
+    .badge-socio{display:inline-block;background:rgba(0,229,160,0.15);color:var(--accent);
+                 font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;
+                 text-transform:uppercase;letter-spacing:.5px;margin-left:8px;}
+    .descuento-info{background:rgba(0,229,160,0.08);border:1px solid rgba(0,229,160,0.25);
+                    border-radius:10px;padding:10px 14px;margin:8px 0;
+                    font-size:13px;color:var(--accent);display:flex;
+                    align-items:center;gap:8px;}
+    .descuento-info .icon{font-size:16px;}
+    .precio-tachado{text-decoration:line-through;color:var(--muted);font-size:14px;
+                    font-weight:400;margin-right:8px;}
+    .badge-billetera{display:inline-flex;align-items:center;gap:4px;
+                     background:rgba(99,102,241,0.12);color:#818cf8;
+                     font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px;
+                     margin-left:8px;}
+    .saldo-insuficiente{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);
+                        border-radius:10px;padding:10px 14px;margin:8px 0;
+                        font-size:13px;color:#ef4444;display:flex;
+                        align-items:center;gap:8px;}
+    .saldo-insuficiente .icon{font-size:16px;}
+    .recarga-section{background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.2);
+                     border-radius:12px;padding:16px;margin-top:14px;}
+    .recarga-section h4{margin:0 0 10px;color:var(--text);font-size:14px;}
+    .recarga-row{display:flex;gap:8px;align-items:center;}
+    .recarga-row input{flex:1;padding:8px 12px;border:1px solid var(--border);
+                       border-radius:8px;background:var(--surface);color:var(--text);font-size:14px;}
+    .recarga-row button{padding:8px 18px;border:none;border-radius:8px;
+                        background:var(--primary);color:#fff;font-weight:600;
+                        cursor:pointer;font-size:13px;}
   </style>
 </head>
 <body>
@@ -246,7 +274,10 @@
 <nav>
   <div class="logo">Deusto<span>Sport</span></div>
   <div class="nav-user">
-    <span>Hola, <strong id="nav-nombre">—</strong></span>
+    <span>Hola, <strong id="nav-nombre">—</strong>
+      <span id="nav-socio-badge" class="badge-socio" style="display:none;">Socio</span>
+      <span id="nav-billetera-badge" class="badge-billetera">💰 <span id="nav-saldo">0.00</span>€</span>
+    </span>
 		<button class="btn-ghost" onclick="openProfileModal()">Mi perfil</button>
     <button class="btn-ghost" onclick="logout()">Cerrar sesión</button>
   </div>
@@ -345,7 +376,18 @@
       </div>
       <div class="price-preview">
         <span class="label">Total a pagar</span>
-        <span class="value" id="cal-precio">—</span>
+        <div>
+          <span class="precio-tachado" id="cal-precio-original" style="display:none;"></span>
+          <span class="value" id="cal-precio">—</span>
+        </div>
+      </div>
+      <div class="descuento-info" id="cal-descuento-info" style="display:none;">
+        <span class="icon">🌟</span>
+        <span>Descuento de socio aplicado: <strong id="cal-descuento-porcentaje"></strong></span>
+      </div>
+      <div class="saldo-insuficiente" id="cal-saldo-insuficiente" style="display:none;">
+        <span class="icon">⚠️</span>
+        <span>Saldo insuficiente. Tu billetera tiene <strong id="cal-saldo-actual"></strong>€ pero necesitas <strong id="cal-precio-necesario"></strong>. <a href="#" onclick="event.preventDefault();openProfileModal()" style="color:inherit;text-decoration:underline;">Recargar saldo</a></span>
       </div>
       <div class="metodo-grid">
         <button class="metodo-btn" onclick="selectMetodoCal('TARJETA',this)">
@@ -404,6 +446,15 @@
 		</div>
 		<button class="btn-primary" id="btn-guardar-perfil" onclick="saveProfile()">Guardar cambios</button>
 		<div id="perfil-alert" class="form-alert"></div>
+
+		<div class="recarga-section">
+			<h4>💰 Billetera — Saldo actual: <strong id="perfil-saldo">0.00</strong>€</h4>
+			<div class="recarga-row">
+				<input type="number" id="recarga-cantidad" min="1" step="0.01" placeholder="Cantidad a recargar (€)">
+				<button onclick="recargarBilletera()">Recargar</button>
+			</div>
+			<div id="recarga-alert" class="form-alert" style="margin-top:8px;"></div>
+		</div>
 	</div>
 </div>
 
@@ -432,8 +483,20 @@
 			document.addEventListener('DOMContentLoaded', () => {
 			  const nombre = localStorage.getItem('usuarioNombre') || 'Usuario';
 			  document.getElementById('nav-nombre').textContent = nombre.split(' ')[0];
+			  // Mostrar badge de socio
+			  const esSocio = localStorage.getItem('esSocio') === 'true';
+			  if (esSocio) {
+			    document.getElementById('nav-socio-badge').style.display = 'inline-block';
+			  }
+			  // Mostrar saldo
+			  actualizarSaldoNav();
 			  loadPistas();
 			});
+
+			function actualizarSaldoNav() {
+			  const saldo = parseFloat(localStorage.getItem('billetera') || '0');
+			  document.getElementById('nav-saldo').textContent = saldo.toFixed(2);
+			}
 
 			// ═══════════════════════════════════════════
 			//  UTILIDADES
@@ -512,9 +575,56 @@
 
 			    document.getElementById('perfil-nombre').value = data.nombreCompleto || '';
 			    document.getElementById('perfil-telefono').value = data.telefono || '';
+			    // Mostrar saldo en perfil
+			    const saldo = data.billetera != null ? parseFloat(data.billetera).toFixed(2) : '0.00';
+			    document.getElementById('perfil-saldo').textContent = saldo;
+			    localStorage.setItem('billetera', data.billetera || 0);
+			    actualizarSaldoNav();
 			  } catch (e) {
 			    alertEl.className = 'form-alert err';
 			    alertEl.textContent = e.message || 'Error al cargar el perfil';
+			  }
+			}
+
+			async function recargarBilletera() {
+			  const cantidadInput = document.getElementById('recarga-cantidad');
+			  const alertEl = document.getElementById('recarga-alert');
+			  const cantidad = parseFloat(cantidadInput.value);
+
+			  alertEl.className = 'form-alert';
+			  alertEl.textContent = '';
+
+			  if (isNaN(cantidad) || cantidad <= 0) {
+			    alertEl.className = 'form-alert err';
+			    alertEl.textContent = 'Introduce una cantidad válida mayor que 0';
+			    return;
+			  }
+
+			  try {
+			    const res = await fetch(`${API}/api/auth/recargar-billetera`, {
+			      method: 'POST',
+			      headers: { 'Content-Type': 'application/json' },
+			      body: JSON.stringify({
+			        usuarioId: Number(currentUserId),
+			        cantidad: cantidad
+			      })
+			    });
+			    const data = await res.json();
+
+			    if (!res.ok) {
+			      throw new Error(data.error || 'Error al recargar');
+			    }
+
+			    localStorage.setItem('billetera', data.billetera);
+			    actualizarSaldoNav();
+			    document.getElementById('perfil-saldo').textContent =
+			      parseFloat(data.billetera).toFixed(2);
+			    cantidadInput.value = '';
+			    alertEl.className = 'form-alert ok';
+			    alertEl.textContent = `✅ Recargados ${cantidad.toFixed(2)}€. Nuevo saldo: ${parseFloat(data.billetera).toFixed(2)}€`;
+			  } catch (e) {
+			    alertEl.className = 'form-alert err';
+			    alertEl.textContent = e.message;
 			  }
 			}
 
@@ -800,26 +910,25 @@
 
 			async function estimarPrecio(fecha, hora) {
 			  try {
-			    // Usamos la tarifa de la pista vía API
 			    const res = await fetch(
-			      `${API}/api/tarifas/pista/${pistaCalendario.id}`
+			      `${API}/api/reservas/precio-estimado?pistaId=${pistaCalendario.id}`
+			      + `&usuarioId=${currentUserId}`
+			      + `&fecha=${fecha}&horaInicio=${hora}&duracionMinutos=60`
 			    );
-			    const tarifas = await res.json();
-			    if (!tarifas.length) return '—';
+			    const data = await res.json();
+			    if (data.error) return { precioFinal: '—', precioOriginal: null, descuento: false };
 
-			    const hNum    = parseInt(hora.split(':')[0], 10);
-			    const diaSem  = new Date(fecha + 'T12:00:00').getDay(); // 0=Dom
-			    const jsDia   = diaSem === 0 ? 7 : diaSem; // 1=Lun … 7=Dom
-
-			    const tarifa = tarifas.find(t =>
-			      t.diaSemana === jsDia &&
-			      parseInt(t.horaInicio.substring(0,2),10) <= hNum &&
-			      parseInt(t.horaFin.substring(0,2),10)    >  hNum
-			    );
-
-			    return tarifa ? fmtEur(tarifa.precioPorHora) : '—';
+			    return {
+			      precioFinal: fmtEur(data.precioFinal),
+			      precioOriginal: data.descuentoAplicado ? fmtEur(data.precioOriginal) : null,
+			      descuento: data.descuentoAplicado === true,
+			      importeDescuento: data.importeDescuento ? fmtEur(data.importeDescuento) : null,
+			      billetera: data.billetera,
+			      saldoSuficiente: data.saldoSuficiente,
+			      precioFinalRaw: data.precioFinal
+			    };
 			  } catch {
-			    return '—';
+			    return { precioFinal: '—', precioOriginal: null, descuento: false, saldoSuficiente: true };
 			  }
 			}
 
@@ -834,13 +943,57 @@
 			    ' · ' + slotSeleccionado.hora + '–' +
 			    String(parseInt(slotSeleccionado.hora.split(':')[0],10)+1).padStart(2,'0') + ':00';
 
-			  document.getElementById('cal-precio').textContent = precioEst;
+			  // Mostrar precio con/sin descuento
+			  const esObjeto = typeof precioEst === 'object' && precioEst !== null;
+			  const precioTexto = esObjeto ? precioEst.precioFinal : precioEst;
+			  document.getElementById('cal-precio').textContent = precioTexto;
+
+			  const precioOrigEl = document.getElementById('cal-precio-original');
+			  const descuentoInfoEl = document.getElementById('cal-descuento-info');
+
+			  if (esObjeto && precioEst.descuento && precioEst.precioOriginal) {
+			    precioOrigEl.textContent = precioEst.precioOriginal;
+			    precioOrigEl.style.display = 'inline';
+			    descuentoInfoEl.style.display = 'flex';
+			    // Cargar porcentaje de descuento desde config
+			    fetch(`${API}/api/configuracion/descuento-socio`)
+			      .then(r => r.json())
+			      .then(cfg => {
+			        document.getElementById('cal-descuento-porcentaje').textContent =
+			          (cfg.porcentaje || 20) + '%';
+			      })
+			      .catch(() => {
+			        document.getElementById('cal-descuento-porcentaje').textContent = '20%';
+			      });
+			  } else {
+			    precioOrigEl.style.display = 'none';
+			    descuentoInfoEl.style.display = 'none';
+			  }
+
+			  // Aviso de saldo insuficiente
+			  const saldoInsufEl = document.getElementById('cal-saldo-insuficiente');
+			  const btnConfirmar = document.getElementById('btn-confirmar-pago-cal');
+
+			  if (esObjeto && precioEst.saldoSuficiente === false) {
+			    document.getElementById('cal-saldo-actual').textContent =
+			      parseFloat(precioEst.billetera || 0).toFixed(2);
+			    document.getElementById('cal-precio-necesario').textContent =
+			      precioEst.precioFinal;
+			    saldoInsufEl.style.display = 'flex';
+			    btnConfirmar.disabled = true;
+			    btnConfirmar.textContent = 'Saldo insuficiente';
+			  } else {
+			    saldoInsufEl.style.display = 'none';
+			    btnConfirmar.textContent = 'Pagar y confirmar';
+			  }
 
 			  // Reset pago
 			  metodoCalSeleccionado = null;
 			  document.querySelectorAll('.metodo-btn').forEach(b => b.classList.remove('selected'));
 			  document.querySelectorAll('.pago-fields').forEach(f => f.classList.remove('active'));
-			  document.getElementById('btn-confirmar-pago-cal').disabled = true;
+			  if (!(esObjeto && precioEst.saldoSuficiente === false)) {
+			    btnConfirmar.disabled = true;
+			  }
 			}
 
 			function cancelarYVolverCal() {
@@ -941,6 +1094,11 @@
 			      toast('Pago rechazado: ' + (pagoData.error || 'error desconocido'), 'err');
 			    } else {
 			      toast('Reserva confirmada y pagada correctamente.', 'ok');
+			      // Actualizar saldo en localStorage y nav
+			      if (pagoData.saldoRestante != null) {
+			        localStorage.setItem('billetera', pagoData.saldoRestante);
+			        actualizarSaldoNav();
+			      }
 			      if (slotSeleccionado) marcarSlotOcupado(slotSeleccionado.fecha, slotSeleccionado.hora);
 			    }
 

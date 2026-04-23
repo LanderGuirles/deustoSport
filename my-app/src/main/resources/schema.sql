@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
     telefono        VARCHAR(20),
     activo          BOOLEAN NOT NULL DEFAULT TRUE,
     es_socio        BOOLEAN NOT NULL DEFAULT FALSE,
+    billetera       NUMERIC(10,2) NOT NULL DEFAULT 0,
     rol             VARCHAR(20)  NOT NULL
 );
 
@@ -143,6 +144,17 @@ CREATE TABLE IF NOT EXISTS participantes_partida_abierta (
     CONSTRAINT fk_ppa_partida        FOREIGN KEY (partida_abierta_id) REFERENCES partidas_abiertas(id),
     CONSTRAINT fk_ppa_usuario        FOREIGN KEY (usuario_id)         REFERENCES usuarios(id)
 );
+
+CREATE TABLE IF NOT EXISTS configuracion (
+    clave       VARCHAR(80)  NOT NULL PRIMARY KEY,
+    valor       VARCHAR(255) NOT NULL,
+    descripcion VARCHAR(255)
+);
+
+-- Dato inicial: descuento de socio por defecto (20%)
+MERGE INTO configuracion (clave, valor, descripcion)
+KEY (clave)
+VALUES ('descuento_socio_porcentaje', '20', 'Porcentaje de descuento aplicado a socios en reservas');
 
 -- ============================================================
 -- Índices

@@ -94,6 +94,14 @@ public class ReservaService {
         BigDecimal precioTotal = tarifaService.calcularPrecio(
                 pista.getTipoDeporte(), fecha, horaInicio, horaFin, usuario.isEsSocio());
 
+        // ── Comprobar saldo suficiente ──
+        if (usuario.getBilletera().compareTo(precioTotal) < 0) {
+            throw new IllegalStateException(
+                    "Saldo insuficiente. Tu billetera tiene " +
+                    usuario.getBilletera().toPlainString() + "€ pero la reserva cuesta " +
+                    precioTotal.toPlainString() + "€. Recarga tu saldo para continuar.");
+        }
+
         Reserva r = new Reserva();
         r.setUsuario(usuario);
         r.setPista(pista);
@@ -150,6 +158,12 @@ public class ReservaService {
         reserva.setEstado(EstadoReserva.CONFIRMADA);
 
         Reserva reservaFinal = reservaRepository.save(reserva);
+
+        // ── Descontar saldo de la billetera ──
+        Usuario usuario = reserva.getUsuario();
+        BigDecimal nuevoSaldo = usuario.getBilletera().subtract(reserva.getPrecioTotal());
+        usuario.setBilletera(nuevoSaldo);
+        usuarioRepository.save(usuario);
 
         // Enviar correo de confirmación de reserva
         emailService.enviarEmailConfirmacionReserva(
@@ -243,7 +257,51 @@ public class ReservaService {
         dto.setMetodoPago(r.getMetodoPago());
         dto.setReferenciaPago(r.getReferenciaPago());
         dto.setFechaPago(r.getFechaPago());
+
+        // Información de descuento de socio
+        boolean esSocio = r.getUsuario().isEsSocio();
+        dto.setDescuentoSocioAplicado(esSocio);
+        if (esSocio && r.getPista() != null) {
+            BigDecimal precioSinDescuento = tarifaService.calcularPrecio(
+                    r.getPista().getTipoDeporte(), r.getFechaReserva(),
+                    r.getHoraInicio(), r.getHoraFin(), false);
+            dto.setPrecioOriginal(precioSinDescuento);
+        } else {
+            dto.setPrecioOriginal(r.getPrecioTotal());
+        }
+
         return dto;
+    }
+
+    // ─── Precio estimado ─────────────────────────────────────────────────────
+    @Transactional(readOnly = true)
+    public Map<String, Object> calcularPrecioEstimado(Long pistaId, Long usuarioId,
+                                                      LocalDate fecha, LocalTime horaInicio,
+                                                      Integer duracionMinutos) {
+        Pista pista = pistaRepository.findById(pistaId)
+                .orElseThrow(() -> new IllegalArgumentException("Pista no encontrada"));
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+        LocalTime horaFin = horaInicio.plusMinutes(duracionMinutos);
+        boolean esSocio = usuario.isEsSocio();
+
+        BigDecimal precioSinDescuento = tarifaService.calcularPrecio(
+                pista.getTipoDeporte(), fecha, horaInicio, horaFin, false);
+        BigDecimal precioFinal = tarifaService.calcularPrecio(
+                pista.getTipoDeporte(), fecha, horaInicio, horaFin, esSocio);
+
+        Map<String, Object> resultado = new LinkedHashMap<>();
+        resultado.put("precioOriginal", precioSinDescuento);
+        resultado.put("precioFinal", precioFinal);
+        resultado.put("esSocio", esSocio);
+        resultado.put("descuentoAplicado", esSocio);
+        resultado.put("billetera", usuario.getBilletera());
+        resultado.put("saldoSuficiente", usuario.getBilletera().compareTo(precioFinal) >= 0);
+        if (esSocio) {
+            resultado.put("importeDescuento", precioSinDescuento.subtract(precioFinal));
+        }
+        return resultado;
     }
 
     private void validarHorarioInstalacion(Pista pista,

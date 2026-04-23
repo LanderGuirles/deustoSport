@@ -21,8 +21,11 @@ public class ReservaResponse {
     private LocalTime horaInicio;
     private LocalTime horaFin;
     private BigDecimal precioTotal;
+    private BigDecimal precioOriginal;
+    private boolean descuentoSocioAplicado;
     private EstadoReserva estado;
     private MetodoPago metodoPago;
     private String referenciaPago;
     private LocalDateTime fechaPago;
+    private BigDecimal saldoRestante;
 }

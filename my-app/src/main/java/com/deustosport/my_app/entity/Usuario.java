@@ -1,8 +1,9 @@
 package com.deustosport.my_app.entity;
 
 
-
 import com.deustosport.my_app.enums.Rol;
+
+import java.math.BigDecimal;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -38,6 +39,9 @@ public class Usuario {
 
     @Column(name = "es_socio", nullable = false)
     private boolean esSocio = false;
+
+    @Column(nullable = false)
+    private BigDecimal billetera = BigDecimal.ZERO;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -83,6 +87,9 @@ public class Usuario {
 
     public boolean isEsSocio() { return esSocio; }
     public void setEsSocio(boolean esSocio) { this.esSocio = esSocio; }
+
+    public BigDecimal getBilletera() { return billetera; }
+    public void setBilletera(BigDecimal billetera) { this.billetera = billetera; }
 
   
     public Rol getRol() { return rol; }

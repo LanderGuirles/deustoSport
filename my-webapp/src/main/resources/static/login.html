@@ -164,6 +164,8 @@
 
           const rol = (data.rol || '').toString().trim().toUpperCase();
           localStorage.setItem('usuarioRol', rol);
+          localStorage.setItem('esSocio', data.esSocio === true ? 'true' : 'false');
+          localStorage.setItem('billetera', data.billetera != null ? data.billetera : '0');
 
           if (rol === 'SECRETARIA') {
             window.location.href = 'secretaria-panel.html';

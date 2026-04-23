@@ -18,15 +18,16 @@ import java.util.Objects;
 @Service
 public class TarifaService {
 
-    private static final BigDecimal DESCUENTO_SOCIO = new BigDecimal("0.20");
-
     private final TarifaRepository tarifaRepository;
     private final PistaRepository  pistaRepository;
+    private final ConfiguracionService configuracionService;
 
     public TarifaService(TarifaRepository tarifaRepository,
-                         PistaRepository pistaRepository) {
-        this.tarifaRepository = tarifaRepository;
-        this.pistaRepository  = pistaRepository;
+                         PistaRepository pistaRepository,
+                         ConfiguracionService configuracionService) {
+        this.tarifaRepository    = tarifaRepository;
+        this.pistaRepository     = pistaRepository;
+        this.configuracionService = configuracionService;
     }
 
     @Transactional(readOnly = true)
@@ -106,7 +107,8 @@ public class TarifaService {
                 .orElse(calcularFallback(horaInicio, horaFin));
 
         if (esSocio) {
-            BigDecimal descuento = precio.multiply(DESCUENTO_SOCIO);
+            BigDecimal factorDescuento = configuracionService.obtenerFactorDescuentoSocio();
+            BigDecimal descuento = precio.multiply(factorDescuento);
             precio = precio.subtract(descuento).setScale(2, RoundingMode.HALF_UP);
         }
         return precio;
