@@ -1,5 +1,3 @@
-// my-app/src/test/java/com/deustosport/my_app/service/ReservaServiceTest.java
-
 package com.deustosport.my_app.service;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -24,8 +22,9 @@ class ReservaServiceTest {
     @Mock private ReservaRepository reservaRepository;
     @Mock private PistaRepository pistaRepository;
     @Mock private UsuarioRepository usuarioRepository;
+        @Mock private EmailService emailService;
     @Mock private TarifaService tarifaService;
-    @Mock private PagoService pagoService;  // ← el que realmente usa ReservaService
+        @Mock private PagoService pagoService;
 
     @InjectMocks
     private ReservaService reservaService;
@@ -37,19 +36,21 @@ class ReservaServiceTest {
     void setUp() {
         usuario = new Usuario();
         usuario.setId(10L);
+        usuario.setEmail("usuario@deustosport.com");
         usuario.setEsSocio(false);
+        usuario.setBilletera(new BigDecimal("100.00"));
 
-                Instalacion instalacion = new Instalacion();
-                instalacion.setId(1L);
-                instalacion.setHoraApertura(LocalTime.of(8, 0));
-                instalacion.setHoraCierre(LocalTime.of(22, 0));
+        Instalacion instalacion = new Instalacion();
+        instalacion.setId(1L);
+        instalacion.setHoraApertura(LocalTime.of(8, 0));
+        instalacion.setHoraCierre(LocalTime.of(22, 0));
 
         pista = new Pista();
         pista.setId(20L);
         pista.setNombre("Pista central");
         pista.setTipoDeporte(TipoDeporte.PADEL);
         pista.setActiva(true);
-                pista.setInstalacion(instalacion);
+        pista.setInstalacion(instalacion);
     }
 
     @Test
@@ -74,20 +75,42 @@ class ReservaServiceTest {
         assertEquals(new BigDecimal("24.50"), reserva.getPrecioTotal());
     }
 
-        @Test
-        void crearReserva_fueraHorarioGeneral_lanzaExcepcion() {
-                LocalDate fecha = LocalDate.now().plusDays(1);
-                LocalTime horaInicio = LocalTime.of(22, 0);
+    @Test
+    void crearReserva_saldoInsuficiente_lanzaExcepcion() {
+        LocalDate fecha = LocalDate.now().plusDays(1);
+        LocalTime horaInicio = LocalTime.of(10, 0);
+        LocalTime horaFin = horaInicio.plusMinutes(60);
+        usuario.setBilletera(new BigDecimal("5.00"));
 
-                when(usuarioRepository.findById(10L)).thenReturn(Optional.of(usuario));
-                when(pistaRepository.findById(20L)).thenReturn(Optional.of(pista));
+        when(usuarioRepository.findById(10L)).thenReturn(Optional.of(usuario));
+        when(pistaRepository.findById(20L)).thenReturn(Optional.of(pista));
+        when(reservaRepository.findConflictingReservations(20L, fecha, horaInicio, horaFin))
+                .thenReturn(List.of());
+        when(tarifaService.calcularPrecio(eq(TipoDeporte.PADEL), eq(fecha),
+                eq(horaInicio), eq(horaFin), eq(false)))
+                .thenReturn(new BigDecimal("24.50"));
 
-                IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                                () -> reservaService.crearReserva(10L, 20L, fecha, horaInicio, 60));
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
+                () -> reservaService.crearReserva(10L, 20L, fecha, horaInicio, 60));
 
-                assertTrue(ex.getMessage().contains("horario general"));
-                verify(reservaRepository, never()).save(any());
-        }
+        assertTrue(ex.getMessage().contains("Saldo insuficiente"));
+        verify(reservaRepository, never()).save(any());
+    }
+
+    @Test
+    void crearReserva_fueraHorarioGeneral_lanzaExcepcion() {
+        LocalDate fecha = LocalDate.now().plusDays(1);
+        LocalTime horaInicio = LocalTime.of(22, 0);
+
+        when(usuarioRepository.findById(10L)).thenReturn(Optional.of(usuario));
+        when(pistaRepository.findById(20L)).thenReturn(Optional.of(pista));
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> reservaService.crearReserva(10L, 20L, fecha, horaInicio, 60));
+
+        assertTrue(ex.getMessage().contains("horario general"));
+        verify(reservaRepository, never()).save(any());
+    }
 
     @Test
     void pagarReserva_conTarjeta_confirmaReserva() {
@@ -101,16 +124,17 @@ class ReservaServiceTest {
         reserva.setEstado(EstadoReserva.PENDIENTE);
         reserva.setPrecioTotal(new BigDecimal("30.00"));
 
-        // El Pago que devuelve pagoService ya tiene referencia y fecha
         Pago pagoMock = new Pago();
         pagoMock.setReferenciaPago("DS-ABCD1234");
         pagoMock.setFechaPago(java.time.LocalDateTime.now());
         pagoMock.setMetodoPago(MetodoPago.TARJETA);
 
         when(reservaRepository.findById(99L)).thenReturn(Optional.of(reserva));
-        when(pagoService.procesarPagoInterno(eq(99L), isNull(), eq(MetodoPago.TARJETA)))
+        when(pagoService.procesarPagoInterno(eq(99L), eq("SIMULADO00000000000000"), eq(MetodoPago.TARJETA)))
                 .thenReturn(pagoMock);
         when(reservaRepository.save(isA(Reserva.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
+        when(usuarioRepository.save(isA(Usuario.class)))
                 .thenAnswer(inv -> inv.getArgument(0));
 
         Reserva pagada = reservaService.pagarReserva(
@@ -123,7 +147,16 @@ class ReservaServiceTest {
         assertEquals(MetodoPago.TARJETA, pagada.getMetodoPago());
         assertNotNull(pagada.getFechaPago());
         assertEquals("DS-ABCD1234", pagada.getReferenciaPago());
-        verify(pagoService).procesarPagoInterno(eq(99L), isNull(), eq(MetodoPago.TARJETA));
+        assertEquals(new BigDecimal("70.00"), pagada.getUsuario().getBilletera());
+        verify(pagoService).procesarPagoInterno(eq(99L), eq("SIMULADO00000000000000"), eq(MetodoPago.TARJETA));
+        verify(emailService).enviarEmailConfirmacionReserva(
+                eq("usuario@deustosport.com"),
+                eq("Pista central"),
+                eq("PADEL"),
+                eq(pagada.getFechaReserva()),
+                eq(pagada.getHoraInicio()),
+                eq(pagada.getHoraFin()),
+                eq(new BigDecimal("30.00")));
     }
 
     @Test
@@ -172,6 +205,8 @@ class ReservaServiceTest {
                 .thenReturn(pagoMock);
         when(reservaRepository.save(isA(Reserva.class)))
                 .thenAnswer(inv -> inv.getArgument(0));
+        when(usuarioRepository.save(isA(Usuario.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
 
         Reserva pagada = reservaService.pagarReserva(
                 200L, 10L, MetodoPago.TRANSFERENCIA,
@@ -179,48 +214,54 @@ class ReservaServiceTest {
         );
 
         assertEquals(EstadoReserva.CONFIRMADA, pagada.getEstado());
+        assertEquals(new BigDecimal("85.00"), pagada.getUsuario().getBilletera());
         verify(pagoService).procesarPagoInterno(eq(200L), eq(iban), eq(MetodoPago.TRANSFERENCIA));
+        verify(emailService).enviarEmailConfirmacionReserva(
+                eq("usuario@deustosport.com"), anyString(), anyString(), any(), any(), any(), any());
     }
 
-        @Test
-        void cancelarReserva_conMasDe24h_cancelaCorrectamente() {
-                Reserva reserva = new Reserva();
-                reserva.setId(300L);
-                reserva.setUsuario(usuario);
-                reserva.setPista(pista);
-                reserva.setFechaReserva(LocalDate.now().plusDays(2));
-                reserva.setHoraInicio(LocalTime.of(10, 0));
-                reserva.setHoraFin(LocalTime.of(11, 0));
-                reserva.setEstado(EstadoReserva.CONFIRMADA);
+    @Test
+    void cancelarReserva_conMasDe24h_cancelaCorrectamenteYReembolsa() {
+        Reserva reserva = new Reserva();
+        reserva.setId(300L);
+        reserva.setUsuario(usuario);
+        reserva.setPista(pista);
+        reserva.setFechaReserva(LocalDate.now().plusDays(2));
+        reserva.setHoraInicio(LocalTime.of(10, 0));
+        reserva.setHoraFin(LocalTime.of(11, 0));
+        reserva.setEstado(EstadoReserva.CONFIRMADA);
+        reserva.setPrecioTotal(new BigDecimal("20.00"));
 
-                when(reservaRepository.findById(300L)).thenReturn(Optional.of(reserva));
-                when(reservaRepository.save(isA(Reserva.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(reservaRepository.findById(300L)).thenReturn(Optional.of(reserva));
+        when(reservaRepository.save(isA(Reserva.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(usuarioRepository.save(isA(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
 
-                Reserva cancelada = reservaService.cancelarReserva(300L, 10L);
+        Reserva cancelada = reservaService.cancelarReserva(300L, 10L);
 
-                assertEquals(EstadoReserva.CANCELADA, cancelada.getEstado());
-                verify(reservaRepository).save(reserva);
-        }
+        assertEquals(EstadoReserva.CANCELADA, cancelada.getEstado());
+        assertEquals(new BigDecimal("120.00"), cancelada.getUsuario().getBilletera());
+        verify(reservaRepository).save(reserva);
+    }
 
-        @Test
-        void cancelarReserva_con24hOMenos_lanzaExcepcion() {
-                LocalDateTime inicioEnMenosDe24h = LocalDateTime.now().plusHours(23).withSecond(0).withNano(0);
+    @Test
+    void cancelarReserva_con24hOMenos_lanzaExcepcion() {
+        LocalDateTime inicioEnMenosDe24h = LocalDateTime.now().plusHours(23).withSecond(0).withNano(0);
 
-                Reserva reserva = new Reserva();
-                reserva.setId(301L);
-                reserva.setUsuario(usuario);
-                reserva.setPista(pista);
-                reserva.setFechaReserva(inicioEnMenosDe24h.toLocalDate());
-                reserva.setHoraInicio(inicioEnMenosDe24h.toLocalTime());
-                reserva.setHoraFin(reserva.getHoraInicio().plusHours(1));
-                reserva.setEstado(EstadoReserva.CONFIRMADA);
+        Reserva reserva = new Reserva();
+        reserva.setId(301L);
+        reserva.setUsuario(usuario);
+        reserva.setPista(pista);
+        reserva.setFechaReserva(inicioEnMenosDe24h.toLocalDate());
+        reserva.setHoraInicio(inicioEnMenosDe24h.toLocalTime());
+        reserva.setHoraFin(reserva.getHoraInicio().plusHours(1));
+        reserva.setEstado(EstadoReserva.CONFIRMADA);
 
-                when(reservaRepository.findById(301L)).thenReturn(Optional.of(reserva));
+        when(reservaRepository.findById(301L)).thenReturn(Optional.of(reserva));
 
-                IllegalStateException ex = assertThrows(IllegalStateException.class,
-                                () -> reservaService.cancelarReserva(301L, 10L));
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
+                () -> reservaService.cancelarReserva(301L, 10L));
 
-                assertTrue(ex.getMessage().contains("24 horas"));
-                verify(reservaRepository, never()).save(any());
-        }
+        assertTrue(ex.getMessage().contains("24 horas"));
+        verify(reservaRepository, never()).save(any());
+    }
 }
