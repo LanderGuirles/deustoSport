@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Ayuntamiento - Tarifas por Horas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
     <script>
         const currentUserId = localStorage.getItem('usuarioId');
         const currentUserRol = (localStorage.getItem('usuarioRol') || '').trim().toUpperCase();
@@ -16,30 +17,34 @@
     </script>
     <style>
         :root {
-            --bg: #f3f7fa;
-            --card: #ffffff;
-            --ink: #1e293b;
-            --muted: #64748b;
-            --line: #e2e8f0;
-            --brand: #0f766e;
-            --brand-soft: #dff4f2;
-            --danger: #b91c1c;
-            --ok: #166534;
+            --bg: #0d1117;
+            --surface: #161b22;
+            --surface2: #1e242e;
+            --border: #30363d;
+            --accent: #00e5a0;
+            --accent2: #00b37e;
+            --accent-dim: rgba(0,229,160,0.12);
+            --warn: #f0a500;
+            --danger: #f85149;
+            --success: #3fb950;
+            --text: #e6edf3;
+            --muted: #7d8590;
+            --radius: 12px;
         }
 
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            margin: 0;
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-            color: var(--ink);
-            background: radial-gradient(circle at 0% 0%, #e8f7f5 0%, var(--bg) 50%);
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            min-height: 100vh;
         }
 
         .layout {
             max-width: 1200px;
-            margin: 28px auto;
-            padding: 0 16px;
+            margin: 0 auto;
+            padding: 32px;
         }
 
         .header {
@@ -47,17 +52,23 @@
             justify-content: space-between;
             align-items: flex-start;
             gap: 12px;
-            margin-bottom: 18px;
+            margin-bottom: 22px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            background: radial-gradient(ellipse 60% 40% at 0% 0%, rgba(0,229,160,.08) 0%, transparent 70%);
         }
 
         h1 {
-            margin: 0;
+            font-family: 'Syne', sans-serif;
             font-size: 30px;
+            font-weight: 800;
+            letter-spacing: -.3px;
         }
 
         .subtitle {
             margin: 8px 0 0;
             color: var(--muted);
+            font-size: 14px;
         }
 
         .session {
@@ -65,13 +76,23 @@
             font-size: 14px;
         }
 
+        .session strong {
+            color: var(--text);
+        }
+
         .card {
-            background: var(--card);
-            border: 1px solid var(--line);
-            border-radius: 14px;
-            padding: 18px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 22px;
             margin-bottom: 16px;
-            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+        }
+
+        h2 {
+            font-family: 'Syne', sans-serif;
+            color: var(--text);
+            font-size: 20px;
+            letter-spacing: -.2px;
         }
 
         .grid {
@@ -83,18 +104,29 @@
         .field label {
             display: block;
             margin-bottom: 6px;
-            font-weight: 600;
-            font-size: 14px;
+            font-weight: 500;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: var(--muted);
         }
 
         .field input,
         .field select {
             width: 100%;
-            border: 1px solid var(--line);
+            border: 1px solid var(--border);
             border-radius: 9px;
             padding: 10px 12px;
             font-size: 14px;
-            background: #fff;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .field input:focus,
+        .field select:focus {
+            outline: none;
+            border-color: var(--accent);
         }
 
         .actions {
@@ -108,14 +140,51 @@
             border: none;
             border-radius: 9px;
             padding: 10px 14px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            transition: all .2s;
         }
 
-        .btn-primary { background: var(--brand); color: #fff; }
-        .btn-secondary { background: var(--brand-soft); color: #0f5f58; }
-        .btn-danger { background: #fff1f1; color: var(--danger); border: 1px solid #fecaca; }
-        .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+        .btn-primary {
+            background: var(--accent);
+            color: #0d1117;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent2);
+        }
+
+        .btn-secondary {
+            background: var(--accent-dim);
+            color: var(--accent);
+            border: 1px solid rgba(0,229,160,.35);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0,229,160,.2);
+        }
+
+        .btn-danger {
+            background: rgba(248,81,73,.12);
+            color: var(--danger);
+            border: 1px solid rgba(248,81,73,.35);
+        }
+
+        .btn-danger:hover {
+            background: rgba(248,81,73,.2);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--muted);
+            border: 1px solid var(--border);
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
 
         .status {
             margin-top: 10px;
@@ -126,36 +195,38 @@
             border: 1px solid transparent;
         }
 
-        .status.ok { display: block; color: var(--ok); background: #ecfdf5; border-color: #bbf7d0; }
-        .status.err { display: block; color: var(--danger); background: #fff1f2; border-color: #fecdd3; }
-        .status.info { display: block; color: var(--muted); background: #f8fafc; border-color: var(--line); }
+        .status.ok { display: block; color: var(--success); background: rgba(63,185,80,.12); border-color: rgba(63,185,80,.35); }
+        .status.err { display: block; color: var(--danger); background: rgba(248,81,73,.12); border-color: rgba(248,81,73,.35); }
+        .status.info { display: block; color: var(--muted); background: rgba(125,133,144,.1); border-color: var(--border); }
 
         .table-wrap {
             overflow-x: auto;
-            border: 1px solid var(--line);
+            border: 1px solid var(--border);
             border-radius: 10px;
+            background: var(--surface2);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
             min-width: 980px;
-            background: #fff;
+            background: var(--surface);
         }
 
         th, td {
             padding: 12px;
             text-align: left;
-            border-bottom: 1px solid var(--line);
+            border-bottom: 1px solid var(--border);
             font-size: 14px;
             vertical-align: middle;
         }
 
         th {
-            background: #f8fafc;
-            color: #334155;
+            background: var(--surface2);
+            color: var(--muted);
             font-size: 12px;
             text-transform: uppercase;
+            letter-spacing: .4px;
         }
 
         .pill {
@@ -166,13 +237,27 @@
             font-weight: 700;
         }
 
-        .pill-on { color: #166534; background: #dcfce7; }
-        .pill-off { color: #b45309; background: #fef3c7; }
+        .pill-on { color: var(--success); background: rgba(63,185,80,.15); }
+        .pill-off { color: var(--warn); background: rgba(240,165,0,.15); }
 
         .tiny-actions {
             display: flex;
             gap: 6px;
             flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .layout {
+                padding: 20px 16px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .card {
+                padding: 16px;
+            }
         }
     </style>
 </head>

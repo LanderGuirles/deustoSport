@@ -6,6 +6,8 @@ import com.deustosport.my_app.entity.Reserva;
 import com.deustosport.my_app.entity.Usuario;
 import com.deustosport.my_app.repository.ReservaRepository;
 import com.deustosport.my_app.repository.UsuarioRepository;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -59,11 +61,48 @@ public class SecretariaService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public byte[] exportarReservasDeHoyCsv() {
+        LocalDate hoy = LocalDate.now();
+        List<Reserva> reservasHoy = reservaRepository.findByFechaReservaOrderByHoraInicioAscIdAsc(hoy);
+
+        StringBuilder csv = new StringBuilder();
+        csv.append("id,fecha,hora_inicio,hora_fin,estado,pista,usuario_id,usuario_nombre,usuario_dni,usuario_email\n");
+
+        for (Reserva reserva : reservasHoy) {
+            csv.append(reserva.getId()).append(',')
+                    .append(csvValue(String.valueOf(reserva.getFechaReserva()))).append(',')
+                    .append(csvValue(reserva.getHoraInicio().format(TIME_FORMATTER))).append(',')
+                    .append(csvValue(reserva.getHoraFin().format(TIME_FORMATTER))).append(',')
+                    .append(csvValue(reserva.getEstado().name())).append(',')
+                    .append(csvValue(reserva.getPista() != null ? reserva.getPista().getNombre() : "-")).append(',')
+                    .append(reserva.getUsuario() != null ? reserva.getUsuario().getId() : "").append(',')
+                    .append(csvValue(reserva.getUsuario() != null ? reserva.getUsuario().getNombreCompleto() : "-")).append(',')
+                    .append(csvValue(reserva.getUsuario() != null ? reserva.getUsuario().getDni() : "-")).append(',')
+                    .append(csvValue(reserva.getUsuario() != null ? reserva.getUsuario().getEmail() : "-"))
+                    .append('\n');
+        }
+
+        return csv.toString().getBytes(StandardCharsets.UTF_8);
+    }
+
     private String normalizarFiltro(String valor) {
         if (valor == null) {
             return null;
         }
         String limpio = valor.trim();
         return limpio.isEmpty() ? null : limpio;
+    }
+
+    private String csvValue(String valor) {
+        if (valor == null) {
+            return "";
+        }
+
+        String escaped = valor.replace("\"", "\"\"");
+        boolean needsQuotes = escaped.contains(",") || escaped.contains("\"")
+                || escaped.contains("\n") || escaped.contains("\r");
+
+        return needsQuotes ? "\"" + escaped + "\"" : escaped;
     }
 }
