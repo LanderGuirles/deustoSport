@@ -44,4 +44,11 @@ public class PagoController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
+
+    @GetMapping("/recaudacion/mes-actual")
+    @Operation(summary = "Recaudación del mes actual",
+            description = "Devuelve la suma de pagos completados del mes en curso")
+    public ResponseEntity<?> obtenerRecaudacionMesActual() {
+        return ResponseEntity.ok(pagoService.obtenerRecaudacionMesActual());
+    }
 }
