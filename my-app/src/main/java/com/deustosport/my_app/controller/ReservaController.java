@@ -82,7 +82,23 @@ public class ReservaController {
             @RequestParam("usuarioId") Long usuarioId) {
         try {
             Reserva r = reservaService.cancelarReserva(reservaId, usuarioId);
-            return ResponseEntity.ok(r);
+
+            ReservaResponse resp = new ReservaResponse();
+            resp.setId(r.getId());
+            resp.setUsuarioId(r.getUsuario().getId());
+            resp.setPistaId(r.getPista() != null ? r.getPista().getId() : null);
+            resp.setPistaNombre(r.getPista() != null ? r.getPista().getNombre() : "—");
+            resp.setTipoDeporte(r.getPista() != null ? r.getPista().getTipoDeporte() : null);
+            resp.setFechaReserva(r.getFechaReserva());
+            resp.setHoraInicio(r.getHoraInicio());
+            resp.setHoraFin(r.getHoraFin());
+            resp.setPrecioTotal(r.getPrecioTotal());
+            resp.setEstado(r.getEstado());
+            resp.setMetodoPago(r.getMetodoPago());
+            resp.setReferenciaPago(r.getReferenciaPago());
+            resp.setFechaPago(r.getFechaPago());
+            resp.setSaldoRestante(r.getUsuario().getBilletera());
+            return ResponseEntity.ok(resp);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

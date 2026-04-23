@@ -205,6 +205,14 @@ public class ReservaService {
             throw new IllegalStateException("No se pueden cancelar reservas pasadas.");
         }
 
+        // ── Devolver saldo a la billetera si la reserva estaba pagada ──
+        if (reserva.getEstado() == EstadoReserva.CONFIRMADA && reserva.getPrecioTotal() != null) {
+            Usuario usuario = reserva.getUsuario();
+            BigDecimal nuevoSaldo = usuario.getBilletera().add(reserva.getPrecioTotal());
+            usuario.setBilletera(nuevoSaldo);
+            usuarioRepository.save(usuario);
+        }
+
         reserva.setEstado(EstadoReserva.CANCELADA);
         return reservaRepository.save(reserva);
     }

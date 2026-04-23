@@ -1190,7 +1190,16 @@
 			      `${API}/api/reservas/${reservaId}/cancelar?usuarioId=${currentUserId}`,
 			      { method: 'POST' }
 			    );
-			    if (res.ok) { toast('Reserva cancelada', 'ok'); loadMisReservas(); }
+			    if (res.ok) {
+			      const data = await res.json();
+			      // Actualizar saldo en localStorage y nav tras el reembolso
+			      if (data.saldoRestante != null) {
+			        localStorage.setItem('billetera', data.saldoRestante);
+			        actualizarSaldoNav();
+			      }
+			      toast('Reserva cancelada. Importe reembolsado a tu billetera.', 'ok');
+			      loadMisReservas();
+			    }
 			    else {
 			      const d = await res.json();
 			      toast(d.error || 'No se pudo cancelar', 'err');
