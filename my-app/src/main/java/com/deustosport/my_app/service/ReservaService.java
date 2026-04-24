@@ -40,19 +40,22 @@ public class ReservaService {
     private final EmailService       emailService;
     private final TarifaService      tarifaService;
     private final PagoService        pagoService;
+    private final NotificacionService notificacionService;
 
     public ReservaService(ReservaRepository reservaRepository,
                           PistaRepository pistaRepository,
                           UsuarioRepository usuarioRepository,
                           EmailService emailService,
                           TarifaService tarifaService,
-                          @Lazy PagoService pagoService) {
+                          @Lazy PagoService pagoService,
+                          NotificacionService notificacionService) {
         this.reservaRepository = reservaRepository;
         this.pistaRepository   = pistaRepository;
         this.usuarioRepository = usuarioRepository;
         this.emailService      = emailService;
         this.tarifaService     = tarifaService;
         this.pagoService       = pagoService;
+        this.notificacionService = notificacionService;
     }
 
     // ─── Crear reserva ────────────────────────────────────────────────────────
@@ -174,6 +177,8 @@ public class ReservaService {
             reservaFinal.getHoraInicio(),
             reservaFinal.getHoraFin(),
             reservaFinal.getPrecioTotal());
+
+        notificacionService.crearNotificacionReservaConfirmada(reservaFinal);
 
         return reservaFinal;
     }
@@ -337,6 +342,9 @@ public class ReservaService {
                                   String telefonoBizum, String iban) {
         if (metodoPago == null) {
             throw new IllegalArgumentException("Debes indicar un método de pago válido.");
+        }
+        if (metodoPago == MetodoPago.BILLETERA) {
+            return;
         }
         if (metodoPago == MetodoPago.TARJETA) {
             String num = limpiar(numeroTarjeta).replace(" ", "");

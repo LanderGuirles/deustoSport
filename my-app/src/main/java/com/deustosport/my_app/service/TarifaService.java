@@ -93,18 +93,41 @@ public class TarifaService {
                                      boolean esSocio) {
         int diaSemana = fecha.getDayOfWeek().getValue();
 
-        BigDecimal precio = tarifaRepository
-                .findActiveByDeporteDiaAndFecha(tipoDeporte, diaSemana, fecha)
-                .stream()
-                .filter(t -> !horaInicio.isBefore(t.getHoraInicio()) && !horaFin.isAfter(t.getHoraFin()))
-                .findFirst()
-                .map(t -> {
-                    long min   = java.time.Duration.between(horaInicio, horaFin).toMinutes();
-                    BigDecimal h = new BigDecimal(min)
-                            .divide(new BigDecimal(60), 2, RoundingMode.HALF_UP);
-                    return t.getPrecioPorHora().multiply(h);
-                })
-                .orElse(calcularFallback(horaInicio, horaFin));
+        List<Tarifa> tarifasActivas = tarifaRepository
+                .findActiveByDeporteDiaAndFecha(tipoDeporte, diaSemana, fecha);
+
+        BigDecimal precio = BigDecimal.ZERO;
+        long minutosCubiertos = 0;
+
+        for (Tarifa tarifa : tarifasActivas) {
+            LocalTime inicioSolape = horaInicio.isAfter(tarifa.getHoraInicio())
+                    ? horaInicio
+                    : tarifa.getHoraInicio();
+            LocalTime finSolape = horaFin.isBefore(tarifa.getHoraFin())
+                    ? horaFin
+                    : tarifa.getHoraFin();
+
+            if (!finSolape.isAfter(inicioSolape)) {
+                continue;
+            }
+
+            long minutos = java.time.Duration.between(inicioSolape, finSolape).toMinutes();
+            if (minutos <= 0) {
+                continue;
+            }
+
+            BigDecimal horas = new BigDecimal(minutos)
+                    .divide(new BigDecimal(60), 4, RoundingMode.HALF_UP);
+            precio = precio.add(tarifa.getPrecioPorHora().multiply(horas));
+            minutosCubiertos += minutos;
+        }
+
+        long minutosSolicitados = java.time.Duration.between(horaInicio, horaFin).toMinutes();
+        if (minutosCubiertos < minutosSolicitados || precio.compareTo(BigDecimal.ZERO) <= 0) {
+            precio = calcularFallback(horaInicio, horaFin);
+        } else {
+            precio = precio.setScale(2, RoundingMode.HALF_UP);
+        }
 
         if (esSocio) {
             BigDecimal factorDescuento = configuracionService.obtenerFactorDescuentoSocio();

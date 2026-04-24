@@ -89,12 +89,13 @@
             letter-spacing: .5px;
             color: var(--muted);
         }
-        .field input, .field select {
+        .field input, .field select, .field textarea {
             width: 100%; border: 1px solid var(--border); border-radius: 10px;
             padding: 10px 12px; font-size: 14px; font-family: 'DM Sans', sans-serif;
             background: var(--bg); color: var(--text);
         }
-        .field input:focus, .field select:focus { outline: none; border-color: var(--accent); }
+        .field textarea { min-height: 96px; resize: vertical; }
+        .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--accent); }
 
         .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
 
@@ -182,6 +183,30 @@
             </div>
         </form>
         <div class="status" id="horarioStatus"></div>
+    </section>
+
+    <section class="card">
+        <h2>Comunicados a usuarios</h2>
+        <form id="comunicadoForm">
+            <div class="form-grid single-col">
+                <div class="field">
+                    <label>Titulo</label>
+                    <input id="com-titulo" type="text" maxlength="120" placeholder="Ej: Cierre temporal de vestuarios" required>
+                </div>
+                <div class="field">
+                    <label>Mensaje</label>
+                    <textarea id="com-mensaje" maxlength="1000" placeholder="Escribe el comunicado que veran los usuarios en su campana de notificaciones" required></textarea>
+                </div>
+                <div class="field">
+                    <label>Destinatarios (opcional, IDs separados por comas)</label>
+                    <input id="com-destinatarios" type="text" placeholder="Vacio = todos los clientes. Ej: 1, 4, 12">
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn-primary" id="btnEnviarComunicado">Enviar comunicado</button>
+            </div>
+        </form>
+        <div class="status" id="comunicadoStatus"></div>
     </section>
 
     <section class="card">
@@ -302,6 +327,8 @@
     const horarioInstalacionIdEl = document.getElementById("horarioInstalacionId");
     const horaAperturaEl = document.getElementById("horaApertura");
     const horaCierreEl = document.getElementById("horaCierre");
+    const comunicadoForm = document.getElementById("comunicadoForm");
+    const comunicadoStatusEl = document.getElementById("comunicadoStatus");
 
     async function cargarInstalacionesParaHorario() {
         showStatus(horarioStatusEl, "Cargando instalaciones...", "loading");
@@ -377,6 +404,48 @@
             showStatus(horarioStatusEl, error.message, "error");
         } finally {
             document.getElementById("btnGuardarHorario").disabled = false;
+        }
+    });
+
+    comunicadoForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        showStatus(comunicadoStatusEl, "Enviando comunicado...", "loading");
+        const btn = document.getElementById("btnEnviarComunicado");
+        btn.disabled = true;
+
+        const titulo = document.getElementById("com-titulo").value.trim();
+        const mensaje = document.getElementById("com-mensaje").value.trim();
+        const destinatariosRaw = document.getElementById("com-destinatarios").value.trim();
+        const destinatarios = destinatariosRaw
+            ? destinatariosRaw.split(",").map(x => Number(x.trim())).filter(Number.isFinite)
+            : [];
+
+        try {
+            const response = await fetch("http://localhost:8080/api/notificaciones/comunicado", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    titulo,
+                    mensaje,
+                    destinatarios,
+                    enviarEmail: true
+                })
+            });
+
+            const bodyText = await response.text();
+            let body = {};
+            try { body = bodyText ? JSON.parse(bodyText) : {}; } catch (_) {}
+
+            if (!response.ok) {
+                throw new Error(body.error || "No se pudo enviar el comunicado");
+            }
+
+            showStatus(comunicadoStatusEl, `Comunicado enviado. Usuarios notificados: ${body.enviadas ?? 0}.`, "success");
+            comunicadoForm.reset();
+        } catch (error) {
+            showStatus(comunicadoStatusEl, error.message, "error");
+        } finally {
+            btn.disabled = false;
         }
     });
 

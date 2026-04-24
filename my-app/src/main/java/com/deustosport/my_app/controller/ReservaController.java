@@ -4,6 +4,7 @@ import com.deustosport.my_app.dto.PagoReservaRequest;
 import com.deustosport.my_app.dto.ReservaRequest;
 import com.deustosport.my_app.dto.ReservaResponse;
 import com.deustosport.my_app.entity.Reserva;
+import com.deustosport.my_app.enums.MetodoPago;
 import com.deustosport.my_app.service.ReservaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -111,12 +112,14 @@ public class ReservaController {
             @PathVariable("reservaId") Long reservaId,
             @RequestBody PagoReservaRequest request) {
         try {
-            if (request.getUsuarioId() == null || request.getMetodoPago() == null) {
+            MetodoPago metodoPago = parseMetodoPago(request.getMetodoPago());
+
+            if (request.getUsuarioId() == null || metodoPago == null) {
                 return ResponseEntity.badRequest()
                         .body(Map.of("error", "Debes indicar usuarioId y metodoPago."));
             }
             Reserva pagada = reservaService.pagarReserva(
-                    reservaId, request.getUsuarioId(), request.getMetodoPago(),
+                reservaId, request.getUsuarioId(), metodoPago,
                     request.getNumeroTarjeta(), request.getTitularTarjeta(),
                     request.getCaducidadTarjeta(), request.getCvv(),
                     request.getTelefonoBizum(), request.getIban());
@@ -143,6 +146,25 @@ public class ReservaController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
                     .body(Map.of("error", "Error inesperado al procesar el pago."));
+        }
+    }
+
+    private MetodoPago parseMetodoPago(String metodoPagoRaw) {
+        if (metodoPagoRaw == null || metodoPagoRaw.isBlank()) {
+            return null;
+        }
+
+        String normalizado = metodoPagoRaw.trim().toUpperCase();
+
+        // Alias aceptados para evitar errores entre frontend/backend.
+        if (normalizado.equals("WALLET") || normalizado.equals("BILLETERA_ONLINE")) {
+            normalizado = "BILLETERA";
+        }
+
+        try {
+            return MetodoPago.valueOf(normalizado);
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException("Metodo de pago no valido: " + metodoPagoRaw);
         }
     }
 

@@ -97,6 +97,41 @@ public class EmailService {
     }
 
     /**
+     * Envia una notificacion generica por correo (incidencias o comunicados).
+     */
+    public void enviarEmailNotificacion(String destinatario, String titulo, String mensajeTexto) {
+        if (titulo == null || titulo.isBlank() || mensajeTexto == null || mensajeTexto.isBlank()) {
+            logger.warn("Se intento enviar un email de notificacion sin titulo o mensaje.");
+            return;
+        }
+
+        String contenido = "DeustoSport - Notificacion\n\n" + mensajeTexto;
+
+        if (!emailEnabled || mailSender == null) {
+            System.out.println("=========================================================");
+            System.out.println("📧 SIMULACIÓN DE ENVÍO DE EMAIL DE NOTIFICACIÓN (Desarrollo)");
+            System.out.println("Destinatario: " + destinatario);
+            System.out.println("Asunto: " + titulo);
+            System.out.println("Contenido: ");
+            System.out.println(contenido);
+            System.out.println("=========================================================");
+            return;
+        }
+
+        try {
+            SimpleMailMessage mensaje = new SimpleMailMessage();
+            mensaje.setFrom(remitente);
+            mensaje.setTo(destinatario);
+            mensaje.setSubject("DeustoSport - " + titulo);
+            mensaje.setText(contenido);
+            mailSender.send(mensaje);
+            logger.info("Email de notificacion enviado a: {}", destinatario);
+        } catch (Exception e) {
+            logger.error("Error al enviar email de notificacion a {}: {}", destinatario, e.getMessage());
+        }
+    }
+
+    /**
      * Genera el contenido del email de recuperación
      */
     private String generarContenidoRecuperacion(String token) {

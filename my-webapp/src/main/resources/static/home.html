@@ -196,7 +196,7 @@
                  font-family:'Syne',sans-serif;cursor:pointer;transition:background .2s;}
     .btn-primary:hover{background:var(--accent2);}
     .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
-    .metodo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
+	.metodo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
     .metodo-btn{background:var(--surface2);border:2px solid var(--border);color:var(--muted);
                 padding:12px 8px;border-radius:10px;text-align:center;cursor:pointer;
                 font-size:12px;font-weight:600;transition:all .2s;font-family:'DM Sans',sans-serif;}
@@ -223,12 +223,44 @@
     #toast.show{transform:translateX(-50%) translateY(0);}
     #toast.ok{border-color:var(--success);color:var(--success);}
     #toast.err{border-color:var(--danger);color:var(--danger);}
+		.notif-fab{position:fixed;right:24px;bottom:24px;z-index:600;
+							 width:58px;height:58px;border-radius:999px;
+							 border:1px solid rgba(0,229,160,.35);background:var(--surface);
+							 color:var(--accent);font-size:24px;cursor:pointer;
+							 box-shadow:0 10px 24px rgba(0,0,0,.35);transition:transform .2s, background .2s;}
+		.notif-fab:hover{transform:translateY(-2px) scale(1.03);background:var(--surface2);}
+		.notif-fab-badge{position:absolute;top:-5px;right:-3px;min-width:21px;height:21px;
+										 border-radius:999px;background:var(--danger);color:#fff;
+										 display:flex;align-items:center;justify-content:center;
+										 font-size:11px;font-weight:700;padding:0 6px;border:2px solid var(--bg);}
+		.notif-panel{position:fixed;right:24px;bottom:94px;z-index:650;width:min(380px,calc(100vw - 32px));
+								max-height:70vh;display:none;flex-direction:column;
+								background:var(--surface);border:1px solid var(--border);border-radius:16px;
+								box-shadow:0 20px 40px rgba(0,0,0,.45);overflow:hidden;}
+		.notif-panel.open{display:flex;}
+		.notif-header{display:flex;align-items:center;justify-content:space-between;
+									padding:14px 16px;border-bottom:1px solid var(--border);background:var(--surface2);}
+		.notif-header h4{font-family:'Syne',sans-serif;font-size:17px;}
+		.notif-actions{display:flex;gap:8px;}
+		.notif-list{padding:10px;overflow:auto;display:flex;flex-direction:column;gap:8px;}
+		.notif-item{padding:12px;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.01);}
+		.notif-item.unread{border-color:rgba(0,229,160,.35);background:rgba(0,229,160,.08);}
+		.notif-item-top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+		.notif-title{font-size:13px;font-weight:700;}
+		.notif-type{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
+		.notif-msg{font-size:13px;color:var(--text);margin-top:5px;line-height:1.35;}
+		.notif-time{font-size:11px;color:var(--muted);margin-top:8px;}
+		.notif-btn-read{margin-top:8px;border:1px solid rgba(0,229,160,.35);background:transparent;
+										color:var(--accent);padding:5px 10px;border-radius:8px;font-size:11px;cursor:pointer;}
+		.notif-empty{padding:26px 16px;text-align:center;color:var(--muted);font-size:13px;}
     @media(max-width:600px){
       nav{padding:12px 16px;}
       .hero{padding:24px 16px 16px;}
       .container{padding:0 16px;}
       .metodo-grid{grid-template-columns:1fr;}
       .form-row{grid-template-columns:1fr;}
+			.notif-fab{right:16px;bottom:16px;}
+			.notif-panel{right:16px;bottom:86px;}
     }
     .badge-socio{display:inline-block;background:rgba(0,229,160,0.15);color:var(--accent);
                  font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;
@@ -339,6 +371,24 @@
   </div>
 </div>
 
+<button class="notif-fab" id="notif-fab" onclick="toggleNotificationPanel()" aria-label="Abrir notificaciones">
+	🔔
+	<span class="notif-fab-badge" id="notif-badge" style="display:none;">0</span>
+</button>
+
+<div class="notif-panel" id="notif-panel">
+	<div class="notif-header">
+		<h4>Notificaciones</h4>
+		<div class="notif-actions">
+			<button class="btn-ghost" style="font-size:11px;padding:5px 8px;" onclick="loadNotificaciones()">Actualizar</button>
+			<button class="btn-ghost" style="font-size:11px;padding:5px 8px;" onclick="marcarTodasNotificacionesLeidas()">Marcar leidas</button>
+		</div>
+	</div>
+	<div class="notif-list" id="notif-list">
+		<div class="notif-empty">Cargando notificaciones...</div>
+	</div>
+</div>
+
 <!-- ══ MODAL CALENDARIO ══ -->
 <div class="modal-overlay" id="modal-calendario">
   <div class="modal modal-wide">
@@ -390,6 +440,9 @@
         <span>Saldo insuficiente. Tu billetera tiene <strong id="cal-saldo-actual"></strong>€ pero necesitas <strong id="cal-precio-necesario"></strong>. <a href="#" onclick="event.preventDefault();openProfileModal()" style="color:inherit;text-decoration:underline;">Recargar saldo</a></span>
       </div>
       <div class="metodo-grid">
+				<button class="metodo-btn" onclick="selectMetodoCal('BILLETERA',this)">
+					<span class="metodo-icon"></span>Billetera
+				</button>
         <button class="metodo-btn" onclick="selectMetodoCal('TARJETA',this)">
           <span class="metodo-icon"></span>Tarjeta
         </button>
@@ -471,6 +524,8 @@
 			let metodoCalSeleccionado = null;
 			let slotSeleccionado    = null;
 			let reservaRecienCreada = null;
+			let notificationPanelOpen = false;
+			let notificationsRefreshTimer = null;
 
 			// franjas horarias del calendario (cada 1 h, de 8 a 22)
 			const HORAS = ['08:00','09:00','10:00','11:00','12:00','13:00',
@@ -491,6 +546,8 @@
 			  // Mostrar saldo
 			  actualizarSaldoNav();
 			  loadPistas();
+			  loadNotificaciones();
+			  notificationsRefreshTimer = setInterval(loadNotificaciones, 60000);
 			});
 
 			function actualizarSaldoNav() {
@@ -537,6 +594,101 @@
 			  if (!s) return '—';
 			  return new Date(s + 'T00:00').toLocaleDateString('es-ES',
 			    { weekday: 'short', day: 'numeric', month: 'short' });
+			}
+
+			function fmtFechaHora(s) {
+			  if (!s) return '—';
+			  return new Date(s).toLocaleString('es-ES', {
+			    day: '2-digit', month: '2-digit', year: 'numeric',
+			    hour: '2-digit', minute: '2-digit'
+			  });
+			}
+
+			function escHtml(text) {
+			  return String(text || '')
+			    .replaceAll('&', '&amp;')
+			    .replaceAll('<', '&lt;')
+			    .replaceAll('>', '&gt;')
+			    .replaceAll('"', '&quot;')
+			    .replaceAll("'", '&#39;');
+			}
+
+			function toggleNotificationPanel() {
+			  const panel = document.getElementById('notif-panel');
+			  notificationPanelOpen = !notificationPanelOpen;
+			  panel.classList.toggle('open', notificationPanelOpen);
+			  if (notificationPanelOpen) {
+			    loadNotificaciones();
+			  }
+			}
+
+			async function loadNotificaciones() {
+			  if (!currentUserId) return;
+			  const listEl = document.getElementById('notif-list');
+
+			  try {
+			    const [listRes, countRes] = await Promise.all([
+			      fetch(`${API}/api/notificaciones/usuario/${currentUserId}`),
+			      fetch(`${API}/api/notificaciones/usuario/${currentUserId}/contador-no-leidas`)
+			    ]);
+
+			    const notifs = await listRes.json();
+			    const countBody = await countRes.json();
+
+			    if (!listRes.ok || !Array.isArray(notifs)) {
+			      throw new Error('No se pudieron cargar las notificaciones');
+			    }
+
+			    const noLeidas = Number(countBody?.noLeidas || 0);
+			    const badge = document.getElementById('notif-badge');
+			    badge.textContent = String(noLeidas > 99 ? '99+' : noLeidas);
+			    badge.style.display = noLeidas > 0 ? 'flex' : 'none';
+
+			    if (!notifs.length) {
+			      listEl.innerHTML = '<div class="notif-empty">No tienes notificaciones nuevas.</div>';
+			      return;
+			    }
+
+			    listEl.innerHTML = notifs.map(n => `
+			      <div class="notif-item ${n.leida ? '' : 'unread'}">
+			        <div class="notif-item-top">
+			          <div class="notif-title">${escHtml(n.titulo)}</div>
+			          <div class="notif-type">${escHtml(n.tipo || '')}</div>
+			        </div>
+			        <div class="notif-msg">${escHtml(n.mensaje)}</div>
+			        <div class="notif-time">${fmtFechaHora(n.fechaCreacion)}</div>
+			        ${n.leida ? '' : `<button class="notif-btn-read" onclick="marcarNotificacionLeida(${n.id})">Marcar como leida</button>`}
+			      </div>
+			    `).join('');
+			  } catch (e) {
+			    listEl.innerHTML = `<div class="notif-empty">${escHtml(e.message || 'Error al cargar notificaciones')}</div>`;
+			  }
+			}
+
+			async function marcarNotificacionLeida(notificacionId) {
+			  try {
+			    const res = await fetch(`${API}/api/notificaciones/${notificacionId}/leer?usuarioId=${currentUserId}`, {
+			      method: 'PATCH'
+			    });
+			    if (!res.ok) {
+			      const body = await res.json();
+			      throw new Error(body.error || 'No se pudo marcar la notificacion');
+			    }
+			    await loadNotificaciones();
+			  } catch (e) {
+			    toast(e.message || 'Error al actualizar notificacion', 'err');
+			  }
+			}
+
+			async function marcarTodasNotificacionesLeidas() {
+			  try {
+			    await fetch(`${API}/api/notificaciones/usuario/${currentUserId}/leer-todas`, {
+			      method: 'PATCH'
+			    });
+			    await loadNotificaciones();
+			  } catch {
+			    toast('No se pudieron marcar como leidas', 'err');
+			  }
 			}
 
 			function getHoy7() {
@@ -1094,6 +1246,7 @@
 			      toast('Pago rechazado: ' + (pagoData.error || 'error desconocido'), 'err');
 			    } else {
 			      toast('Reserva confirmada y pagada correctamente.', 'ok');
+			      loadNotificaciones();
 			      // Actualizar saldo en localStorage y nav
 			      if (pagoData.saldoRestante != null) {
 			        localStorage.setItem('billetera', pagoData.saldoRestante);
@@ -1242,6 +1395,16 @@
 			      window._pagarDirecto = false;
 			    }
 			  });
+			});
+
+			document.addEventListener('click', (e) => {
+			  const panel = document.getElementById('notif-panel');
+			  const fab = document.getElementById('notif-fab');
+			  if (!panel || !fab || !notificationPanelOpen) return;
+			  if (!panel.contains(e.target) && !fab.contains(e.target)) {
+			    notificationPanelOpen = false;
+			    panel.classList.remove('open');
+			  }
 			});
 			</script>
 			</body>
