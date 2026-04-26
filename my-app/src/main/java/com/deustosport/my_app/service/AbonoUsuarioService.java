@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,52 +28,87 @@ public class AbonoUsuarioService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    public List<PlanAbono> obtenerPlanesActivos() {
+        // En un caso real usaríamos planAbonoRepository.findByActivoTrue()
+        // Lo filtramos por stream para no obligarte a crear el método en el repo
+        return planAbonoRepository.findAll().stream()
+                .filter(PlanAbono::isActivo)
+                .toList();
+    }
+
     public PlanAbono obtenerPlanAdecuado(Long usuarioId, Long planId) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        if (usuario.getFechaNacimiento() == null) {
-            throw new RuntimeException("El usuario debe tener fecha de nacimiento configurada para ver planes.");
-        }
+        validarEdadUsuario(usuario, planId);
 
-        int edad = Period.between(usuario.getFechaNacimiento(), LocalDate.now()).getYears();
+        return planAbonoRepository.findById(planId).get();
+    }
 
+    private void validarEdadUsuario(Usuario u, Long planId) {
         PlanAbono plan = planAbonoRepository.findById(planId)
                 .orElseThrow(() -> new RuntimeException("Plan no encontrado"));
 
-        if (!plan.isActivo()) {
-            throw new RuntimeException("Este plan no se encuentra activo.");
+        if (!plan.isActivo()) throw new RuntimeException("Este plan no se encuentra activo.");
+
+        if (u.getFechaNacimiento() == null) {
+            throw new RuntimeException("El usuario " + u.getEmail() + " debe tener fecha de nacimiento configurada.");
         }
 
+        int edad = Period.between(u.getFechaNacimiento(), LocalDate.now()).getYears();
         if (edad < plan.getEdadMinima() || edad > plan.getEdadMax()) {
-            throw new RuntimeException("No cumples con los requisitos de edad para este plan.");
+            throw new RuntimeException("El usuario " + u.getEmail() + " no cumple con los requisitos de edad (Edad permitida: " + plan.getEdadMinima() + "-" + plan.getEdadMax() + ").");
         }
-
-        return plan;
     }
 
     @Transactional
-    public AbonoUsuario comprarAbono(Long usuarioId, Long planId) {
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    public AbonoUsuario comprarAbono(Long titularId, Long planId, List<String> emailsBeneficiarios) {
+        Usuario titular = usuarioRepository.findById(titularId)
+                .orElseThrow(() -> new RuntimeException("Titular no encontrado"));
 
-        Optional<AbonoUsuario> abonoActivo = obtenerAbonoActivo(usuarioId);
-        if (abonoActivo.isPresent()) {
-            throw new RuntimeException("El usuario ya tiene un abono activo hasta " + abonoActivo.get().getFechaFin());
+        if (obtenerAbonoActivo(titularId).isPresent()) {
+            throw new RuntimeException("Ya tienes un abono activo en tu cuenta.");
         }
 
-        PlanAbono plan = obtenerPlanAdecuado(usuarioId, planId);
+        PlanAbono plan = obtenerPlanAdecuado(titularId, planId);
 
-        if (usuario.getBilletera().compareTo(plan.getPrecio()) < 0) {
-            throw new RuntimeException("Saldo insuficiente. El plan cuesta " + plan.getPrecio() + "€ y tienes " + usuario.getBilletera() + "€.");
+        // Validar límite de personas (1 titular + X beneficiarios)
+        int totalPersonas = 1 + (emailsBeneficiarios != null ? emailsBeneficiarios.size() : 0);
+        if (totalPersonas > plan.getCantidadPersonas()) {
+            throw new RuntimeException("Este plan permite un máximo de " + plan.getCantidadPersonas() + " personas en total.");
+        }
+
+        // Buscar y validar beneficiarios
+        List<Usuario> beneficiarios = new ArrayList<>();
+        if (emailsBeneficiarios != null && !emailsBeneficiarios.isEmpty()) {
+            for (String email : emailsBeneficiarios) {
+                if (email.trim().equalsIgnoreCase(titular.getEmail())) continue; // Evitar que el titular se ponga a si mismo
+
+                Usuario b = usuarioRepository.findByEmail(email.trim())
+                        .orElseThrow(() -> new RuntimeException("No existe ningún usuario registrado con el email: " + email));
+                
+                if (obtenerAbonoActivo(b.getId()).isPresent()) {
+                    throw new RuntimeException("El usuario " + email + " ya está disfrutando de otro abono activo.");
+                }
+
+                validarEdadUsuario(b, planId); // Validar que los familiares cumplen la edad
+                beneficiarios.add(b);
+            }
+        }
+
+        // Cobrar al titular
+        if (titular.getBilletera().compareTo(plan.getPrecio()) < 0) {
+            throw new RuntimeException("Saldo insuficiente. El plan cuesta " + plan.getPrecio() + "€ y tienes " + titular.getBilletera() + "€.");
         }
         
-        usuario.setBilletera(usuario.getBilletera().subtract(plan.getPrecio()));
-        usuarioRepository.save(usuario);
+        titular.setBilletera(titular.getBilletera().subtract(plan.getPrecio()));
+        usuarioRepository.save(titular);
 
+        // Crear la suscripción
         AbonoUsuario nuevoAbono = new AbonoUsuario();
-        nuevoAbono.setUsuario(usuario);
+        nuevoAbono.setTitular(titular);
         nuevoAbono.setPlan(plan);
+        nuevoAbono.setBeneficiarios(beneficiarios);
         nuevoAbono.setFechaInicio(LocalDate.now());
         nuevoAbono.setActivo(true);
 
@@ -83,7 +119,7 @@ public class AbonoUsuarioService {
         } else if (plan.getDuracion() == DuracionAbonos.ANUAL) {
             nuevoAbono.setFechaFin(LocalDate.now().plusYears(1));
         } else {
-            nuevoAbono.setFechaFin(LocalDate.now().plusDays(1));
+            nuevoAbono.setFechaFin(LocalDate.now().plusDays(1)); // Seguridad
         }
 
         return abonoUsuarioRepository.save(nuevoAbono);

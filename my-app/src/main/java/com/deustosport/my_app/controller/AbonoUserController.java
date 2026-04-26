@@ -5,11 +5,14 @@ import com.deustosport.my_app.dto.AbonoUsuarioResponse;
 import com.deustosport.my_app.dto.PlanAbonoResponse;
 import com.deustosport.my_app.entity.AbonoUsuario;
 import com.deustosport.my_app.entity.PlanAbono;
+import com.deustosport.my_app.entity.Usuario;
 import com.deustosport.my_app.service.AbonoUsuarioService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/usuarios/{usuarioId}/abonos")
@@ -19,13 +22,10 @@ public class AbonoUserController {
     @Autowired
     private AbonoUsuarioService abonoService;
 
-    @GetMapping("/comprobar-plan")
-    @io.swagger.v3.oas.annotations.Operation(summary = "Comprueba si el usuario puede acceder al plan y muestra la información del mismo")
-    public ResponseEntity<?> comprobarPlan(
-            @PathVariable Long usuarioId,
-            @RequestParam Long planId) {
-        try {
-            PlanAbono p = abonoService.obtenerPlanAdecuado(usuarioId, planId);
+    @GetMapping("/disponibles")
+    @io.swagger.v3.oas.annotations.Operation(summary = "Listar los planes activos disponibles para comprar")
+    public ResponseEntity<List<PlanAbonoResponse>> listarPlanesDisponibles(@PathVariable Long usuarioId) {
+        List<PlanAbonoResponse> activos = abonoService.obtenerPlanesActivos().stream().map(p -> {
             PlanAbonoResponse dto = new PlanAbonoResponse();
             dto.setPlanAbonoId(p.getId());
             dto.setNombrePlan(p.getNombre());
@@ -37,10 +37,9 @@ public class AbonoUserController {
             dto.setPrecio(p.getPrecio());
             dto.setDescuentoPistasPorcentaje(p.getDescuentoPistasPorcentaje());
             dto.setActivo(p.isActivo());
-            return ResponseEntity.ok(dto);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+            return dto;
+        }).collect(Collectors.toList());
+        return ResponseEntity.ok(activos);
     }
 
     @PostMapping("/comprar")
@@ -49,7 +48,7 @@ public class AbonoUserController {
             @PathVariable Long usuarioId,
             @RequestBody AbonoUsuarioRequest request) {
         try {
-            AbonoUsuario abono = abonoService.comprarAbono(usuarioId, request.getPlanAbonoId());
+            AbonoUsuario abono = abonoService.comprarAbono(usuarioId, request.getPlanAbonoId(), request.getEmailsBeneficiarios());
             return ResponseEntity.ok(mapearResponse(abono));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -74,6 +73,13 @@ public class AbonoUserController {
         res.setFechaInicio(a.getFechaInicio());
         res.setFechaFin(a.getFechaFin());
         res.setActivo(a.isActivo());
+        res.setTitularEmail(a.getTitular().getEmail());
+        
+        List<String> correos = a.getBeneficiarios().stream()
+                                .map(Usuario::getEmail)
+                                .collect(Collectors.toList());
+        res.setEmailsBeneficiarios(correos);
+        
         return res;
     }
 }

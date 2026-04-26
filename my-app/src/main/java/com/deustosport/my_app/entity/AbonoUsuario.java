@@ -2,6 +2,8 @@ package com.deustosport.my_app.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,13 +21,23 @@ public class AbonoUsuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // Titular del abono (el que paga)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id", nullable = false)
-    private Usuario usuario;
+    @JoinColumn(name = "titular_id", nullable = false)
+    private Usuario titular;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "plan_id", nullable = false)
     private PlanAbono plan;
+
+    // Lista de beneficiarios (familiares/amigos incluidos en el plan)
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "abono_beneficiarios",
+        joinColumns = @JoinColumn(name = "abono_id"),
+        inverseJoinColumns = @JoinColumn(name = "usuario_id")
+    )
+    private List<Usuario> beneficiarios = new ArrayList<>();
 
     @Column(nullable = false)
     private LocalDate fechaInicio;

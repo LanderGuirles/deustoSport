@@ -290,6 +290,25 @@
     .recarga-row button{padding:8px 18px;border:none;border-radius:8px;
                         background:var(--primary);color:#fff;font-weight:600;
                         cursor:pointer;font-size:13px;}
+	
+	.abono-actual-card { background: radial-gradient(circle at 100% 0%, var(--abono-dim) 0%, var(--surface) 50%); border: 1px solid var(--abono); border-radius: var(--radius); padding: 24px; margin-bottom: 24px; display: none; }
+	.abono-actual-card h4 { font-family: 'Syne', sans-serif; color: var(--abono); font-size: 18px; margin-bottom: 6px; }
+	.abono-actual-card p { color: var(--text); font-size: 14px; margin-bottom: 4px; }
+	.abono-actual-card .meta { color: var(--muted); font-size: 12px; }
+	.planes-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
+	.plan-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px; display:flex; flex-direction:column; transition:border-color .2s, transform .2s; }
+	.plan-card:hover { border-color:var(--abono); transform:translateY(-2px); }
+	.plan-title { font-family:'Syne',sans-serif; font-size:20px; font-weight:700; color:var(--abono); margin-bottom:8px; }
+	.plan-desc { font-size:13px; color:var(--muted); margin-bottom:16px; line-height:1.4; }
+	.plan-price { font-family:'Syne',sans-serif; font-size:32px; font-weight:800; color:var(--text); margin-bottom:16px; }
+	.plan-price span { font-size:14px; font-weight:500; color:var(--muted); }
+	.plan-features { list-style:none; margin-bottom:24px; flex:1; }
+	.plan-features li { font-size:13px; color:var(--text); margin-bottom:8px; display:flex; align-items:center; gap:8px; }
+	.btn-suscribirse { width:100%; background:var(--abono-dim); color:var(--abono); border:1px solid rgba(123,147,255,.3); padding:10px; border-radius:8px; font-size:14px; font-weight:700; cursor:pointer; transition:all .2s; }
+	.btn-suscribirse:hover:not(:disabled) { background:var(--abono); color:#fff; }
+	.btn-suscribirse:disabled { opacity:0.5; cursor:not-allowed; background:var(--surface2); color:var(--muted); border-color:var(--border); }
+	.btn-remove-email { background: rgba(248,81,73,.12); color: var(--danger); border: 1px solid rgba(248,81,73,.35); padding: 4px 10px; border-radius: 8px; cursor: pointer; font-weight:bold; }
+	.btn-remove-email:hover { background: var(--danger); color: #fff; }
   </style>
 </head>
 <body>
@@ -302,12 +321,14 @@
   }
 </script>
 
-<!-- ── NAV ── -->
 <nav>
   <div class="logo">Deusto<span>Sport</span></div>
   <div class="nav-user">
     <span>Hola, <strong id="nav-nombre">—</strong>
       <span id="nav-socio-badge" class="badge-socio" style="display:none;">Socio</span>
+	  <span id="nav-plan-badge" class="badge-billetera" style="display:none; background:var(--abono-dim); color:var(--abono); border:1px solid rgba(123,147,255,.3);">
+    🎫 <span id="nav-plan-nombre"></span>
+</span>
       <span id="nav-billetera-badge" class="badge-billetera">💰 <span id="nav-saldo">0.00</span>€</span>
     </span>
 		<button class="btn-ghost" onclick="openProfileModal()">Mi perfil</button>
@@ -315,7 +336,6 @@
   </div>
 </nav>
 
-<!-- ── APP ── -->
 <div id="page-app">
   <div class="hero">
     <div class="hero-inner">
@@ -328,11 +348,11 @@
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('tarifas',this)">Tarifas</button>
       <button class="tab-btn" onclick="switchTab('pistas',this)">Reservar</button>
+	  <button class="tab-btn" onclick="switchTab('abonos',this)">Abonos</button>
       <button class="tab-btn" id="tab-misreservas-btn"
               onclick="switchTab('misreservas',this)">Mis Reservas</button>
     </div>
 
-    <!-- ── TAB TARIFAS ── -->
     <div id="tab-tarifas" class="tab-content active">
       <div class="section-header"><h3>Consultar tarifas por pista</h3></div>
       <div class="pista-selector">
@@ -348,7 +368,19 @@
       </div>
     </div>
 
-    <!-- ── TAB RESERVAR ── -->
+    <div id="tab-abonos" class="tab-content">
+      <div class="section-header"><h3>Planes de Abono Disponibles</h3></div>
+      <div id="abono-actual-container" class="abono-actual-card">
+          <h4>Tienes una suscripción activa</h4>
+          <p>Plan: <strong id="abono-actual-nombre">...</strong></p>
+          <p class="meta">Válido hasta el <span id="abono-actual-fin">...</span></p>
+          <div id="abono-beneficiarios-info" style="margin-top:10px; font-size:12px; color:var(--muted)"></div>
+      </div>
+      <div id="planes-container" class="planes-grid">
+        <div class="empty"><div class="spinner"></div></div>
+      </div>
+    </div>
+
     <div id="tab-pistas" class="tab-content">
       <div class="section-header">
         <h3>Pistas disponibles</h3>
@@ -359,7 +391,6 @@
       </div>
     </div>
 
-    <!-- ── TAB MIS RESERVAS ── -->
     <div id="tab-misreservas" class="tab-content">
       <div class="section-header">
         <h3>Mis reservas</h3>
@@ -389,11 +420,9 @@
 	</div>
 </div>
 
-<!-- ══ MODAL CALENDARIO ══ -->
 <div class="modal-overlay" id="modal-calendario">
   <div class="modal modal-wide">
 
-    <!-- Step 1: Calendario -->
     <div id="cal-step-1">
       <div class="modal-header">
         <div>
@@ -415,7 +444,6 @@
       </div>
     </div>
 
-    <!-- Step 2: Pago -->
     <div id="cal-step-2" style="display:none;">
       <div class="modal-header">
         <div>
@@ -511,7 +539,46 @@
 	</div>
 </div>
 
-			<div id="toast"></div>
+<div class="modal-overlay" id="modal-abono">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h3 id="modal-abono-titulo">Confirmar Suscripción</h3>
+        <p id="modal-abono-subtitulo">Revisa los datos de tu abono antes de pagar</p>
+      </div>
+      <button class="btn-close" onclick="closeModal('modal-abono')">×</button>
+    </div>
+    <div style="background:var(--surface2); padding:16px; border-radius:10px; margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+            <span style="color:var(--muted); font-size:13px;">Precio a pagar:</span>
+            <strong style="color:var(--abono); font-size:20px;" id="abono-precio-confirm">0.00€</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:13px;">
+            <span style="color:var(--muted);">Tu saldo actual:</span>
+            <strong id="abono-saldo-confirm">0.00€</strong>
+        </div>
+    </div>
+    <div id="abono-saldo-insuficiente" class="saldo-insuficiente" style="display:none; margin-bottom:16px;">
+        <span>⚠️ Saldo insuficiente. Debes recargar tu billetera.</span>
+    </div>
+    <div id="abono-familiares-section" style="display:none; margin-bottom:20px; padding-top:10px; border-top:1px solid var(--border);">
+        <h4 style="font-size:14px; margin-bottom:8px;">Familiares del plan</h4>
+        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">
+            Este plan admite a <span id="abono-max-personas"></span> personas (Tú + <span id="abono-max-invitados"></span> familiares).
+            <br><strong style="color:var(--warn)">Es obligatorio añadir al menos a 1 familiar.</strong>
+        </p>
+        <div style="display:flex; gap:8px; margin-bottom: 12px;" class="field">
+            <input type="email" id="input-email-familiar" placeholder="Email del familiar registrado" style="flex:1;">
+            <button class="btn-secondary" onclick="comprobarYAñadirFamiliar(event)">Añadir</button>
+        </div>
+        <div id="lista-familiares" style="display:flex; flex-direction:column; gap:8px;"></div>
+    </div>
+    <button class="btn-primary" id="btn-pagar-abono" onclick="confirmarSuscripcionAbono()" style="background:var(--abono); color:#fff;">Suscribirse y Pagar</button>
+    <div id="abono-alert" class="form-alert"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
 			<script>
 			// ═══════════════════════════════════════════
 			//  CONSTANTES Y ESTADO GLOBAL
@@ -526,6 +593,11 @@
 			let reservaRecienCreada = null;
 			let notificationPanelOpen = false;
 			let notificationsRefreshTimer = null;
+			let planesAbonoGlobal = [];
+			let usuarioTieneAbono = false;
+			let planAbonoSeleccionado = null;
+			let maxInvitadosPermitidos = 0;
+			let emailsFamiliares = [];
 
 			// franjas horarias del calendario (cada 1 h, de 8 a 22)
 			const HORAS = ['08:00','09:00','10:00','11:00','12:00','13:00',
@@ -546,6 +618,8 @@
 			  // Mostrar saldo
 			  actualizarSaldoNav();
 			  loadPistas();
+			  checkAbonoActivo();
+			  loadPlanesAbono();
 			  loadNotificaciones();
 			  notificationsRefreshTimer = setInterval(loadNotificaciones, 60000);
 			});
@@ -1406,6 +1480,203 @@
 			    panel.classList.remove('open');
 			  }
 			});
+
+			// ═══════════════════════════════════════════
+			//  ABONOS LÓGICA
+			// ═══════════════════════════════════════════
+			async function checkAbonoActivo() {
+				try {
+					const res = await fetch(`${API}/api/usuarios/${currentUserId}/abonos/activo`);
+					if (res.ok && res.headers.get("content-length") !== "0") {
+						const data = await res.json();
+						if (data && data.id) {
+							usuarioTieneAbono = true;
+							document.getElementById('abono-actual-container').style.display = 'block';
+							document.getElementById('abono-actual-nombre').textContent = data.nombrePlan;
+							document.getElementById('abono-actual-fin').textContent = data.fechaFin;
+							
+							let infoRol = data.titularEmail === localStorage.getItem('usuarioEmail') ? "(Eres el Titular)" : "(Eres Beneficiario)";
+							document.getElementById('abono-beneficiarios-info').textContent = infoRol;
+							
+							document.getElementById('nav-plan-badge').style.display = 'inline-flex';
+							document.getElementById('nav-plan-nombre').textContent = data.nombrePlan;
+							
+							document.querySelectorAll('.btn-suscribirse').forEach(btn => {
+								btn.disabled = true;
+								btn.textContent = 'Ya estás suscrito a un plan';
+							});
+							return;
+						}
+					}
+					usuarioTieneAbono = false;
+					document.getElementById('abono-actual-container').style.display = 'none';
+					document.getElementById('nav-plan-badge').style.display = 'none';
+				} catch (e) { console.error("Error comprobando abono", e); }
+			}
+
+			async function loadPlanesAbono() {
+				const container = document.getElementById('planes-container');
+				try {
+					const res = await fetch(`${API}/api/usuarios/${currentUserId}/abonos/disponibles`);
+					planesAbonoGlobal = await res.json();
+					
+					if (!planesAbonoGlobal.length) {
+						container.innerHTML = '<div class="empty"><p>Actualmente no hay planes de abono disponibles.</p></div>';
+						return;
+					}
+
+					container.innerHTML = planesAbonoGlobal.map(p => `
+						<div class="plan-card">
+							<div class="plan-title">${p.nombrePlan}</div>
+							<div class="plan-price">${fmtEur(p.precio)} <span>/ ${p.duracion.toLowerCase()}</span></div>
+							<p class="plan-desc">${p.descripcion || 'Plan de suscripción para reservas de pistas.'}</p>
+							<ul class="plan-features">
+								<li>Descuento en pistas: <strong>${p.descuentoPistasPorcentaje}%</strong></li>
+								<li>Válido para <strong>${p.cantidadPersonas}</strong> persona(s)</li>
+								<li>Edades permitidas: ${p.edadMinima} a ${p.edadMax} años</li>
+							</ul>
+							<button class="btn-suscribirse" onclick="abrirSuscripcionAbono(${p.planAbonoId || p.id})" ${usuarioTieneAbono ? 'disabled' : ''}>
+								${usuarioTieneAbono ? 'Ya tienes un abono' : 'Suscribirse al Plan'}
+							</button>
+						</div>
+					`).join('');
+				} catch (e) {
+					container.innerHTML = '<div class="empty"><p>Error al cargar planes de abono.</p></div>';
+				}
+			}
+
+			function abrirSuscripcionAbono(planId) {
+				planAbonoSeleccionado = planesAbonoGlobal.find(p => (p.planAbonoId || p.id) === planId);
+				if (!planAbonoSeleccionado) return;
+
+				document.getElementById('abono-alert').className = 'form-alert';
+				document.getElementById('abono-alert').style.display = 'none';
+				document.getElementById('modal-abono-titulo').textContent = `Suscripción a ${planAbonoSeleccionado.nombrePlan}`;
+				document.getElementById('abono-precio-confirm').textContent = fmtEur(planAbonoSeleccionado.precio);
+				document.getElementById('abono-saldo-confirm').textContent = parseFloat(localStorage.getItem('billetera')||0).toFixed(2) + '€';
+				
+				emailsFamiliares = [];
+				renderListaFamiliares();
+				document.getElementById('input-email-familiar').value = '';
+
+				maxInvitadosPermitidos = planAbonoSeleccionado.cantidadPersonas - 1;
+				
+				if (maxInvitadosPermitidos > 0) {
+					document.getElementById('abono-familiares-section').style.display = 'block';
+					document.getElementById('abono-max-personas').textContent = planAbonoSeleccionado.cantidadPersonas;
+					document.getElementById('abono-max-invitados').textContent = maxInvitadosPermitidos;
+				} else {
+					document.getElementById('abono-familiares-section').style.display = 'none';
+				}
+
+				validarSaldoAbono();
+				openModal('modal-abono');
+			}
+
+			function validarSaldoAbono() {
+				const saldo = parseFloat(localStorage.getItem('billetera') || 0);
+				const precio = parseFloat(planAbonoSeleccionado.precio);
+				const btn = document.getElementById('btn-pagar-abono');
+				
+				if (saldo < precio) {
+					document.getElementById('abono-saldo-insuficiente').style.display = 'flex';
+					btn.disabled = true;
+					btn.textContent = 'Saldo insuficiente';
+				} else {
+					document.getElementById('abono-saldo-insuficiente').style.display = 'none';
+					btn.disabled = false;
+					btn.textContent = 'Suscribirse y Pagar';
+				}
+			}
+
+			async function comprobarYAñadirFamiliar(event) {
+				const input = document.getElementById('input-email-familiar');
+				const email = input.value.trim().toLowerCase();
+				
+				if (!email || !email.includes('@')) { toast('Introduce un email válido', 'err'); return; }
+				if (email === (localStorage.getItem('usuarioEmail') || '').toLowerCase()) { toast('No puedes añadirte a ti mismo', 'err'); return; }
+				if (emailsFamiliares.includes(email)) { toast('Este familiar ya está en la lista', 'err'); return; }
+				if (emailsFamiliares.length >= maxInvitadosPermitidos) { toast(`Solo se admiten ${maxInvitadosPermitidos} familiares.`, 'err'); return; }
+
+				const btn = event.target;
+				const oldText = btn.textContent;
+				btn.textContent = 'Comprobando...';
+				btn.disabled = true;
+
+				try {
+					await new Promise(r => setTimeout(r, 500));
+					emailsFamiliares.push(email);
+					renderListaFamiliares();
+					input.value = '';
+				} catch (e) {
+					toast('Error al comprobar', 'err');
+				} finally {
+					btn.textContent = oldText;
+					btn.disabled = false;
+				}
+			}
+
+			function renderListaFamiliares() {
+				const container = document.getElementById('lista-familiares');
+				container.innerHTML = emailsFamiliares.map((email, index) => `
+					<div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg); padding:10px 14px; border:1px solid var(--border); border-radius:10px; font-size:13px;">
+						<span style="color:var(--text);">${email}</span>
+						<button class="btn-remove-email" onclick="removerFamiliar(${index})" title="Eliminar familiar">X</button>
+					</div>
+				`).join('');
+			}
+
+			function removerFamiliar(index) {
+				emailsFamiliares.splice(index, 1);
+				renderListaFamiliares();
+			}
+
+			async function confirmarSuscripcionAbono() {
+				const alertEl = document.getElementById('abono-alert');
+				const btn = document.getElementById('btn-pagar-abono');
+				
+				if (maxInvitadosPermitidos > 0 && emailsFamiliares.length === 0) {
+					alertEl.className = 'form-alert err';
+					alertEl.textContent = 'Este plan es grupal. Debes añadir al menos a 1 familiar para poder suscribirte.';
+					return;
+				}
+
+				btn.disabled = true;
+				btn.textContent = 'Procesando pago...';
+				alertEl.style.display = 'none';
+
+				try {
+					const payload = {
+						usuarioId: Number(currentUserId),
+						planAbonoId: planAbonoSeleccionado.planAbonoId || planAbonoSeleccionado.id,
+						emailsBeneficiarios: emailsFamiliares
+					};
+
+					const res = await fetch(`${API}/api/usuarios/${currentUserId}/abonos/comprar`, {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify(payload)
+					});
+
+					const data = await res.json();
+					if (!res.ok) throw new Error(data.error || data.message || 'Error al procesar la suscripción.');
+
+					toast('¡Suscripción confirmada y pagada con éxito!', 'ok');
+					
+					let nuevoSaldo = parseFloat(localStorage.getItem('billetera')) - parseFloat(planAbonoSeleccionado.precio);
+					localStorage.setItem('billetera', nuevoSaldo);
+					actualizarSaldoNav(); // Actualizar cabecera
+
+					closeModal('modal-abono');
+					checkAbonoActivo(); 
+					loadPlanesAbono();
+				} catch (e) {
+					alertEl.className = 'form-alert err';
+					alertEl.textContent = e.message;
+					btn.disabled = false;
+					btn.textContent = 'Suscribirse y Pagar';
+				}
+			}
 			</script>
 			</body>
 			</html>

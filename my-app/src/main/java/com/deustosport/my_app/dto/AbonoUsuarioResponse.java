@@ -4,6 +4,7 @@ import com.deustosport.my_app.enums.DuracionAbonos;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 public class AbonoUsuarioResponse {
@@ -15,4 +16,6 @@ public class AbonoUsuarioResponse {
     private LocalDate fechaInicio;
     private LocalDate fechaFin;
     private boolean activo;
+    private String titularEmail;
+    private List<String> emailsBeneficiarios;
 }

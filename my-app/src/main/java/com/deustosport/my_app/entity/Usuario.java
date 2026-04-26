@@ -1,6 +1,5 @@
 package com.deustosport.my_app.entity;
 
-
 import com.deustosport.my_app.enums.Rol;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -61,6 +60,7 @@ public class Usuario {
     @Column(nullable = false, length = 20)
     private Rol rol;
 
-    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
+    // ACTUALIZADO: mappedBy apunta al nuevo campo "titular"
+    @OneToMany(mappedBy = "titular", cascade = CascadeType.ALL)
     private List<AbonoUsuario> abonos = new ArrayList<>();
 }
