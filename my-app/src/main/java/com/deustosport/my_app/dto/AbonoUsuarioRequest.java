@@ -5,5 +5,5 @@ import lombok.Data;
 @Data
 public class AbonoUsuarioRequest {
     private Long usuarioId;
-    private Long tarifaAbonoId;
+    private Long planAbonoId;
 }

@@ -1,11 +1,11 @@
 package com.deustosport.my_app.service;
 
 import com.deustosport.my_app.entity.AbonoUsuario;
-import com.deustosport.my_app.entity.TarifaAbono;
+import com.deustosport.my_app.entity.PlanAbono;
 import com.deustosport.my_app.entity.Usuario;
 import com.deustosport.my_app.enums.DuracionAbonos;
 import com.deustosport.my_app.repository.AbonoUsuarioRepository;
-import com.deustosport.my_app.repository.TarifaAbonoRepository;
+import com.deustosport.my_app.repository.PlanAbonoRepository;
 import com.deustosport.my_app.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,27 +22,37 @@ public class AbonoUsuarioService {
     private AbonoUsuarioRepository abonoUsuarioRepository;
 
     @Autowired
-    private TarifaAbonoRepository tarifaAbonoRepository;
+    private PlanAbonoRepository planAbonoRepository;
 
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    public TarifaAbono calcularTarifaParaUsuario(Long usuarioId, Long planId, DuracionAbonos duracion) {
+    public PlanAbono obtenerPlanAdecuado(Long usuarioId, Long planId) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
         if (usuario.getFechaNacimiento() == null) {
-            throw new RuntimeException("El usuario debe tener fecha de nacimiento configurada para ver tarifas.");
+            throw new RuntimeException("El usuario debe tener fecha de nacimiento configurada para ver planes.");
         }
 
         int edad = Period.between(usuario.getFechaNacimiento(), LocalDate.now()).getYears();
 
-        return tarifaAbonoRepository.findTarifaExactaParaUsuario(planId, duracion, edad)
-                .orElseThrow(() -> new RuntimeException("No hay tarifas disponibles para tu edad en este plan."));
+        PlanAbono plan = planAbonoRepository.findById(planId)
+                .orElseThrow(() -> new RuntimeException("Plan no encontrado"));
+
+        if (!plan.isActivo()) {
+            throw new RuntimeException("Este plan no se encuentra activo.");
+        }
+
+        if (edad < plan.getEdadMinima() || edad > plan.getEdadMax()) {
+            throw new RuntimeException("No cumples con los requisitos de edad para este plan.");
+        }
+
+        return plan;
     }
 
     @Transactional
-    public AbonoUsuario comprarAbono(Long usuarioId, Long tarifaId) {
+    public AbonoUsuario comprarAbono(Long usuarioId, Long planId) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
@@ -51,27 +61,26 @@ public class AbonoUsuarioService {
             throw new RuntimeException("El usuario ya tiene un abono activo hasta " + abonoActivo.get().getFechaFin());
         }
 
-        TarifaAbono tarifa = tarifaAbonoRepository.findById(tarifaId)
-                .orElseThrow(() -> new RuntimeException("Tarifa no encontrada"));
+        PlanAbono plan = obtenerPlanAdecuado(usuarioId, planId);
 
-
-        if (usuario.getBilletera().compareTo(tarifa.getPrecio()) < 0) {
-            throw new RuntimeException("Saldo insuficiente. La tarifa cuesta " + tarifa.getPrecio() + "€ y tienes " + usuario.getBilletera() + "€.");
+        if (usuario.getBilletera().compareTo(plan.getPrecio()) < 0) {
+            throw new RuntimeException("Saldo insuficiente. El plan cuesta " + plan.getPrecio() + "€ y tienes " + usuario.getBilletera() + "€.");
         }
         
-        usuario.setBilletera(usuario.getBilletera().subtract(tarifa.getPrecio()));
+        usuario.setBilletera(usuario.getBilletera().subtract(plan.getPrecio()));
         usuarioRepository.save(usuario);
 
-        // Crear el registro de compra
         AbonoUsuario nuevoAbono = new AbonoUsuario();
         nuevoAbono.setUsuario(usuario);
-        nuevoAbono.setTarifa(tarifa);
+        nuevoAbono.setPlan(plan);
         nuevoAbono.setFechaInicio(LocalDate.now());
         nuevoAbono.setActivo(true);
 
-        if (tarifa.getDuracion() == DuracionAbonos.MENSUAL) {
+        if (plan.getDuracion() == DuracionAbonos.MENSUAL) {
             nuevoAbono.setFechaFin(LocalDate.now().plusMonths(1));
-        } else if (tarifa.getDuracion() == DuracionAbonos.ANUAL) {
+        } else if (plan.getDuracion() == DuracionAbonos.TRIMESTRAL) {
+            nuevoAbono.setFechaFin(LocalDate.now().plusMonths(3));
+        } else if (plan.getDuracion() == DuracionAbonos.ANUAL) {
             nuevoAbono.setFechaFin(LocalDate.now().plusYears(1));
         } else {
             nuevoAbono.setFechaFin(LocalDate.now().plusDays(1));

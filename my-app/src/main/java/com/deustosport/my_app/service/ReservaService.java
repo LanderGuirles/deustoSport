@@ -300,11 +300,11 @@ public class ReservaService {
         return resultado;
     }
 
-    // ---> MÉTODO HELPER NUEVO PARA EL ABONO <---
     private BigDecimal aplicarDescuentoAbonoSiExiste(Long usuarioId, BigDecimal precioActual) {
         Optional<AbonoUsuario> abonoActivo = abonoUsuarioService.obtenerAbonoActivo(usuarioId);
         if (abonoActivo.isPresent()) {
-            BigDecimal descuentoPorcentaje = abonoActivo.get().getTarifa().getPlanAbono().getDescuentoPistasPorcentaje();
+            // CAMBIO AQUÍ: getPlan() en lugar de getTarifa().getPlanAbono()
+            BigDecimal descuentoPorcentaje = abonoActivo.get().getPlan().getDescuentoPistasPorcentaje();
             if (descuentoPorcentaje != null && descuentoPorcentaje.compareTo(BigDecimal.ZERO) > 0) {
                 BigDecimal factor = BigDecimal.ONE.subtract(descuentoPorcentaje.divide(new BigDecimal("100")));
                 return precioActual.multiply(factor).setScale(2, RoundingMode.HALF_UP);

@@ -3,16 +3,17 @@ package com.deustosport.my_app.dto;
 import com.deustosport.my_app.enums.DuracionAbonos;
 import lombok.Data;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
 @Data
-public class AbonoUsuarioResponse {
-    private Long id;
+public class PlanAbonoResponse {
+    private Long planAbonoId;
     private String nombrePlan;
     private String descripcion;
     private DuracionAbonos duracion;
-    private BigDecimal precioPagado;
-    private LocalDate fechaInicio;
-    private LocalDate fechaFin;
+    private Integer cantidadPersonas;
+    private Integer edadMinima;
+    private Integer edadMax;
+    private BigDecimal precio;
+    private BigDecimal descuentoPistasPorcentaje;
     private boolean activo;
 }

@@ -1,14 +1,6 @@
 package com.deustosport.my_app.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -32,8 +24,8 @@ public class AbonoUsuario {
     private Usuario usuario;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tarifa_id", nullable = false)
-    private TarifaAbono tarifa;
+    @JoinColumn(name = "plan_id", nullable = false)
+    private PlanAbono plan;
 
     @Column(nullable = false)
     private LocalDate fechaInicio;

@@ -2,10 +2,9 @@ package com.deustosport.my_app.controller;
 
 import com.deustosport.my_app.dto.AbonoUsuarioRequest;
 import com.deustosport.my_app.dto.AbonoUsuarioResponse;
-import com.deustosport.my_app.dto.TarifaAbonoResponse;
+import com.deustosport.my_app.dto.PlanAbonoResponse;
 import com.deustosport.my_app.entity.AbonoUsuario;
-import com.deustosport.my_app.entity.TarifaAbono;
-import com.deustosport.my_app.enums.DuracionAbonos;
+import com.deustosport.my_app.entity.PlanAbono;
 import com.deustosport.my_app.service.AbonoUsuarioService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,22 +19,24 @@ public class AbonoUserController {
     @Autowired
     private AbonoUsuarioService abonoService;
 
-    @GetMapping("/calcular-precio")
-    @io.swagger.v3.oas.annotations.Operation(summary = "Calcular el importe a pagar por el abono dependiendo de plan y edad")
-    public ResponseEntity<?> calcularPrecio(
+    @GetMapping("/comprobar-plan")
+    @io.swagger.v3.oas.annotations.Operation(summary = "Comprueba si el usuario puede acceder al plan y muestra la información del mismo")
+    public ResponseEntity<?> comprobarPlan(
             @PathVariable Long usuarioId,
-            @RequestParam Long planId,
-            @RequestParam DuracionAbonos duracion) {
+            @RequestParam Long planId) {
         try {
-            TarifaAbono t = abonoService.calcularTarifaParaUsuario(usuarioId, planId, duracion);
-            TarifaAbonoResponse dto = new TarifaAbonoResponse();
-            dto.setId(t.getId());
-            dto.setPlanAbonoId(t.getPlanAbono().getId());
-            dto.setNombrePlan(t.getPlanAbono().getNombre());
-            dto.setDuracion(t.getDuracion());
-            dto.setEdadMinima(t.getEdadMinima());
-            dto.setEdadMax(t.getEdadMax());
-            dto.setPrecio(t.getPrecio());
+            PlanAbono p = abonoService.obtenerPlanAdecuado(usuarioId, planId);
+            PlanAbonoResponse dto = new PlanAbonoResponse();
+            dto.setPlanAbonoId(p.getId());
+            dto.setNombrePlan(p.getNombre());
+            dto.setDescripcion(p.getDescripcion());
+            dto.setDuracion(p.getDuracion());
+            dto.setCantidadPersonas(p.getCantidadPersonas());
+            dto.setEdadMinima(p.getEdadMinima());
+            dto.setEdadMax(p.getEdadMax());
+            dto.setPrecio(p.getPrecio());
+            dto.setDescuentoPistasPorcentaje(p.getDescuentoPistasPorcentaje());
+            dto.setActivo(p.isActivo());
             return ResponseEntity.ok(dto);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -48,7 +49,7 @@ public class AbonoUserController {
             @PathVariable Long usuarioId,
             @RequestBody AbonoUsuarioRequest request) {
         try {
-            AbonoUsuario abono = abonoService.comprarAbono(usuarioId, request.getTarifaAbonoId());
+            AbonoUsuario abono = abonoService.comprarAbono(usuarioId, request.getPlanAbonoId());
             return ResponseEntity.ok(mapearResponse(abono));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -60,15 +61,16 @@ public class AbonoUserController {
     public ResponseEntity<?> verAbonoActivo(@PathVariable Long usuarioId) {
         return abonoService.obtenerAbonoActivo(usuarioId)
                 .map(abono -> ResponseEntity.ok(mapearResponse(abono)))
-                .orElseGet(() -> ResponseEntity.ok().build()); // 200 OK vacío si no tiene
+                .orElseGet(() -> ResponseEntity.ok().build());
     }
 
     private AbonoUsuarioResponse mapearResponse(AbonoUsuario a) {
         AbonoUsuarioResponse res = new AbonoUsuarioResponse();
         res.setId(a.getId());
-        res.setNombrePlan(a.getTarifa().getPlanAbono().getNombre());
-        res.setDuracion(a.getTarifa().getDuracion());
-        res.setPrecioPagado(a.getTarifa().getPrecio());
+        res.setNombrePlan(a.getPlan().getNombre());
+        res.setDescripcion(a.getPlan().getDescripcion());
+        res.setDuracion(a.getPlan().getDuracion());
+        res.setPrecioPagado(a.getPlan().getPrecio());
         res.setFechaInicio(a.getFechaInicio());
         res.setFechaFin(a.getFechaFin());
         res.setActivo(a.isActivo());
