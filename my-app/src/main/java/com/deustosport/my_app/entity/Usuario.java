@@ -2,9 +2,11 @@ package com.deustosport.my_app.entity;
 
 
 import com.deustosport.my_app.enums.Rol;
-
 import java.math.BigDecimal;
-
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -12,8 +14,17 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "usuarios")
 public class Usuario {
@@ -31,6 +42,9 @@ public class Usuario {
     @Column(unique = true, length = 20)
     private String dni;
 
+    @Column(name = "fecha_nacimiento")
+    private LocalDate fechaNacimiento;
+
     @Column(length = 20)
     private String telefono;
 
@@ -47,51 +61,6 @@ public class Usuario {
     @Column(nullable = false, length = 20)
     private Rol rol;
 
-    public Usuario() {
-    }
-
-    public Usuario(Long id, String nombreCompleto, String email, String telefono, boolean activo) {
-        this.id = id;
-        this.nombreCompleto = nombreCompleto;
-        this.email = email;
-        this.telefono = telefono;
-        this.activo = activo;
-    }
-
-    public Usuario(Long id, String nombreCompleto, String email, String dni, String telefono, boolean activo) {
-        this.id = id;
-        this.nombreCompleto = nombreCompleto;
-        this.email = email;
-        this.dni = dni;
-        this.telefono = telefono;
-        this.activo = activo;
-    }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public String getNombreCompleto() { return nombreCompleto; }
-    public void setNombreCompleto(String nombreCompleto) { this.nombreCompleto = nombreCompleto; }
-
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-
-    public String getDni() { return dni; }
-    public void setDni(String dni) { this.dni = dni; }
-
-    public String getTelefono() { return telefono; }
-    public void setTelefono(String telefono) { this.telefono = telefono; }
-
-    public boolean isActivo() { return activo; }
-    public void setActivo(boolean activo) { this.activo = activo; }
-
-    public boolean isEsSocio() { return esSocio; }
-    public void setEsSocio(boolean esSocio) { this.esSocio = esSocio; }
-
-    public BigDecimal getBilletera() { return billetera; }
-    public void setBilletera(BigDecimal billetera) { this.billetera = billetera; }
-
-  
-    public Rol getRol() { return rol; }
-    public void setRol(Rol rol) { this.rol = rol; }
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
+    private List<AbonoUsuario> abonos = new ArrayList<>();
 }

@@ -1,11 +1,11 @@
 package com.deustosport.my_app.service;
 
 import com.deustosport.my_app.dto.ReservaResponse;
+import com.deustosport.my_app.entity.AbonoUsuario;
 import com.deustosport.my_app.entity.Pago;
 import com.deustosport.my_app.entity.Pista;
 import com.deustosport.my_app.entity.Reserva;
 import com.deustosport.my_app.entity.Usuario;
-import com.deustosport.my_app.service.EmailService;
 import com.deustosport.my_app.enums.EstadoReserva;
 import com.deustosport.my_app.enums.MetodoPago;
 import com.deustosport.my_app.repository.PistaRepository;
@@ -14,8 +14,8 @@ import com.deustosport.my_app.repository.UsuarioRepository;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -23,6 +23,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -41,6 +42,7 @@ public class ReservaService {
     private final TarifaService      tarifaService;
     private final PagoService        pagoService;
     private final NotificacionService notificacionService;
+    private final AbonoUsuarioService abonoUsuarioService; // NUEVA INYECCIÓN
 
     public ReservaService(ReservaRepository reservaRepository,
                           PistaRepository pistaRepository,
@@ -48,7 +50,8 @@ public class ReservaService {
                           EmailService emailService,
                           TarifaService tarifaService,
                           @Lazy PagoService pagoService,
-                          NotificacionService notificacionService) {
+                          NotificacionService notificacionService,
+                          AbonoUsuarioService abonoUsuarioService) {
         this.reservaRepository = reservaRepository;
         this.pistaRepository   = pistaRepository;
         this.usuarioRepository = usuarioRepository;
@@ -56,6 +59,7 @@ public class ReservaService {
         this.tarifaService     = tarifaService;
         this.pagoService       = pagoService;
         this.notificacionService = notificacionService;
+        this.abonoUsuarioService = abonoUsuarioService; // INICIALIZACIÓN
     }
 
     // ─── Crear reserva ────────────────────────────────────────────────────────
@@ -97,7 +101,10 @@ public class ReservaService {
         BigDecimal precioTotal = tarifaService.calcularPrecio(
                 pista.getTipoDeporte(), fecha, horaInicio, horaFin, usuario.isEsSocio());
 
-        // ── Comprobar saldo suficiente ──
+        // ---> LÓGICA NUEVA: APLICAR DESCUENTO DE ABONO <---
+        precioTotal = aplicarDescuentoAbonoSiExiste(usuarioId, precioTotal);
+
+        // ── Comprobar saldo suficiente (con el precio ya rebajado) ──
         if (usuario.getBilletera().compareTo(precioTotal) < 0) {
             throw new IllegalStateException(
                     "Saldo insuficiente. Tu billetera tiene " +
@@ -222,7 +229,7 @@ public class ReservaService {
         return reservaRepository.save(reserva);
     }
 
-    // ─── Disponibilidad ───────────────────────────────────────────────────────
+    // ─── Disponibilidad 
     public boolean consultarDisponibilidad(Long pistaId, LocalDate fecha,
                                            LocalTime horaInicio, LocalTime horaFin) {
         Objects.requireNonNull(pistaId, "pistaId no puede ser null");
@@ -254,39 +261,7 @@ public class ReservaService {
                 .collect(Collectors.toList());
     }
 
-    // ─── Helpers ──────────────────────────────────────────────────────────────
-    private ReservaResponse toDto(Reserva r) {
-        ReservaResponse dto = new ReservaResponse();
-        dto.setId(r.getId());
-        dto.setUsuarioId(r.getUsuario().getId());
-        dto.setPistaId(r.getPista() != null ? r.getPista().getId() : null);
-        dto.setPistaNombre(r.getPista() != null ? r.getPista().getNombre() : "—");
-        dto.setTipoDeporte(r.getPista() != null ? r.getPista().getTipoDeporte() : null);
-        dto.setFechaReserva(r.getFechaReserva());
-        dto.setHoraInicio(r.getHoraInicio());
-        dto.setHoraFin(r.getHoraFin());
-        dto.setPrecioTotal(r.getPrecioTotal());
-        dto.setEstado(r.getEstado());
-        dto.setMetodoPago(r.getMetodoPago());
-        dto.setReferenciaPago(r.getReferenciaPago());
-        dto.setFechaPago(r.getFechaPago());
-
-        // Información de descuento de socio
-        boolean esSocio = r.getUsuario().isEsSocio();
-        dto.setDescuentoSocioAplicado(esSocio);
-        if (esSocio && r.getPista() != null) {
-            BigDecimal precioSinDescuento = tarifaService.calcularPrecio(
-                    r.getPista().getTipoDeporte(), r.getFechaReserva(),
-                    r.getHoraInicio(), r.getHoraFin(), false);
-            dto.setPrecioOriginal(precioSinDescuento);
-        } else {
-            dto.setPrecioOriginal(r.getPrecioTotal());
-        }
-
-        return dto;
-    }
-
-    // ─── Precio estimado ─────────────────────────────────────────────────────
+    // precio estimado
     @Transactional(readOnly = true)
     public Map<String, Object> calcularPrecioEstimado(Long pistaId, Long usuarioId,
                                                       LocalDate fecha, LocalTime horaInicio,
@@ -304,17 +279,72 @@ public class ReservaService {
         BigDecimal precioFinal = tarifaService.calcularPrecio(
                 pista.getTipoDeporte(), fecha, horaInicio, horaFin, esSocio);
 
+        // ---> LÓGICA NUEVA: APLICAR DESCUENTO DE ABONO AL ESTIMADO <---
+        precioFinal = aplicarDescuentoAbonoSiExiste(usuarioId, precioFinal);
+
         Map<String, Object> resultado = new LinkedHashMap<>();
         resultado.put("precioOriginal", precioSinDescuento);
         resultado.put("precioFinal", precioFinal);
         resultado.put("esSocio", esSocio);
-        resultado.put("descuentoAplicado", esSocio);
         resultado.put("billetera", usuario.getBilletera());
         resultado.put("saldoSuficiente", usuario.getBilletera().compareTo(precioFinal) >= 0);
-        if (esSocio) {
-            resultado.put("importeDescuento", precioSinDescuento.subtract(precioFinal));
+        
+        // Si el precio original y el final son distintos, hay descuento (por socio o por abono)
+        if (precioSinDescuento.compareTo(precioFinal) > 0) {
+             resultado.put("descuentoAplicado", true);
+             resultado.put("importeDescuento", precioSinDescuento.subtract(precioFinal));
+        } else {
+             resultado.put("descuentoAplicado", false);
         }
+        
         return resultado;
+    }
+
+    // ---> MÉTODO HELPER NUEVO PARA EL ABONO <---
+    private BigDecimal aplicarDescuentoAbonoSiExiste(Long usuarioId, BigDecimal precioActual) {
+        Optional<AbonoUsuario> abonoActivo = abonoUsuarioService.obtenerAbonoActivo(usuarioId);
+        if (abonoActivo.isPresent()) {
+            BigDecimal descuentoPorcentaje = abonoActivo.get().getTarifa().getPlanAbono().getDescuentoPistasPorcentaje();
+            if (descuentoPorcentaje != null && descuentoPorcentaje.compareTo(BigDecimal.ZERO) > 0) {
+                BigDecimal factor = BigDecimal.ONE.subtract(descuentoPorcentaje.divide(new BigDecimal("100")));
+                return precioActual.multiply(factor).setScale(2, RoundingMode.HALF_UP);
+            }
+        }
+        return precioActual;
+    }
+
+    // ─── Helpers ──────────────────────────────────────────────────────────────
+    private ReservaResponse toDto(Reserva r) {
+        ReservaResponse dto = new ReservaResponse();
+        dto.setId(r.getId());
+        dto.setUsuarioId(r.getUsuario().getId());
+        dto.setPistaId(r.getPista() != null ? r.getPista().getId() : null);
+        dto.setPistaNombre(r.getPista() != null ? r.getPista().getNombre() : "—");
+        dto.setTipoDeporte(r.getPista() != null ? r.getPista().getTipoDeporte() : null);
+        dto.setFechaReserva(r.getFechaReserva());
+        dto.setHoraInicio(r.getHoraInicio());
+        dto.setHoraFin(r.getHoraFin());
+        dto.setPrecioTotal(r.getPrecioTotal());
+        dto.setEstado(r.getEstado());
+        dto.setMetodoPago(r.getMetodoPago());
+        dto.setReferenciaPago(r.getReferenciaPago());
+        dto.setFechaPago(r.getFechaPago());
+
+        // Información de descuento
+        boolean esSocio = r.getUsuario().isEsSocio();
+        dto.setDescuentoSocioAplicado(esSocio);
+        if (esSocio && r.getPista() != null) {
+            BigDecimal precioSinDescuento = tarifaService.calcularPrecio(
+                    r.getPista().getTipoDeporte(), r.getFechaReserva(),
+                    r.getHoraInicio(), r.getHoraFin(), false);
+            dto.setPrecioOriginal(precioSinDescuento);
+        } else {
+            // Ponemos el precio original como el precio cobrado por defecto,
+            // aunque idealmente calcularíamos el precio sin el Abono si se quisiera desglosar al 100%.
+            dto.setPrecioOriginal(r.getPrecioTotal()); 
+        }
+
+        return dto;
     }
 
     private void validarHorarioInstalacion(Pista pista,
