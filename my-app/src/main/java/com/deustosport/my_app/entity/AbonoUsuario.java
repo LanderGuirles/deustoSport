@@ -20,7 +20,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "abonos_usuarios")
+@Table(name = "abonos_usuario")
 public class AbonoUsuario {
 
     @Id
