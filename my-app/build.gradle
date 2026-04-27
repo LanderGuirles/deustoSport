@@ -68,17 +68,18 @@ jacocoTestReport {
 		xml.required = true
 		html.required = true
 	}
-	afterEvaluate {
-		classDirectories.setFrom(files(classDirectories.files.collect {
-			fileTree(dir: it, excludes: [
+	classDirectories.setFrom(
+		files(sourceSets.main.output.classesDirs).asFileTree.matching {
+			exclude(
 				'**/entity/**',
 				'**/dto/**',
 				'**/enums/**',
 				'**/config/**',
-				'**/*Application*'
-			])
-		}))
-	}
+				'**/repository/**',
+				'**/*Application*.class'
+			)
+		}
+	)
 }
 
 tasks.named('test') {

@@ -3,6 +3,7 @@ package com.deustosport.my_app.performance;
 import org.databene.contiperf.PerfTest;
 import org.databene.contiperf.Required;
 import org.databene.contiperf.junit.ContiPerfRule;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -13,6 +14,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,8 +38,15 @@ public class ReservaPerformanceTest {
 
     @BeforeClass
     public static void verificarServidor() {
-        log.info("[PERF] Iniciando batería de tests de rendimiento contra {}", BASE_URL);
-        log.info("[PERF] Asegúrate de que el servidor está arrancado antes de ejecutar estos tests.");
+        log.info("[PERF] Comprobando disponibilidad del servidor en {}", BASE_URL);
+        boolean disponible = false;
+        try (Socket s = new Socket("localhost", 8080)) {
+            disponible = true;
+        } catch (Exception e) {
+            log.warn("[PERF] Servidor no disponible en {}. Tests de rendimiento omitidos.", BASE_URL);
+        }
+        Assume.assumeTrue("Servidor no disponible en localhost:8080 — arranca el servidor antes de ejecutar los tests de rendimiento.", disponible);
+        log.info("[PERF] Servidor disponible. Iniciando batería de tests de rendimiento.");
     }
 
     // ══════════════════════════════════════════════════════════
