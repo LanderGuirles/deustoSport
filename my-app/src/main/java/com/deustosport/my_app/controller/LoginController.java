@@ -190,7 +190,7 @@ public class LoginController {
 
         @GetMapping("/verificar-usuario")
         @Operation(summary = "Verificar usuario por email", description = "Comprueba si un email corresponde a un usuario registrado")
-        public ResponseEntity<java.util.Map<String, Object>> verificarUsuario(@RequestParam String email) {
+        public ResponseEntity<java.util.Map<String, Object>> verificarUsuario(@RequestParam("email") String email) {
                 if (email == null || email.isBlank()) {
                         return ResponseEntity.badRequest()
                                 .body(java.util.Map.of("existe", false, "error", "Email requerido"));

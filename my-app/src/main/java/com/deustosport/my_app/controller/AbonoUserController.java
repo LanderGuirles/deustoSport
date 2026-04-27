@@ -24,7 +24,7 @@ public class AbonoUserController {
 
     @GetMapping("/disponibles")
     @io.swagger.v3.oas.annotations.Operation(summary = "Listar los planes activos disponibles para comprar")
-    public ResponseEntity<List<PlanAbonoResponse>> listarPlanesDisponibles(@PathVariable Long usuarioId) {
+    public ResponseEntity<List<PlanAbonoResponse>> listarPlanesDisponibles(@PathVariable("usuarioId") Long usuarioId) {
         List<PlanAbonoResponse> activos = abonoService.obtenerPlanesActivos().stream().map(p -> {
             PlanAbonoResponse dto = new PlanAbonoResponse();
             dto.setPlanAbonoId(p.getId());
@@ -45,7 +45,7 @@ public class AbonoUserController {
     @PostMapping("/comprar")
     @io.swagger.v3.oas.annotations.Operation(summary = "Comprar el abono")
     public ResponseEntity<?> comprarAbono(
-            @PathVariable Long usuarioId,
+            @PathVariable("usuarioId") Long usuarioId,
             @RequestBody AbonoUsuarioRequest request) {
         try {
             AbonoUsuario abono = abonoService.comprarAbono(usuarioId, request.getPlanAbonoId(), request.getEmailsBeneficiarios());
@@ -57,7 +57,7 @@ public class AbonoUserController {
 
     @GetMapping("/activo")
     @io.swagger.v3.oas.annotations.Operation(summary = "Ver plan activo del usuario")
-    public ResponseEntity<?> verAbonoActivo(@PathVariable Long usuarioId) {
+    public ResponseEntity<?> verAbonoActivo(@PathVariable("usuarioId") Long usuarioId) {
         return abonoService.obtenerAbonoActivo(usuarioId)
                 .map(abono -> ResponseEntity.ok(mapearResponse(abono)))
                 .orElseGet(() -> ResponseEntity.ok().build());

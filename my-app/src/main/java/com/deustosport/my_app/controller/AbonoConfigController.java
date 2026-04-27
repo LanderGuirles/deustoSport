@@ -30,13 +30,13 @@ public class AbonoConfigController {
 
     @PutMapping("/planes/{planId}")
     @io.swagger.v3.oas.annotations.Operation(summary = "Modificar plan")
-    public ResponseEntity<PlanAbono> actualizarPlan(@PathVariable Long planId, @RequestBody PlanAbono detalles) {
+    public ResponseEntity<PlanAbono> actualizarPlan(@PathVariable("planId") Long planId, @RequestBody PlanAbono detalles) {
         return ResponseEntity.ok(adminService.actualizarPlan(planId, detalles));
     }
 
     @DeleteMapping("/planes/{planId}")
     @io.swagger.v3.oas.annotations.Operation(summary = "Eliminar plan")
-    public ResponseEntity<Void> eliminarPlan(@PathVariable Long planId) {
+    public ResponseEntity<Void> eliminarPlan(@PathVariable("planId") Long planId) {
         adminService.eliminarPlan(planId);
         return ResponseEntity.noContent().build();
     }
