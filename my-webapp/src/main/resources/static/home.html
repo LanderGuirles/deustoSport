@@ -547,40 +547,87 @@
 
 <div class="modal-overlay" id="modal-abono">
   <div class="modal">
-    <div class="modal-header">
-      <div>
-        <h3 id="modal-abono-titulo">Confirmar Suscripción</h3>
-        <p id="modal-abono-subtitulo">Revisa los datos de tu abono antes de pagar</p>
+
+    <!-- ── STEP 1: Familiares (solo si cantidadPersonas > 1) ── -->
+    <div id="abono-step-1">
+      <div class="modal-header">
+        <div>
+          <h3 id="modal-abono-titulo">Suscribirse al Plan</h3>
+          <p id="modal-abono-subtitulo">Añade los familiares que formarán parte del plan</p>
+        </div>
+        <button class="btn-close" onclick="closeModal('modal-abono')">×</button>
       </div>
-      <button class="btn-close" onclick="closeModal('modal-abono')">×</button>
-    </div>
-    <div style="background:var(--surface2); padding:16px; border-radius:10px; margin-bottom:16px;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-            <span style="color:var(--muted); font-size:13px;">Precio a pagar:</span>
-            <strong style="color:var(--abono); font-size:20px;" id="abono-precio-confirm">0.00€</strong>
-        </div>
-        <div style="display:flex; justify-content:space-between; font-size:13px;">
-            <span style="color:var(--muted);">Tu saldo actual:</span>
-            <strong id="abono-saldo-confirm">0.00€</strong>
-        </div>
-    </div>
-    <div id="abono-saldo-insuficiente" class="saldo-insuficiente" style="display:none; margin-bottom:16px;">
-        <span>⚠️ Saldo insuficiente. Debes recargar tu billetera.</span>
-    </div>
-    <div id="abono-familiares-section" style="display:none; margin-bottom:20px; padding-top:10px; border-top:1px solid var(--border);">
-        <h4 style="font-size:14px; margin-bottom:8px;">Familiares del plan</h4>
-        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">
-            Este plan admite a <span id="abono-max-personas"></span> personas (Tú + <span id="abono-max-invitados"></span> familiares).
-            <br><strong style="color:var(--warn)">Es obligatorio añadir al menos a 1 familiar.</strong>
+      <div id="abono-familiares-section" style="margin-bottom:20px;">
+        <p style="font-size:13px; color:var(--muted); margin-bottom:14px; line-height:1.5;">
+          Este plan admite a <strong id="abono-max-personas" style="color:var(--text);"></strong> personas
+          (Tú + <strong id="abono-max-invitados" style="color:var(--text);"></strong> familiares).
+          <br><span style="color:var(--warn);">⚠ Es obligatorio añadir al menos 1 familiar para continuar.</span>
         </p>
-        <div style="display:flex; gap:8px; margin-bottom: 12px;" class="field">
-            <input type="email" id="input-email-familiar" placeholder="Email del familiar registrado" style="flex:1;">
-            <button class="btn-secondary" onclick="comprobarYAñadirFamiliar(event)">Añadir</button>
+        <div style="display:flex; gap:8px; margin-bottom:12px;" class="field">
+          <input type="email" id="input-email-familiar" placeholder="Email del familiar registrado" style="flex:1;">
+          <button class="btn-ghost" style="white-space:nowrap;" onclick="comprobarYAñadirFamiliar(event)">Añadir</button>
         </div>
-        <div id="lista-familiares" style="display:flex; flex-direction:column; gap:8px;"></div>
+        <div id="lista-familiares" style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;"></div>
+      </div>
+      <button class="btn-primary" id="btn-abono-continuar" onclick="continuarApagarAbono()">Continuar al pago →</button>
+      <div id="abono-step1-alert" class="form-alert"></div>
     </div>
-    <button class="btn-primary" id="btn-pagar-abono" onclick="confirmarSuscripcionAbono()" style="background:var(--abono); color:#fff;">Suscribirse y Pagar</button>
-    <div id="abono-alert" class="form-alert"></div>
+
+    <!-- ── STEP 2: Pasarela de pago ── -->
+    <div id="abono-step-2" style="display:none;">
+      <div class="modal-header">
+        <div>
+          <h3>Confirmar y pagar</h3>
+          <p id="abono-pago-subtitulo">—</p>
+        </div>
+        <button class="btn-close" onclick="volverStepAbono()">Volver</button>
+      </div>
+      <div class="price-preview">
+        <span class="label">Total a pagar</span>
+        <span class="value" id="abono-precio-confirm">—</span>
+      </div>
+      <div id="abono-saldo-insuficiente" class="saldo-insuficiente" style="display:none; margin-bottom:8px;">
+        <span class="icon">⚠️</span>
+        <span>Saldo insuficiente. Tu billetera tiene <strong id="abono-saldo-actual"></strong>€ pero necesitas <strong id="abono-precio-necesario"></strong>. <a href="#" onclick="event.preventDefault();closeModal('modal-abono');openProfileModal()" style="color:inherit;text-decoration:underline;">Recargar saldo</a></span>
+      </div>
+      <div class="metodo-grid">
+        <button class="metodo-btn" onclick="selectMetodoAbono('BILLETERA',this)">
+          <span class="metodo-icon">💰</span>Billetera
+        </button>
+        <button class="metodo-btn" onclick="selectMetodoAbono('TARJETA',this)">
+          <span class="metodo-icon">💳</span>Tarjeta
+        </button>
+        <button class="metodo-btn" onclick="selectMetodoAbono('BIZUM',this)">
+          <span class="metodo-icon">📱</span>Bizum
+        </button>
+        <button class="metodo-btn" onclick="selectMetodoAbono('TRANSFERENCIA',this)">
+          <span class="metodo-icon">🏦</span>Transferencia
+        </button>
+      </div>
+      <div class="pago-fields" id="abono-f-TARJETA">
+        <div class="field"><label>Número de tarjeta</label>
+          <input type="text" id="abono-p-num" placeholder="4111 1111 1111 1111" maxlength="19"/></div>
+        <div class="field"><label>Titular</label>
+          <input type="text" id="abono-p-tit" placeholder="Nombre Apellido"/></div>
+        <div class="form-row">
+          <div class="field"><label>Caducidad</label>
+            <input type="text" id="abono-p-cad" placeholder="MM/AA" maxlength="5"/></div>
+          <div class="field"><label>CVV</label>
+            <input type="text" id="abono-p-cvv" placeholder="123" maxlength="4"/></div>
+        </div>
+      </div>
+      <div class="pago-fields" id="abono-f-BIZUM">
+        <div class="field"><label>Teléfono Bizum</label>
+          <input type="text" id="abono-p-biz" placeholder="612345678"/></div>
+      </div>
+      <div class="pago-fields" id="abono-f-TRANSFERENCIA">
+        <div class="field"><label>IBAN</label>
+          <input type="text" id="abono-p-iban" placeholder="ES9121000418450200051332"/></div>
+      </div>
+      <button class="btn-primary" id="btn-pagar-abono" onclick="confirmarSuscripcionAbono()">Pagar y confirmar</button>
+      <div id="abono-alert" class="form-alert"></div>
+    </div>
+
   </div>
 </div>
 
@@ -1650,48 +1697,107 @@
 				}
 			}
 
+			let metodoAbonoSeleccionado = null;
+
 			function abrirSuscripcionAbono(planId) {
 				planAbonoSeleccionado = planesAbonoGlobal.find(p => (p.planAbonoId || p.id) === planId);
 				if (!planAbonoSeleccionado) return;
 
-				document.getElementById('abono-alert').className = 'form-alert';
-				document.getElementById('abono-alert').style.display = 'none';
-				document.getElementById('modal-abono-titulo').textContent = `Suscripción a ${planAbonoSeleccionado.nombrePlan}`;
-				document.getElementById('abono-precio-confirm').textContent = fmtEur(planAbonoSeleccionado.precio);
-				document.getElementById('abono-saldo-confirm').textContent = parseFloat(localStorage.getItem('billetera')||0).toFixed(2) + '€';
-				
+				// Reset state
 				emailsFamiliares = [];
+				metodoAbonoSeleccionado = null;
 				renderListaFamiliares();
 				document.getElementById('input-email-familiar').value = '';
+				document.getElementById('abono-step1-alert').className = 'form-alert';
+				document.getElementById('abono-alert').className = 'form-alert';
+
+				// Reset payment method buttons
+				document.querySelectorAll('#abono-step-2 .metodo-btn').forEach(b => b.classList.remove('selected'));
+				document.querySelectorAll('#abono-step-2 .pago-fields').forEach(f => f.classList.remove('active'));
+				const btnPagar = document.getElementById('btn-pagar-abono');
+				btnPagar.disabled = false;
+				btnPagar.textContent = 'Pagar y confirmar';
 
 				maxInvitadosPermitidos = planAbonoSeleccionado.cantidadPersonas - 1;
-				
+
 				if (maxInvitadosPermitidos > 0) {
-					document.getElementById('abono-familiares-section').style.display = 'block';
+					// Multi-persona: show step 1 (familiares) first
+					document.getElementById('modal-abono-titulo').textContent = `Suscripción a ${planAbonoSeleccionado.nombrePlan}`;
 					document.getElementById('abono-max-personas').textContent = planAbonoSeleccionado.cantidadPersonas;
 					document.getElementById('abono-max-invitados').textContent = maxInvitadosPermitidos;
+					document.getElementById('abono-step-1').style.display = 'block';
+					document.getElementById('abono-step-2').style.display = 'none';
 				} else {
-					document.getElementById('abono-familiares-section').style.display = 'none';
+					// Plan individual: skip step 1, go straight to payment
+					_mostrarStepPagoAbono();
 				}
 
-				validarSaldoAbono();
 				openModal('modal-abono');
 			}
 
-			function validarSaldoAbono() {
+			function continuarApagarAbono() {
+				const alertEl = document.getElementById('abono-step1-alert');
+				if (emailsFamiliares.length === 0) {
+					alertEl.className = 'form-alert err';
+					alertEl.textContent = 'Debes añadir al menos 1 familiar para continuar con este plan grupal.';
+					return;
+				}
+				_mostrarStepPagoAbono();
+			}
+
+			function volverStepAbono() {
+				if (maxInvitadosPermitidos > 0) {
+					document.getElementById('abono-step-1').style.display = 'block';
+					document.getElementById('abono-step-2').style.display = 'none';
+				} else {
+					closeModal('modal-abono');
+				}
+			}
+
+			function _mostrarStepPagoAbono() {
 				const saldo = parseFloat(localStorage.getItem('billetera') || 0);
 				const precio = parseFloat(planAbonoSeleccionado.precio);
-				const btn = document.getElementById('btn-pagar-abono');
-				
+
+				document.getElementById('abono-precio-confirm').textContent = fmtEur(precio);
+				document.getElementById('abono-pago-subtitulo').textContent =
+					`${planAbonoSeleccionado.nombrePlan} · ${planAbonoSeleccionado.duracion}`;
+
+				const insufEl = document.getElementById('abono-saldo-insuficiente');
 				if (saldo < precio) {
-					document.getElementById('abono-saldo-insuficiente').style.display = 'flex';
-					btn.disabled = true;
-					btn.textContent = 'Saldo insuficiente';
+					insufEl.style.display = 'flex';
+					document.getElementById('abono-saldo-actual').textContent = saldo.toFixed(2);
+					document.getElementById('abono-precio-necesario').textContent = fmtEur(precio);
 				} else {
-					document.getElementById('abono-saldo-insuficiente').style.display = 'none';
-					btn.disabled = false;
-					btn.textContent = 'Suscribirse y Pagar';
+					insufEl.style.display = 'none';
 				}
+
+				document.getElementById('abono-step-1').style.display = 'none';
+				document.getElementById('abono-step-2').style.display = 'block';
+			}
+
+			function selectMetodoAbono(metodo, btn) {
+				metodoAbonoSeleccionado = metodo;
+				document.querySelectorAll('#abono-step-2 .metodo-btn').forEach(b => b.classList.remove('selected'));
+				btn.classList.add('selected');
+				document.querySelectorAll('#abono-step-2 .pago-fields').forEach(f => f.classList.remove('active'));
+				const fields = document.getElementById('abono-f-' + metodo);
+				if (fields) fields.classList.add('active');
+
+				const saldo = parseFloat(localStorage.getItem('billetera') || 0);
+				const precio = parseFloat(planAbonoSeleccionado.precio);
+				const btnPagar = document.getElementById('btn-pagar-abono');
+
+				if (metodo === 'BILLETERA' && saldo < precio) {
+					btnPagar.disabled = true;
+					btnPagar.textContent = 'Saldo insuficiente';
+				} else {
+					btnPagar.disabled = false;
+					btnPagar.textContent = 'Pagar y confirmar';
+				}
+			}
+
+			function validarSaldoAbono() {
+				// kept for compatibility, no longer used as primary gating
 			}
 
 			async function comprobarYAñadirFamiliar(event) {
@@ -1739,22 +1845,24 @@
 			async function confirmarSuscripcionAbono() {
 				const alertEl = document.getElementById('abono-alert');
 				const btn = document.getElementById('btn-pagar-abono');
-				
-				if (maxInvitadosPermitidos > 0 && emailsFamiliares.length === 0) {
-					alertEl.className = 'form-alert err';
-					alertEl.textContent = 'Este plan es grupal. Debes añadir al menos a 1 familiar para poder suscribirte.';
+
+				if (!metodoAbonoSeleccionado) {
+					toast('Selecciona un método de pago', 'err');
 					return;
 				}
 
+				if (btn.disabled) return;
+
 				btn.disabled = true;
 				btn.textContent = 'Procesando pago...';
-				alertEl.style.display = 'none';
+				alertEl.className = 'form-alert';
 
 				try {
 					const payload = {
 						usuarioId: Number(currentUserId),
 						planAbonoId: planAbonoSeleccionado.planAbonoId || planAbonoSeleccionado.id,
-						emailsBeneficiarios: emailsFamiliares
+						emailsBeneficiarios: emailsFamiliares,
+						metodoPago: metodoAbonoSeleccionado
 					};
 
 					const res = await fetch(`${API}/api/usuarios/${currentUserId}/abonos/comprar`, {
@@ -1779,7 +1887,7 @@
 					alertEl.className = 'form-alert err';
 					alertEl.textContent = e.message;
 					btn.disabled = false;
-					btn.textContent = 'Suscribirse y Pagar';
+					btn.textContent = 'Pagar y confirmar';
 				}
 			}
 			</script>
