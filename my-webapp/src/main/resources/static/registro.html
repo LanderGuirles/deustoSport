@@ -243,12 +243,19 @@
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
+        const password = document.getElementById("password").value;
+        if (password.length < 8) {
+            responseDiv.className = "response error";
+            responseDiv.textContent = "La contraseña debe tener al menos 8 caracteres.";
+            return;
+        }
+
         const payload = {
             nombreCompleto: document.getElementById("nombreCompleto").value,
             email: document.getElementById("email").value,
             dni: document.getElementById("dni").value,
             telefono: document.getElementById("telefono").value,
-            password: document.getElementById("password").value
+            password: password
         };
 
         try {
