@@ -1523,7 +1523,10 @@
 			      const esPasada = new Date(r.fechaReserva + 'T' + r.horaInicio) < new Date();
 			      const cumpleRegla24h = r.puedeModificar === true ||
 			        (new Date(r.fechaReserva + 'T' + (r.horaInicio || '00:00')).getTime() > (Date.now() + 24 * 60 * 60 * 1000));
-			      const puedeCancelar = r.puedeCancelarConReembolso === true || cumpleRegla24h;
+			      // Priorizar el campo del backend; fallback al cálculo local solo si el campo no viene
+			      const puedeCancelar = r.puedeCancelarConReembolso != null
+			        ? r.puedeCancelarConReembolso === true
+			        : cumpleRegla24h;
 			      const acciones = (!esPasada && r.estado !== 'CANCELADA') ? `
 			        <div class="reserva-actions">
 			          ${r.estado === 'PENDIENTE'
@@ -1570,12 +1573,18 @@
 			    );
 			    if (res.ok) {
 			      const data = await res.json();
-			      // Actualizar saldo en localStorage y nav tras el reembolso
+			      const saldoPrevio = parseFloat(localStorage.getItem('billetera') || 0);
 			      if (data.saldoRestante != null) {
 			        localStorage.setItem('billetera', data.saldoRestante);
 			        actualizarSaldoNav();
+			        const reembolso = parseFloat(data.saldoRestante) - saldoPrevio;
+			        const msg = reembolso > 0
+			          ? `Cancelada · +${fmtEur(reembolso)} devueltos a tu billetera`
+			          : 'Reserva cancelada correctamente.';
+			        toast(msg, 'ok');
+			      } else {
+			        toast('Reserva cancelada correctamente.', 'ok');
 			      }
-			      toast('Reserva cancelada correctamente.', 'ok');
 			      loadMisReservas();
 			    }
 			    else {
@@ -1875,13 +1884,30 @@
 					if (!res.ok) throw new Error(data.error || data.message || 'Error al procesar la suscripción.');
 
 					toast('¡Suscripción confirmada y pagada con éxito!', 'ok');
-					
-					let nuevoSaldo = parseFloat(localStorage.getItem('billetera')) - parseFloat(planAbonoSeleccionado.precio);
-					localStorage.setItem('billetera', nuevoSaldo);
-					actualizarSaldoNav(); // Actualizar cabecera
+
+					// Solo la BILLETERA descuenta saldo; para otros métodos refrescamos desde la API
+					if (metodoAbonoSeleccionado === 'BILLETERA') {
+						const nuevoSaldo = parseFloat(localStorage.getItem('billetera') || 0) - parseFloat(planAbonoSeleccionado.precio);
+						localStorage.setItem('billetera', Math.max(0, nuevoSaldo).toFixed(2));
+						actualizarSaldoNav();
+					} else {
+						// Refresco desde API para mantener el saldo sincronizado
+						try {
+							const perfilRes = await fetch(`${API}/api/auth/perfil`, {
+								headers: { 'X-Usuario-Id': currentUserId }
+							});
+							if (perfilRes.ok) {
+								const perfilData = await perfilRes.json();
+								if (perfilData.billetera != null) {
+									localStorage.setItem('billetera', perfilData.billetera);
+									actualizarSaldoNav();
+								}
+							}
+						} catch { /* saldo sin cambios si el refresco falla */ }
+					}
 
 					closeModal('modal-abono');
-					checkAbonoActivo(); 
+					checkAbonoActivo();
 					loadPlanesAbono();
 				} catch (e) {
 					alertEl.className = 'form-alert err';

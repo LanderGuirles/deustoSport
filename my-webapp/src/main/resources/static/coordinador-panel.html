@@ -232,8 +232,10 @@
                     <input id="maxJugadores" type="number" min="1" placeholder="Ej: 4" required>
                 </div>
                 <div class="field">
-                    <label>ID Instalación</label>
-                    <input id="instalacionId" type="number" placeholder="Ej: 1" required>
+                    <label>Instalación</label>
+                    <select id="instalacionId" required>
+                        <option value="" disabled selected>Cargando instalaciones...</option>
+                    </select>
                 </div>
             </div>
             <div class="form-actions">
@@ -655,12 +657,31 @@
         if (e.target === modalEl) cerrarModal();
     });
 
+    async function cargarInstalacionesParaCrearPista() {
+        const selectEl = document.getElementById("instalacionId");
+        try {
+            const response = await fetch(INSTALACIONES_API_URL);
+            if (!response.ok) throw new Error("Error al cargar instalaciones.");
+            const instalaciones = await response.json();
+            if (!instalaciones.length) {
+                selectEl.innerHTML = '<option value="">Sin instalaciones disponibles</option>';
+                return;
+            }
+            selectEl.innerHTML = instalaciones
+                .map(inst => `<option value="${inst.id}">${inst.nombre} (ID: ${inst.id})</option>`)
+                .join("");
+        } catch {
+            selectEl.innerHTML = '<option value="">Error al cargar</option>';
+        }
+    }
+
     // --- CARGA INICIAL ---
     window.alternarBloqueoPista = alternarBloqueoPista;
     window.confirmarEliminarPista = confirmarEliminarPista;
     window.abrirModalEdicion = abrirModalEdicion;
 
     cargarInstalacionesParaHorario();
+    cargarInstalacionesParaCrearPista();
     cargarPistas();
 </script>
 </body>
