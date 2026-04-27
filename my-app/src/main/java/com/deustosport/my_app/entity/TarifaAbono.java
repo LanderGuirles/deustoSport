@@ -8,6 +8,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import com.deustosport.my_app.enums.DuracionAbonos;
@@ -32,7 +34,8 @@ public class TarifaAbono {
     @JoinColumn(name = "plan_abono_id", nullable = false)
     private PlanAbono planAbono;
 
-    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
     private DuracionAbonos duracion;
 
     @Column(nullable = false)

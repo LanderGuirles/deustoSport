@@ -106,14 +106,6 @@ public class ReservaService {
         // ---> LÓGICA NUEVA: APLICAR DESCUENTO DE ABONO <---
         precioTotal = aplicarDescuentoAbonoSiExiste(usuarioId, precioTotal);
 
-        // ── Comprobar saldo suficiente (con el precio ya rebajado) ──
-        if (usuario.getBilletera().compareTo(precioTotal) < 0) {
-            throw new IllegalStateException(
-                    "Saldo insuficiente. Tu billetera tiene " +
-                    usuario.getBilletera().toPlainString() + "€ pero la reserva cuesta " +
-                    precioTotal.toPlainString() + "€. Recarga tu saldo para continuar.");
-        }
-
         Reserva r = new Reserva();
         r.setUsuario(usuario);
         r.setPista(pista);
@@ -162,6 +154,14 @@ public class ReservaService {
                 ? iban
                 : "SIMULADO00000000000000";
 
+        if (metodoPago == MetodoPago.BILLETERA &&
+            reserva.getUsuario().getBilletera().compareTo(reserva.getPrecioTotal()) < 0) {
+            throw new IllegalStateException(
+                "Saldo insuficiente. Tu billetera tiene " +
+                reserva.getUsuario().getBilletera().toPlainString() + "€ pero la reserva cuesta " +
+                reserva.getPrecioTotal().toPlainString() + "€.");
+        }
+
         Pago pago = pagoService.procesarPagoInterno(reservaId, ibanFinal, metodoPago);
 
         reserva.setMetodoPago(metodoPago);
@@ -171,11 +171,13 @@ public class ReservaService {
 
         Reserva reservaFinal = reservaRepository.save(reserva);
 
-        // ── Descontar saldo de la billetera ──
-        Usuario usuario = reserva.getUsuario();
-        BigDecimal nuevoSaldo = usuario.getBilletera().subtract(reserva.getPrecioTotal());
-        usuario.setBilletera(nuevoSaldo);
-        usuarioRepository.save(usuario);
+        // Solo se mueve saldo de billetera cuando el metodo de pago es BILLETERA.
+        if (metodoPago == MetodoPago.BILLETERA) {
+            Usuario usuario = reserva.getUsuario();
+            BigDecimal nuevoSaldo = usuario.getBilletera().subtract(reserva.getPrecioTotal());
+            usuario.setBilletera(nuevoSaldo);
+            usuarioRepository.save(usuario);
+        }
 
         // Enviar correo de confirmación de reserva
         emailService.enviarEmailConfirmacionReserva(
@@ -218,8 +220,10 @@ public class ReservaService {
             throw new IllegalStateException("Solo se puede cancelar una reserva con mas de 24 horas de antelacion.");
         }
 
-        // ── Devolver saldo a la billetera si la reserva estaba pagada ──
-        if (reserva.getEstado() == EstadoReserva.CONFIRMADA && reserva.getPrecioTotal() != null) {
+        // Reembolsar solo si se pago originalmente con billetera.
+        if (reserva.getEstado() == EstadoReserva.CONFIRMADA &&
+            reserva.getPrecioTotal() != null &&
+            reserva.getMetodoPago() == MetodoPago.BILLETERA) {
             Usuario usuario = reserva.getUsuario();
             BigDecimal nuevoSaldo = usuario.getBilletera().add(reserva.getPrecioTotal());
             usuario.setBilletera(nuevoSaldo);
@@ -276,7 +280,7 @@ public class ReservaService {
                 reserva.getUsuario().isEsSocio());
         nuevoPrecio = aplicarDescuentoAbonoSiExiste(usuarioId, nuevoPrecio);
 
-        if (reserva.getEstado() == EstadoReserva.CONFIRMADA) {
+        if (reserva.getEstado() == EstadoReserva.CONFIRMADA && reserva.getMetodoPago() == MetodoPago.BILLETERA) {
             ajustarBilleteraPorCambioDePrecio(reserva.getUsuario(), precioAnterior, nuevoPrecio);
         }
 

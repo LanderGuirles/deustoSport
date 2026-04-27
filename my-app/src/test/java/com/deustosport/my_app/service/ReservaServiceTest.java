@@ -85,8 +85,8 @@ class ReservaServiceTest {
     }
 
     @Test
-    void crearReserva_saldoInsuficiente_lanzaExcepcion() {
-        log.info("[TEST] crearReserva_saldoInsuficiente_lanzaExcepcion - billetera insuficiente (5.00)");
+        void crearReserva_conSaldoInsuficiente_seCreaIgual() {
+                log.info("[TEST] crearReserva_conSaldoInsuficiente_seCreaIgual - no debe depender de billetera");
         LocalDate fecha = LocalDate.now().plusDays(1);
         LocalTime horaInicio = LocalTime.of(10, 0);
         LocalTime horaFin = horaInicio.plusMinutes(60);
@@ -99,12 +99,14 @@ class ReservaServiceTest {
         when(tarifaService.calcularPrecio(eq(TipoDeporte.PADEL), eq(fecha),
                 eq(horaInicio), eq(horaFin), eq(false)))
                 .thenReturn(new BigDecimal("24.50"));
+        when(reservaRepository.save(isA(Reserva.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
 
-        IllegalStateException ex = assertThrows(IllegalStateException.class,
-                () -> reservaService.crearReserva(10L, 20L, fecha, horaInicio, 60));
+        Reserva reserva = reservaService.crearReserva(10L, 20L, fecha, horaInicio, 60);
 
-        assertTrue(ex.getMessage().contains("Saldo insuficiente"));
-        verify(reservaRepository, never()).save(any());
+        assertEquals(EstadoReserva.PENDIENTE, reserva.getEstado());
+        assertEquals(new BigDecimal("24.50"), reserva.getPrecioTotal());
+        verify(reservaRepository).save(any());
     }
 
     @Test
@@ -159,8 +161,9 @@ class ReservaServiceTest {
         assertEquals(MetodoPago.TARJETA, pagada.getMetodoPago());
         assertNotNull(pagada.getFechaPago());
         assertEquals("DS-ABCD1234", pagada.getReferenciaPago());
-        assertEquals(new BigDecimal("70.00"), pagada.getUsuario().getBilletera());
+        assertEquals(new BigDecimal("100.00"), pagada.getUsuario().getBilletera());
         verify(pagoService).procesarPagoInterno(eq(99L), eq("SIMULADO00000000000000"), eq(MetodoPago.TARJETA));
+        verify(usuarioRepository, never()).save(any());
         verify(emailService).enviarEmailConfirmacionReserva(
                 eq("usuario@deustosport.com"),
                 eq("Pista central"),
@@ -218,8 +221,6 @@ class ReservaServiceTest {
                 .thenReturn(pagoMock);
         when(reservaRepository.save(isA(Reserva.class)))
                 .thenAnswer(inv -> inv.getArgument(0));
-        when(usuarioRepository.save(isA(Usuario.class)))
-                .thenAnswer(inv -> inv.getArgument(0));
 
         Reserva pagada = reservaService.pagarReserva(
                 200L, 10L, MetodoPago.TRANSFERENCIA,
@@ -227,10 +228,43 @@ class ReservaServiceTest {
         );
 
         assertEquals(EstadoReserva.CONFIRMADA, pagada.getEstado());
-        assertEquals(new BigDecimal("85.00"), pagada.getUsuario().getBilletera());
+        assertEquals(new BigDecimal("100.00"), pagada.getUsuario().getBilletera());
         verify(pagoService).procesarPagoInterno(eq(200L), eq(iban), eq(MetodoPago.TRANSFERENCIA));
+        verify(usuarioRepository, never()).save(any());
         verify(emailService).enviarEmailConfirmacionReserva(
                 eq("usuario@deustosport.com"), anyString(), anyString(), any(), any(), any(), any());
+    }
+
+    @Test
+    void pagarReserva_conBilletera_descuentaSaldo() {
+        Reserva reserva = new Reserva();
+        reserva.setId(205L);
+        reserva.setUsuario(usuario);
+        reserva.setPista(pista);
+        reserva.setFechaReserva(LocalDate.now().plusDays(1));
+        reserva.setHoraInicio(LocalTime.of(11, 0));
+        reserva.setHoraFin(LocalTime.of(12, 0));
+        reserva.setEstado(EstadoReserva.PENDIENTE);
+        reserva.setPrecioTotal(new BigDecimal("15.00"));
+
+        Pago pagoMock = new Pago();
+        pagoMock.setReferenciaPago("DS-BILLETERA1");
+        pagoMock.setFechaPago(LocalDateTime.now());
+        pagoMock.setMetodoPago(MetodoPago.BILLETERA);
+
+        when(reservaRepository.findById(205L)).thenReturn(Optional.of(reserva));
+        when(pagoService.procesarPagoInterno(eq(205L), eq("SIMULADO00000000000000"), eq(MetodoPago.BILLETERA)))
+                .thenReturn(pagoMock);
+        when(reservaRepository.save(isA(Reserva.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(usuarioRepository.save(isA(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Reserva pagada = reservaService.pagarReserva(
+                205L, 10L, MetodoPago.BILLETERA,
+                null, null, null, null, null, null
+        );
+
+        assertEquals(new BigDecimal("85.00"), pagada.getUsuario().getBilletera());
+        verify(usuarioRepository).save(any());
     }
 
     @Test
@@ -243,6 +277,7 @@ class ReservaServiceTest {
         reserva.setHoraInicio(LocalTime.of(10, 0));
         reserva.setHoraFin(LocalTime.of(11, 0));
         reserva.setEstado(EstadoReserva.CONFIRMADA);
+        reserva.setMetodoPago(MetodoPago.BILLETERA);
         reserva.setPrecioTotal(new BigDecimal("20.00"));
 
         when(reservaRepository.findById(300L)).thenReturn(Optional.of(reserva));
@@ -255,6 +290,29 @@ class ReservaServiceTest {
         assertEquals(new BigDecimal("120.00"), cancelada.getUsuario().getBilletera());
         verify(reservaRepository).save(reserva);
     }
+
+        @Test
+        void cancelarReserva_pagadaConTarjeta_noReembolsaBilletera() {
+                Reserva reserva = new Reserva();
+                reserva.setId(302L);
+                reserva.setUsuario(usuario);
+                reserva.setPista(pista);
+                reserva.setFechaReserva(LocalDate.now().plusDays(2));
+                reserva.setHoraInicio(LocalTime.of(10, 0));
+                reserva.setHoraFin(LocalTime.of(11, 0));
+                reserva.setEstado(EstadoReserva.CONFIRMADA);
+                reserva.setMetodoPago(MetodoPago.TARJETA);
+                reserva.setPrecioTotal(new BigDecimal("20.00"));
+
+                when(reservaRepository.findById(302L)).thenReturn(Optional.of(reserva));
+                when(reservaRepository.save(isA(Reserva.class))).thenAnswer(inv -> inv.getArgument(0));
+
+                Reserva cancelada = reservaService.cancelarReserva(302L, 10L);
+
+                assertEquals(EstadoReserva.CANCELADA, cancelada.getEstado());
+                assertEquals(new BigDecimal("100.00"), cancelada.getUsuario().getBilletera());
+                verify(usuarioRepository, never()).save(any());
+        }
 
     @Test
     void cancelarReserva_con24hOMenos_lanzaExcepcion() {
