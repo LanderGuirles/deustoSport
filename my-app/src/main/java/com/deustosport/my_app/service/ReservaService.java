@@ -292,6 +292,48 @@ public class ReservaService {
         return reservaRepository.save(reserva);
     }
 
+    @Transactional
+    public Reserva modificarReservaPorSecretaria(Long reservaId,
+                                                LocalDate nuevaFecha, LocalTime nuevaHoraInicio,
+                                                Integer duracionMinutos, Long nuevaPistaId) {
+        Objects.requireNonNull(reservaId, "reservaId no puede ser null");
+        Objects.requireNonNull(nuevaFecha, "nuevaFecha no puede ser null");
+        Objects.requireNonNull(nuevaHoraInicio, "nuevaHoraInicio no puede ser null");
+
+        int duracion = (duracionMinutos == null || duracionMinutos <= 0) ? 60 : duracionMinutos;
+
+        Reserva reserva = reservaRepository.findById(reservaId)
+                .orElseThrow(() -> new IllegalArgumentException("Reserva no encontrada"));
+
+        if (reserva.getEstado() == EstadoReserva.CANCELADA) {
+            throw new IllegalStateException("No se puede modificar una reserva cancelada.");
+        }
+
+        // Saltamos la comprobación de 24h porque es una acción de secretaría
+
+        nuevaHoraInicio = nuevaHoraInicio.withSecond(0).withNano(0);
+        LocalTime nuevaHoraFin = nuevaHoraInicio.plusMinutes(duracion);
+
+        Pista pista = (nuevaPistaId != null)
+                ? pistaRepository.findById(nuevaPistaId).orElseThrow(() -> new IllegalArgumentException("Pista no encontrada"))
+                : reserva.getPista();
+
+        validarHorarioInstalacion(pista, nuevaHoraInicio, nuevaHoraFin);
+
+        List<Reserva> conflictos = reservaRepository.findConflictingReservationsExcludingReserva(
+                pista.getId(), nuevaFecha, nuevaHoraInicio, nuevaHoraFin, reservaId);
+        if (!conflictos.isEmpty()) {
+            throw new IllegalStateException("La pista ya está reservada en el nuevo horario seleccionado.");
+        }
+
+        reserva.setPista(pista);
+        reserva.setFechaReserva(nuevaFecha);
+        reserva.setHoraInicio(nuevaHoraInicio);
+        reserva.setHoraFin(nuevaHoraFin);
+
+        return reservaRepository.save(reserva);
+    }
+
     @Transactional(readOnly = true)
     public boolean cumpleAntelacionMinima24h(LocalDate fecha, LocalTime horaInicio) {
         LocalDateTime fechaHoraReserva = LocalDateTime.of(fecha, horaInicio);

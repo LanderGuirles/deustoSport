@@ -1,5 +1,6 @@
 package com.deustosport.my_app.service;
 
+import com.deustosport.my_app.dto.ModificarReservaRequest;
 import com.deustosport.my_app.dto.SecretariaReservaResumenDto;
 import com.deustosport.my_app.dto.SecretariaUsuarioResumenDto;
 import com.deustosport.my_app.entity.Reserva;
@@ -20,10 +21,12 @@ public class SecretariaService {
 
     private final UsuarioRepository usuarioRepository;
     private final ReservaRepository reservaRepository;
+    private final ReservaService reservaService;
 
-    public SecretariaService(UsuarioRepository usuarioRepository, ReservaRepository reservaRepository) {
+    public SecretariaService(UsuarioRepository usuarioRepository, ReservaRepository reservaRepository, ReservaService reservaService) {
         this.usuarioRepository = usuarioRepository;
         this.reservaRepository = reservaRepository;
+        this.reservaService = reservaService;
     }
 
     @Transactional(readOnly = true)
@@ -50,15 +53,40 @@ public class SecretariaService {
         List<Reserva> reservas = reservaRepository.findByUsuarioIdOrderByFechaReservaDescHoraInicioDesc(usuarioId);
 
         return reservas.stream()
-                .map(reserva -> new SecretariaReservaResumenDto(
-                        reserva.getId(),
-                        String.valueOf(reserva.getFechaReserva()),
-                        reserva.getHoraInicio().format(TIME_FORMATTER),
-                        reserva.getHoraFin().format(TIME_FORMATTER),
-                        reserva.getEstado().name(),
-                        reserva.getPista() != null ? reserva.getPista().getNombre() : "-"
-                ))
+                .map(this::mapToReservaResumenDto)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<SecretariaReservaResumenDto> obtenerTodasLasReservas() {
+        List<Reserva> reservas = reservaRepository.findAllByOrderByFechaReservaDescHoraInicioDesc();
+        return reservas.stream()
+                .map(this::mapToReservaResumenDto)
+                .toList();
+    }
+
+    private SecretariaReservaResumenDto mapToReservaResumenDto(Reserva reserva) {
+        return new SecretariaReservaResumenDto(
+                reserva.getId(),
+                String.valueOf(reserva.getFechaReserva()),
+                reserva.getHoraInicio().format(TIME_FORMATTER),
+                reserva.getHoraFin().format(TIME_FORMATTER),
+                reserva.getEstado().name(),
+                reserva.getPista() != null ? reserva.getPista().getNombre() : "-",
+                reserva.getPista() != null ? reserva.getPista().getId() : null,
+                reserva.getUsuario() != null ? reserva.getUsuario().getNombreCompleto() : "-"
+        );
+    }
+
+    @Transactional
+    public void modificarReservaPorSecretaria(Long reservaId, ModificarReservaRequest request) {
+        reservaService.modificarReservaPorSecretaria(
+                reservaId,
+                request.getFecha(),
+                request.getHoraInicio(),
+                request.getDuracionMinutos(),
+                request.getPistaId()
+        );
     }
 
     @Transactional(readOnly = true)

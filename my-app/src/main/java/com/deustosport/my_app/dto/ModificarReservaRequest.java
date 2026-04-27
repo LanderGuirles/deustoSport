@@ -21,4 +21,7 @@ public class ModificarReservaRequest {
 
     @Schema(example = "60", description = "Duración en minutos (por defecto 60)")
     private Integer duracionMinutos;
+
+    @Schema(example = "1", description = "ID de la nueva pista (opcional)")
+    private Long pistaId;
 }
