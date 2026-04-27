@@ -17,6 +17,8 @@ import java.time.LocalTime;
 @Component
 public class DataInitializer implements CommandLineRunner {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DataInitializer.class);
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
@@ -30,11 +32,11 @@ public class DataInitializer implements CommandLineRunner {
                 "SELECT COUNT(*) FROM usuarios", Integer.class);
 
         if (count != null && count > 0) {
-            System.out.println("✅ Datos de prueba ya existen, saltando inicialización");
+            log.info("Datos de prueba ya existen, saltando inicialización");
             return;
         }
 
-        System.out.println("🚀 Primera ejecución: inicializando datos de prueba...");
+        log.info("Primera ejecución: inicializando datos de prueba...");
 
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         String hash = encoder.encode("password123");
@@ -144,8 +146,7 @@ public class DataInitializer implements CommandLineRunner {
             }
         }
 
-        System.out.println("✅ Datos de prueba inicializados correctamente");
-        System.out.println("   Usuarios: juan@deustosport.com / password123");
-        System.out.println("   Pistas: 5 | Tarifas: " + tarifaRepository.count());
+        log.info("Datos de prueba inicializados correctamente");
+        log.info("Usuarios: juan@deustosport.com / password123 | Pistas: 5 | Tarifas: {}", tarifaRepository.count());
     }
 }

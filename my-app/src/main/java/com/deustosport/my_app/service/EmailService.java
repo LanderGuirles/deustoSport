@@ -73,13 +73,10 @@ public class EmailService {
                 "🎉 ¡Que disfrutes del partido y que los astros estén contigo!";
 
         if (!emailEnabled || mailSender == null) {
-            System.out.println("=========================================================");
-            System.out.println("📧 SIMULACIÓN DE ENVÍO DE EMAIL DE RESERVA (Desarrollo)");
-            System.out.println("Destinatario: " + destinatario);
-            System.out.println("Asunto: DeustoSport - Reserva confirmada");
-            System.out.println("Contenido: ");
-            System.out.println(contenido);
-            System.out.println("=========================================================");
+            logger.info("=== [EMAIL SIMULADO] Reserva confirmada ===");
+            logger.info("Destinatario: {}", destinatario);
+            logger.info("Pista: {} ({}) | {} {} - {} | {}€", nombrePista, tipoDeporte, fecha, horaInicio, horaFin, precio);
+            logger.debug("Contenido completo: {}", contenido);
             return;
         }
 
@@ -108,13 +105,9 @@ public class EmailService {
         String contenido = "DeustoSport - Notificacion\n\n" + mensajeTexto;
 
         if (!emailEnabled || mailSender == null) {
-            System.out.println("=========================================================");
-            System.out.println("📧 SIMULACIÓN DE ENVÍO DE EMAIL DE NOTIFICACIÓN (Desarrollo)");
-            System.out.println("Destinatario: " + destinatario);
-            System.out.println("Asunto: " + titulo);
-            System.out.println("Contenido: ");
-            System.out.println(contenido);
-            System.out.println("=========================================================");
+            logger.info("=== [EMAIL SIMULADO] Notificación ===");
+            logger.info("Destinatario: {} | Asunto: {}", destinatario, titulo);
+            logger.debug("Contenido: {}", contenido);
             return;
         }
 
@@ -148,13 +141,9 @@ public class EmailService {
      * Simula el envío de email en consola (para desarrollo)
      */
     private void simularEnvioEmail(String destinatario, String token) {
-        System.out.println("=========================================================");
-        System.out.println("📧 SIMULACIÓN DE ENVÍO DE EMAIL (Desarrollo)");
-        System.out.println("Destinatario: " + destinatario);
-        System.out.println("Asunto: DeustoSport - Recuperación de Contraseña");
-        System.out.println("Contenido: ");
-        System.out.println(generarContenidoRecuperacion(token));
-        System.out.println("=========================================================");
-        logger.warn("Email simulado: modo desarrollo activado. Para enviar emails reales, configure spring.mail.* y app.email.enabled=true");
+        logger.info("=== [EMAIL SIMULADO] Recuperación de contraseña ===");
+        logger.info("Destinatario: {}", destinatario);
+        logger.debug("Token de recuperación: {}", token);
+        logger.warn("Modo desarrollo activo. Para enviar emails reales configure spring.mail.* y app.email.enabled=true");
     }
 }

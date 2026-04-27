@@ -22,12 +22,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("null")
 class PaymentGatewayClientTest {
+
+    private static final Logger log = LoggerFactory.getLogger(PaymentGatewayClientTest.class);
 
     @Mock
     private RestTemplate restTemplate;
@@ -44,6 +48,7 @@ class PaymentGatewayClientTest {
 
     @Test
     void validarPagoExterno_pasarelaDeshabilitada_devuelveReferenciaLocal() {
+        log.info("[TEST] pasarela deshabilitada → referencia local sin llamar a RestTemplate");
         ReflectionTestUtils.setField(paymentGatewayClient, "paymentGatewayEnabled", false);
 
         String referencia = paymentGatewayClient.validarPagoExterno(
@@ -55,6 +60,7 @@ class PaymentGatewayClientTest {
 
     @Test
     void validarPagoExterno_respuestaValida_devuelveReferenciaPasarela() {
+        log.info("[TEST] pasarela habilitada, respuesta válida → devuelve referencia GW-123");
         ReflectionTestUtils.setField(paymentGatewayClient, "paymentGatewayEnabled", true);
 
         ExternalPaymentValidationResponse body = new ExternalPaymentValidationResponse();
@@ -86,6 +92,7 @@ class PaymentGatewayClientTest {
 
     @Test
     void validarPagoExterno_rechazado_lanzaExcepcionConMensaje() {
+        log.info("[TEST] pago rechazado por pasarela → debe lanzar IllegalStateException");
         ReflectionTestUtils.setField(paymentGatewayClient, "paymentGatewayEnabled", true);
 
         ExternalPaymentValidationResponse body = new ExternalPaymentValidationResponse();
@@ -104,6 +111,7 @@ class PaymentGatewayClientTest {
 
     @Test
     void validarPagoExterno_siRestTemplateFalla_lanzaIllegalStateException() {
+        log.info("[TEST] RestTemplate lanza timeout → debe envolverse en IllegalStateException");
         ReflectionTestUtils.setField(paymentGatewayClient, "paymentGatewayEnabled", true);
 
         when(restTemplate.postForEntity(any(String.class), any(HttpEntity.class), eq(ExternalPaymentValidationResponse.class)))

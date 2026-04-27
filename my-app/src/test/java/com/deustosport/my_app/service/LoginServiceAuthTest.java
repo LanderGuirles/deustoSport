@@ -27,11 +27,15 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("null")
 class LoginServiceAuthTest {
+
+    private static final Logger log = LoggerFactory.getLogger(LoginServiceAuthTest.class);
 
     @Mock
     private UsuarioRepository usuarioRepository;
@@ -49,6 +53,7 @@ class LoginServiceAuthTest {
 
     @Test
     void registrarUsuario_emailDuplicado_rechazaRegistro() {
+        log.info("[TEST] registrarUsuario_emailDuplicado_rechazaRegistro");
         RegistroRequest request = new RegistroRequest(
                 "Ana Lopez",
                 "ana@deustosport.com",

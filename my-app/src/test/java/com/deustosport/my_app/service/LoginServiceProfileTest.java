@@ -16,10 +16,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("null")
 class LoginServiceProfileTest {
+
+    private static final Logger log = LoggerFactory.getLogger(LoginServiceProfileTest.class);
 
     @Mock
     private UsuarioRepository usuarioRepository;
@@ -35,6 +39,7 @@ class LoginServiceProfileTest {
 
     @Test
     void obtenerPerfil_devuelveDatosDelUsuario() {
+        log.info("[TEST] obtenerPerfil_devuelveDatosDelUsuario - usuarioId=7");
         Usuario usuario = new Usuario();
         usuario.setId(7L);
         usuario.setNombreCompleto("Ana Lopez");
@@ -55,6 +60,7 @@ class LoginServiceProfileTest {
 
     @Test
     void actualizarPerfil_actualizaNombreYTelefono() {
+        log.info("[TEST] actualizarPerfil_actualizaNombreYTelefono - usuarioId=9");
         Usuario usuario = new Usuario();
         usuario.setId(9L);
         usuario.setNombreCompleto("Nombre Antiguo");
@@ -76,6 +82,7 @@ class LoginServiceProfileTest {
 
     @Test
     void actualizarPerfil_telefonoVacioSeGuardaComoNull() {
+        log.info("[TEST] actualizarPerfil_telefonoVacioSeGuardaComoNull - teléfono vacío debe guardarse como null");
         Usuario usuario = new Usuario();
         usuario.setId(12L);
         usuario.setNombreCompleto("Marta Ruiz");

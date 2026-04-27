@@ -24,10 +24,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("null")
 class PagoServiceTest {
+
+    private static final Logger log = LoggerFactory.getLogger(PagoServiceTest.class);
 
     @Mock
     private PagoRepository pagoRepository;
@@ -40,6 +44,7 @@ class PagoServiceTest {
 
     @Test
     void obtenerPagoPorReserva_mapeaDtoYNormalizaIbanNull() {
+        log.info("[TEST] obtenerPagoPorReserva_mapeaDtoYNormalizaIbanNull - reservaId=8");
         Pago pago = new Pago();
         pago.setReferenciaPago("DS-AAA11111");
         pago.setImporte(new BigDecimal("19.99"));
@@ -60,6 +65,7 @@ class PagoServiceTest {
 
     @Test
     void procesarPagoInterno_transferencia_normalizaIbanYCompleta() {
+        log.info("[TEST] procesarPagoInterno_transferencia_normalizaIbanYCompleta - reservaId=12");
         Reserva reserva = new Reserva();
         reserva.setId(12L);
         reserva.setPrecioTotal(new BigDecimal("35.00"));
@@ -79,6 +85,7 @@ class PagoServiceTest {
 
     @Test
     void procesarPagoInterno_siYaExistePago_lanzaExcepcion() {
+        log.info("[TEST] procesarPagoInterno_siYaExistePago_lanzaExcepcion - reservaId=33");
         Reserva reserva = new Reserva();
         reserva.setId(33L);
 
@@ -91,6 +98,7 @@ class PagoServiceTest {
 
     @Test
     void obtenerRecaudacionMesActual_siSumaNull_devuelveCeroConMoneda() {
+        log.info("[TEST] obtenerRecaudacionMesActual_siSumaNull_devuelveCeroConMoneda");
         when(pagoRepository.sumImporteByEstadoAndRangoFechas(any(), any(), any())).thenReturn(null);
         when(pagoRepository.countByEstadoAndRangoFechas(any(), any(), any())).thenReturn(4L);
 

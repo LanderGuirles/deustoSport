@@ -22,10 +22,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("null")
 class TarifaServiceTest {
+
+    private static final Logger log = LoggerFactory.getLogger(TarifaServiceTest.class);
 
     @Mock
     private TarifaRepository tarifaRepository;
@@ -41,6 +45,7 @@ class TarifaServiceTest {
 
     @Test
     void calcularPrecio_aplicaTarifaYDescuentoSocio() {
+        log.info("[TEST] calcularPrecio_aplicaTarifaYDescuentoSocio - PADEL lunes 10:00-11:30 socio=true");
         LocalDate fecha = LocalDate.of(2026, 4, 20); // lunes
         LocalTime horaInicio = LocalTime.of(10, 0);
         LocalTime horaFin = LocalTime.of(11, 30);
@@ -59,6 +64,7 @@ class TarifaServiceTest {
 
     @Test
     void calcularPrecio_sinTarifaActiva_usaFallback() {
+        log.info("[TEST] calcularPrecio_sinTarifaActiva_usaFallback → precio fallback 7.50€");
         LocalDate fecha = LocalDate.of(2026, 4, 21);
         LocalTime horaInicio = LocalTime.of(10, 0);
         LocalTime horaFin = LocalTime.of(10, 45);
@@ -74,6 +80,7 @@ class TarifaServiceTest {
 
     @Test
     void crearTarifa_horaFinIgualHoraInicio_lanzaExcepcion() {
+        log.info("[TEST] crearTarifa_horaFinIgualHoraInicio_lanzaExcepcion → horaInicio==horaFin=18:00");
         Tarifa invalida = tarifaValida(TipoDeporte.FUTBOL, 3, LocalTime.of(18, 0), LocalTime.of(18, 0), "20.00", true);
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
@@ -85,6 +92,7 @@ class TarifaServiceTest {
 
     @Test
     void obtenerPorPistaId_devuelveSoloTarifasActivas() {
+        log.info("[TEST] obtenerPorPistaId_devuelveSoloTarifasActivas - pistaId=11, debe filtrar inactivas");
         Pista pista = new Pista();
         pista.setId(11L);
         pista.setTipoDeporte(TipoDeporte.TENIS);

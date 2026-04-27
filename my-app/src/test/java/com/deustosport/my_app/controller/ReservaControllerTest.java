@@ -25,12 +25,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "unchecked"})
 class ReservaControllerTest {
+
+    private static final Logger log = LoggerFactory.getLogger(ReservaControllerTest.class);
 
     @Mock
     private ReservaService reservaService;
@@ -40,6 +44,7 @@ class ReservaControllerTest {
 
     @Test
     void crearReserva_siFaltanDatos_devuelveBadRequest() {
+        log.info("[TEST] crearReserva_siFaltanDatos_devuelveBadRequest");
         ReservaRequest request = new ReservaRequest();
         request.setUsuarioId(1L);
 
@@ -48,10 +53,12 @@ class ReservaControllerTest {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         Map<String, Object> body = (Map<String, Object>) response.getBody();
         assertTrue(String.valueOf(body.get("error")).contains("Faltan datos"));
+        log.info("[TEST] Resultado: {} - {}", response.getStatusCode(), body.get("error"));
     }
 
     @Test
     void crearReserva_conDatosValidos_devuelveOk() {
+        log.info("[TEST] crearReserva_conDatosValidos_devuelveOk - usuarioId=1, pistaId=2");
         ReservaRequest request = new ReservaRequest();
         request.setUsuarioId(1L);
         request.setPistaId(2L);
@@ -65,10 +72,12 @@ class ReservaControllerTest {
         ResponseEntity<?> response = reservaController.crearReserva(request);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        log.info("[TEST] Reserva creada correctamente, status={}", response.getStatusCode());
     }
 
     @Test
     void pagarReserva_siFaltanCampos_devuelveBadRequest() {
+        log.info("[TEST] pagarReserva_siFaltanCampos_devuelveBadRequest - usuarioId=null");
         PagoReservaRequest request = new PagoReservaRequest();
         request.setUsuarioId(null);
         request.setMetodoPago("TARJETA");
@@ -78,10 +87,12 @@ class ReservaControllerTest {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         Map<String, Object> body = (Map<String, Object>) response.getBody();
         assertTrue(String.valueOf(body.get("error")).contains("usuarioId"));
+        log.info("[TEST] Error esperado recibido: {}", body.get("error"));
     }
 
     @Test
     void consultarDisponibilidad_devuelveResultadoServicio() {
+        log.info("[TEST] consultarDisponibilidad_devuelveResultadoServicio - pistaId=2");
         when(reservaService.consultarDisponibilidad(eq(2L), any(LocalDate.class), any(LocalTime.class), any(LocalTime.class)))
                 .thenReturn(true);
 
@@ -90,6 +101,7 @@ class ReservaControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         Map<String, Object> body = (Map<String, Object>) response.getBody();
         assertEquals(true, body.get("disponible"));
+        log.info("[TEST] Disponibilidad={}", body.get("disponible"));
     }
 
     private Reserva reservaBase() {

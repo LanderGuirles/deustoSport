@@ -15,10 +15,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("null")
 class ConfiguracionServiceTest {
+
+    private static final Logger log = LoggerFactory.getLogger(ConfiguracionServiceTest.class);
 
     @Mock
     private ConfiguracionRepository configuracionRepository;
@@ -28,6 +32,7 @@ class ConfiguracionServiceTest {
 
     @Test
     void obtenerDescuentoSocioPorcentaje_sinConfiguracion_devuelveValorPorDefecto() {
+        log.info("[TEST] obtenerDescuentoSocioPorcentaje_sinConfiguracion → debe retornar 20 por defecto");
         when(configuracionRepository.findById(ConfiguracionService.CLAVE_DESCUENTO_SOCIO))
                 .thenReturn(Optional.empty());
 
@@ -38,6 +43,7 @@ class ConfiguracionServiceTest {
 
     @Test
     void obtenerDescuentoSocioPorcentaje_valorInvalido_devuelveValorPorDefecto() {
+        log.info("[TEST] obtenerDescuentoSocioPorcentaje_valorInvalido → valor 'xx' debe devolver 20");
         when(configuracionRepository.findById(ConfiguracionService.CLAVE_DESCUENTO_SOCIO))
                 .thenReturn(Optional.of(new Configuracion(
                         ConfiguracionService.CLAVE_DESCUENTO_SOCIO,
@@ -51,6 +57,7 @@ class ConfiguracionServiceTest {
 
     @Test
     void obtenerFactorDescuentoSocio_divideCorrectamente() {
+        log.info("[TEST] obtenerFactorDescuentoSocio → 15% debe dar factor 0.1500");
         when(configuracionRepository.findById(ConfiguracionService.CLAVE_DESCUENTO_SOCIO))
                 .thenReturn(Optional.of(new Configuracion(
                         ConfiguracionService.CLAVE_DESCUENTO_SOCIO,
@@ -64,12 +71,14 @@ class ConfiguracionServiceTest {
 
     @Test
     void actualizarDescuentoSocio_fueraDeRango_lanzaExcepcion() {
+        log.info("[TEST] actualizarDescuentoSocio_fueraDeRango → 101% debe lanzar excepción");
         assertThrows(IllegalArgumentException.class,
                 () -> configuracionService.actualizarDescuentoSocio(new BigDecimal("101")));
     }
 
     @Test
     void actualizarDescuentoSocio_actualizaYGuardaValor() {
+        log.info("[TEST] actualizarDescuentoSocio_actualizaYGuardaValor → nuevo valor 12.5%");
         Configuracion existente = new Configuracion(
                 ConfiguracionService.CLAVE_DESCUENTO_SOCIO,
                 "20",
