@@ -331,7 +331,9 @@ public class ReservaService {
         reserva.setHoraInicio(nuevaHoraInicio);
         reserva.setHoraFin(nuevaHoraFin);
 
-        return reservaRepository.save(reserva);
+        Reserva reservaGuardada = reservaRepository.save(reserva);
+        notificacionService.notificarModificacionReservaPorSecretaria(reservaGuardada);
+        return reservaGuardada;
     }
 
     @Transactional(readOnly = true)

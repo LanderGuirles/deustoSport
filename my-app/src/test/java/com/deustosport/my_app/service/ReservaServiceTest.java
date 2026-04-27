@@ -148,8 +148,6 @@ class ReservaServiceTest {
                 .thenReturn(pagoMock);
         when(reservaRepository.save(isA(Reserva.class)))
                 .thenAnswer(inv -> inv.getArgument(0));
-        when(usuarioRepository.save(isA(Usuario.class)))
-                .thenAnswer(inv -> inv.getArgument(0));
 
         Reserva pagada = reservaService.pagarReserva(
                 99L, 10L, MetodoPago.TARJETA,
@@ -388,5 +386,33 @@ class ReservaServiceTest {
 
                 assertTrue(ex.getMessage().contains("24 horas"));
                 verify(reservaRepository, never()).save(any());
+        }
+
+        @Test
+        void modificarReservaPorSecretaria_notificaAlUsuario() {
+                log.info("[TEST] modificarReservaPorSecretaria_notificaAlUsuario");
+
+                Reserva reserva = new Reserva();
+                reserva.setId(500L);
+                reserva.setUsuario(usuario);
+                reserva.setPista(pista);
+                reserva.setFechaReserva(LocalDate.now().plusDays(1));
+                reserva.setHoraInicio(LocalTime.of(10, 0));
+                reserva.setHoraFin(LocalTime.of(11, 0));
+                reserva.setEstado(EstadoReserva.CONFIRMADA);
+
+                LocalDate nuevaFecha = LocalDate.now().plusDays(2);
+                LocalTime nuevaHora = LocalTime.of(12, 0);
+
+                when(reservaRepository.findById(500L)).thenReturn(Optional.of(reserva));
+                when(pistaRepository.findById(20L)).thenReturn(Optional.of(pista));
+                when(reservaRepository.findConflictingReservationsExcludingReserva(
+                                eq(20L), eq(nuevaFecha), any(), any(), eq(500L)))
+                                .thenReturn(List.of());
+                when(reservaRepository.save(any(Reserva.class))).thenAnswer(i -> i.getArgument(0));
+
+                reservaService.modificarReservaPorSecretaria(500L, nuevaFecha, nuevaHora, 60, 20L);
+
+                verify(notificacionService).notificarModificacionReservaPorSecretaria(any(Reserva.class));
         }
 }

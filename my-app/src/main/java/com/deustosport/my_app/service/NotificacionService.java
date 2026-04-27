@@ -174,6 +174,28 @@ public class NotificacionService {
         return actualizadas;
     }
 
+    @Transactional
+    public NotificacionResponse notificarModificacionReservaPorSecretaria(Reserva reserva) {
+        String titulo = "Reserva modificada por Secretaría";
+        String mensaje = "Tu reserva en " + reserva.getPista().getNombre() + " ha sido modificada por la secretaría. "
+                + "Nueva fecha: " + reserva.getFechaReserva() + ", Hora: " + reserva.getHoraInicio() + ".";
+
+        Notificacion notificacion = crearNotificacion(
+                reserva.getUsuario(),
+                titulo,
+                mensaje,
+                TipoNotificacion.RESERVA,
+                reserva.getId());
+
+        // Opcionalmente enviar email
+        emailService.enviarEmailNotificacion(
+                reserva.getUsuario().getEmail(),
+                titulo,
+                mensaje);
+
+        return toDto(notificacion);
+    }
+
     private Notificacion crearNotificacion(Usuario usuario,
                                            String titulo,
                                            String mensaje,
