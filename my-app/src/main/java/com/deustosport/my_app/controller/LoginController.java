@@ -187,4 +187,22 @@ public class LoginController {
                                 .body(java.util.Map.of("error", "Error al recargar: " + e.getMessage()));
                 }
         }
+
+        @GetMapping("/verificar-usuario")
+        @Operation(summary = "Verificar usuario por email", description = "Comprueba si un email corresponde a un usuario registrado")
+        public ResponseEntity<java.util.Map<String, Object>> verificarUsuario(@RequestParam String email) {
+                if (email == null || email.isBlank()) {
+                        return ResponseEntity.badRequest()
+                                .body(java.util.Map.of("existe", false, "error", "Email requerido"));
+                }
+                var usuarioOpt = usuarioRepository.findByEmail(email.trim().toLowerCase());
+                if (usuarioOpt.isPresent()) {
+                        return ResponseEntity.ok(java.util.Map.of(
+                                "existe", true,
+                                "nombre", usuarioOpt.get().getNombreCompleto()
+                        ));
+                }
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(java.util.Map.of("existe", false, "error", "Usuario no encontrado"));
+        }
 }

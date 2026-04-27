@@ -1812,7 +1812,7 @@
 			async function comprobarYAñadirFamiliar(event) {
 				const input = document.getElementById('input-email-familiar');
 				const email = input.value.trim().toLowerCase();
-				
+
 				if (!email || !email.includes('@')) { toast('Introduce un email válido', 'err'); return; }
 				if (email === (localStorage.getItem('usuarioEmail') || '').toLowerCase()) { toast('No puedes añadirte a ti mismo', 'err'); return; }
 				if (emailsFamiliares.includes(email)) { toast('Este familiar ya está en la lista', 'err'); return; }
@@ -1824,12 +1824,18 @@
 				btn.disabled = true;
 
 				try {
-					await new Promise(r => setTimeout(r, 500));
+					const res = await fetch(`${API}/api/auth/verificar-usuario?email=${encodeURIComponent(email)}`);
+					const data = await res.json();
+					if (!res.ok || !data.existe) {
+						toast(`No se encontró ningún usuario con el email "${email}"`, 'err');
+						return;
+					}
 					emailsFamiliares.push(email);
 					renderListaFamiliares();
 					input.value = '';
-				} catch (e) {
-					toast('Error al comprobar', 'err');
+					toast(`Familiar añadido: ${data.nombre}`, 'ok');
+				} catch {
+					toast('Error al verificar el email. Inténtalo de nuevo.', 'err');
 				} finally {
 					btn.textContent = oldText;
 					btn.disabled = false;
