@@ -1036,10 +1036,16 @@
 
 			    const dias = ['','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
 
-			    // agrupar por tipo (valle / punta / finde)
-			    const valle = tarifas.filter(t => t.diaSemana <= 5 && t.horaFin.startsWith('17'));
-			    const punta = tarifas.filter(t => t.diaSemana <= 5 && t.horaInicio.startsWith('17'));
-			    const finde = tarifas.filter(t => t.diaSemana >= 6);
+			    // Clasificación por hora (comparación numérica, no por cadena)
+			    const HORA_PUNTA = 17;
+			    const parseHora = h => parseInt((h || '00:00').split(':')[0], 10);
+
+			    const laboral = tarifas.filter(t => t.diaSemana >= 1 && t.diaSemana <= 5);
+			    const finde   = tarifas.filter(t => t.diaSemana >= 6);
+			    const valle   = laboral.filter(t => parseHora(t.horaFin)   <= HORA_PUNTA && parseHora(t.horaInicio) < HORA_PUNTA);
+			    const punta   = laboral.filter(t => parseHora(t.horaInicio) >= HORA_PUNTA);
+			    // Tarifas laborables que cruzan el límite o no encajan en ninguna franja
+			    const otras   = laboral.filter(t => !valle.includes(t) && !punta.includes(t));
 
 			    function renderGrupo(titulo, tipo, lista) {
 			      if (!lista.length) return '';
@@ -1050,8 +1056,8 @@
 			            ${lista.map(t => `
 			              <div class="tarifa-card">
 			                <span class="tarifa-badge ${tipo}">${tipo}</span>
-			                <div class="tarifa-horario">${t.horaInicio.substring(0,5)} – ${t.horaFin.substring(0,5)}</div>
-			                <div class="tarifa-horario">${dias[t.diaSemana]}</div>
+			                <div class="tarifa-horario">${(t.horaInicio||'').substring(0,5)} – ${(t.horaFin||'').substring(0,5)}</div>
+			                <div class="tarifa-horario">${dias[t.diaSemana] || ''}</div>
 			                <div class="tarifa-precio">${fmtEur(t.precioPorHora)} <span>/ hora</span></div>
 			              </div>`).join('')}
 			          </div>
@@ -1059,9 +1065,10 @@
 			    }
 
 			    container.innerHTML =
-			      renderGrupo('Hora valle — Lunes a Viernes (08:00 – 17:00)', 'valle', valle) +
-			      renderGrupo('Hora punta — Lunes a Viernes (17:00 – 22:00)', 'punta', punta) +
-			      renderGrupo('Fin de semana', 'finde', finde);
+			      renderGrupo(`Hora valle — Lunes a Viernes (hasta ${String(HORA_PUNTA).padStart(2,'0')}:00)`, 'valle', valle) +
+			      renderGrupo(`Hora punta — Lunes a Viernes (desde ${String(HORA_PUNTA).padStart(2,'0')}:00)`, 'punta', punta) +
+			      renderGrupo('Fin de semana', 'finde', finde) +
+			      renderGrupo('Otras tarifas laborables', 'valle', otras);
 
 			  } catch {
 			    container.innerHTML =
