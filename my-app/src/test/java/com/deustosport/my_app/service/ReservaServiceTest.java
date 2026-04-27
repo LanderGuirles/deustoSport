@@ -14,10 +14,14 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("null")
 class ReservaServiceTest {
+
+    private static final Logger log = LoggerFactory.getLogger(ReservaServiceTest.class);
 
     @Mock private ReservaRepository reservaRepository;
     @Mock private PistaRepository pistaRepository;
@@ -59,6 +63,7 @@ class ReservaServiceTest {
 
     @Test
     void crearReserva_dejaEstadoPendiente() {
+        log.info("[TEST] crearReserva_dejaEstadoPendiente - usuario={}, pista={}", usuario.getId(), pista.getId());
         LocalDate fecha = LocalDate.now().plusDays(1);
         LocalTime horaInicio = LocalTime.of(10, 0);
         LocalTime horaFin = horaInicio.plusMinutes(60);
@@ -81,6 +86,7 @@ class ReservaServiceTest {
 
     @Test
     void crearReserva_saldoInsuficiente_lanzaExcepcion() {
+        log.info("[TEST] crearReserva_saldoInsuficiente_lanzaExcepcion - billetera insuficiente (5.00)");
         LocalDate fecha = LocalDate.now().plusDays(1);
         LocalTime horaInicio = LocalTime.of(10, 0);
         LocalTime horaFin = horaInicio.plusMinutes(60);
@@ -103,6 +109,7 @@ class ReservaServiceTest {
 
     @Test
     void crearReserva_fueraHorarioGeneral_lanzaExcepcion() {
+        log.info("[TEST] crearReserva_fueraHorarioGeneral_lanzaExcepcion - hora 22:00 fuera de apertura");
         LocalDate fecha = LocalDate.now().plusDays(1);
         LocalTime horaInicio = LocalTime.of(22, 0);
 
@@ -118,6 +125,7 @@ class ReservaServiceTest {
 
     @Test
     void pagarReserva_conTarjeta_confirmaReserva() {
+        log.info("[TEST] pagarReserva_conTarjeta_confirmaReserva - reservaId=99, precio=30.00");
         Reserva reserva = new Reserva();
         reserva.setId(99L);
         reserva.setUsuario(usuario);
@@ -165,6 +173,7 @@ class ReservaServiceTest {
 
     @Test
     void pagarReserva_conBizumInvalido_lanzaExcepcion() {
+        log.info("[TEST] pagarReserva_conBizumInvalido_lanzaExcepcion - telefono='555' invalido");
         Reserva reserva = new Reserva();
         reserva.setId(101L);
         reserva.setUsuario(usuario);

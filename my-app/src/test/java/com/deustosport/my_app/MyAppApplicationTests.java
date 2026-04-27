@@ -3,7 +3,7 @@ package com.deustosport.my_app;
 import com.deustosport.my_app.config.DataInitializer;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest(properties = {
 		"spring.datasource.url=jdbc:h2:mem:deustosport_app_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
@@ -18,7 +18,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 })
 class MyAppApplicationTests {
 
-	@MockBean
+	@MockitoBean
 	private DataInitializer dataInitializer;
 
 	@Test
