@@ -30,6 +30,8 @@ import java.util.stream.Collectors;
 @Service
 public class ReservaService {
 
+    private static final int ANTELACION_MINIMA_HORAS = 24;
+
     private static final Pattern PATRON_TARJETA  = Pattern.compile("^\\d{16}$");
     private static final Pattern PATRON_CADUCIDAD = Pattern.compile("^(0[1-9]|1[0-2])/[0-9]{2}$");
     private static final Pattern PATRON_CVV       = Pattern.compile("^\\d{3,4}$");
@@ -212,8 +214,7 @@ public class ReservaService {
         if (reserva.getEstado() == EstadoReserva.CANCELADA) {
             throw new IllegalStateException("La reserva ya está cancelada.");
         }
-        LocalDateTime fechaHoraReserva = LocalDateTime.of(reserva.getFechaReserva(), reserva.getHoraInicio());
-        if (!fechaHoraReserva.isAfter(LocalDateTime.now().plusHours(24))) {
+        if (!cumpleAntelacionMinima24h(reserva.getFechaReserva(), reserva.getHoraInicio())) {
             throw new IllegalStateException("Solo se puede cancelar una reserva con mas de 24 horas de antelacion.");
         }
 
@@ -227,6 +228,70 @@ public class ReservaService {
 
         reserva.setEstado(EstadoReserva.CANCELADA);
         return reservaRepository.save(reserva);
+    }
+
+    @Transactional
+    public Reserva modificarReserva(Long reservaId, Long usuarioId,
+                                    LocalDate nuevaFecha, LocalTime nuevaHoraInicio,
+                                    Integer duracionMinutos) {
+        Objects.requireNonNull(reservaId, "reservaId no puede ser null");
+        Objects.requireNonNull(usuarioId, "usuarioId no puede ser null");
+        Objects.requireNonNull(nuevaFecha, "nuevaFecha no puede ser null");
+        Objects.requireNonNull(nuevaHoraInicio, "nuevaHoraInicio no puede ser null");
+
+        int duracion = (duracionMinutos == null || duracionMinutos <= 0) ? 60 : duracionMinutos;
+
+        Reserva reserva = reservaRepository.findById(reservaId)
+                .orElseThrow(() -> new IllegalArgumentException("Reserva no encontrada"));
+
+        if (!reserva.getUsuario().getId().equals(usuarioId)) {
+            throw new SecurityException("No tienes permiso para modificar esta reserva.");
+        }
+        if (reserva.getEstado() == EstadoReserva.CANCELADA) {
+            throw new IllegalStateException("No se puede modificar una reserva cancelada.");
+        }
+        if (!cumpleAntelacionMinima24h(reserva.getFechaReserva(), reserva.getHoraInicio())) {
+            throw new IllegalStateException("Solo se puede modificar una reserva con mas de 24 horas de antelacion.");
+        }
+
+        nuevaHoraInicio = nuevaHoraInicio.withSecond(0).withNano(0);
+        LocalTime nuevaHoraFin = nuevaHoraInicio.plusMinutes(duracion);
+
+        if (!cumpleAntelacionMinima24h(nuevaFecha, nuevaHoraInicio)) {
+            throw new IllegalStateException("El nuevo horario debe estar al menos a 24 horas vista.");
+        }
+
+        Pista pista = reserva.getPista();
+        validarHorarioInstalacion(pista, nuevaHoraInicio, nuevaHoraFin);
+
+        List<Reserva> conflictos = reservaRepository.findConflictingReservationsExcludingReserva(
+                pista.getId(), nuevaFecha, nuevaHoraInicio, nuevaHoraFin, reservaId);
+        if (!conflictos.isEmpty()) {
+            throw new IllegalStateException("La pista ya está reservada en el nuevo horario seleccionado.");
+        }
+
+        BigDecimal precioAnterior = reserva.getPrecioTotal() != null ? reserva.getPrecioTotal() : BigDecimal.ZERO;
+        BigDecimal nuevoPrecio = tarifaService.calcularPrecio(
+                pista.getTipoDeporte(), nuevaFecha, nuevaHoraInicio, nuevaHoraFin,
+                reserva.getUsuario().isEsSocio());
+        nuevoPrecio = aplicarDescuentoAbonoSiExiste(usuarioId, nuevoPrecio);
+
+        if (reserva.getEstado() == EstadoReserva.CONFIRMADA) {
+            ajustarBilleteraPorCambioDePrecio(reserva.getUsuario(), precioAnterior, nuevoPrecio);
+        }
+
+        reserva.setFechaReserva(nuevaFecha);
+        reserva.setHoraInicio(nuevaHoraInicio);
+        reserva.setHoraFin(nuevaHoraFin);
+        reserva.setPrecioTotal(nuevoPrecio);
+
+        return reservaRepository.save(reserva);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean cumpleAntelacionMinima24h(LocalDate fecha, LocalTime horaInicio) {
+        LocalDateTime fechaHoraReserva = LocalDateTime.of(fecha, horaInicio);
+        return fechaHoraReserva.isAfter(LocalDateTime.now().plusHours(ANTELACION_MINIMA_HORAS));
     }
 
     // ─── Disponibilidad 
@@ -329,6 +394,9 @@ public class ReservaService {
         dto.setMetodoPago(r.getMetodoPago());
         dto.setReferenciaPago(r.getReferenciaPago());
         dto.setFechaPago(r.getFechaPago());
+        boolean cumpleRegla24h = cumpleAntelacionMinima24h(r.getFechaReserva(), r.getHoraInicio());
+        dto.setPuedeModificar(cumpleRegla24h && r.getEstado() != EstadoReserva.CANCELADA);
+        dto.setPuedeCancelarConReembolso(cumpleRegla24h && r.getEstado() != EstadoReserva.CANCELADA);
 
         // Información de descuento
         boolean esSocio = r.getUsuario().isEsSocio();
@@ -404,5 +472,27 @@ public class ReservaService {
 
     private String limpiar(String v) {
         return v == null ? "" : v.trim();
+    }
+
+    private void ajustarBilleteraPorCambioDePrecio(Usuario usuario,
+                                                    BigDecimal precioAnterior,
+                                                    BigDecimal nuevoPrecio) {
+        BigDecimal diferencia = nuevoPrecio.subtract(precioAnterior);
+        if (diferencia.compareTo(BigDecimal.ZERO) > 0) {
+            if (usuario.getBilletera().compareTo(diferencia) < 0) {
+                throw new IllegalStateException(
+                        "Saldo insuficiente para modificar la reserva. Necesitas "
+                                + diferencia.toPlainString() + "€ adicionales.");
+            }
+            usuario.setBilletera(usuario.getBilletera().subtract(diferencia));
+            usuarioRepository.save(usuario);
+            return;
+        }
+
+        if (diferencia.compareTo(BigDecimal.ZERO) < 0) {
+            BigDecimal reembolso = diferencia.abs();
+            usuario.setBilletera(usuario.getBilletera().add(reembolso));
+            usuarioRepository.save(usuario);
+        }
     }
 }

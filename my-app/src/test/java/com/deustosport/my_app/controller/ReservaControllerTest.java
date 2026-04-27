@@ -71,7 +71,7 @@ class ReservaControllerTest {
     void pagarReserva_siFaltanCampos_devuelveBadRequest() {
         PagoReservaRequest request = new PagoReservaRequest();
         request.setUsuarioId(null);
-        request.setMetodoPago(MetodoPago.TARJETA);
+        request.setMetodoPago("TARJETA");
 
         ResponseEntity<?> response = reservaController.pagarReserva(10L, request);
 

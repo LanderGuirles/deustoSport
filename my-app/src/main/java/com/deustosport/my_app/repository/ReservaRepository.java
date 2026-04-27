@@ -37,6 +37,19 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
             @Param("horaFin") LocalTime horaFin
     );
 
+            @Query("SELECT r FROM Reserva r WHERE r.pista.id = :pistaId " +
+               "AND r.fechaReserva = :fecha " +
+               "AND r.id <> :reservaId " +
+               "AND r.estado != com.deustosport.my_app.enums.EstadoReserva.CANCELADA " +
+               "AND NOT (r.horaFin <= :horaInicio OR r.horaInicio >= :horaFin)")
+            List<Reserva> findConflictingReservationsExcludingReserva(
+                @Param("pistaId") Long pistaId,
+                @Param("fecha") LocalDate fecha,
+                @Param("horaInicio") LocalTime horaInicio,
+                @Param("horaFin") LocalTime horaFin,
+                @Param("reservaId") Long reservaId
+            );
+
     List<Reserva> findByFechaReservaAndEstado(LocalDate fecha, EstadoReserva estado);
 
     @Query("SELECT r FROM Reserva r WHERE r.pista.id = :pistaId " +

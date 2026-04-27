@@ -28,4 +28,6 @@ public class ReservaResponse {
     private String referenciaPago;
     private LocalDateTime fechaPago;
     private BigDecimal saldoRestante;
+    private boolean puedeModificar;
+    private boolean puedeCancelarConReembolso;
 }

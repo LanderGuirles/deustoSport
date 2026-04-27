@@ -1,6 +1,7 @@
 package com.deustosport.my_app.controller;
 
 import com.deustosport.my_app.dto.PagoReservaRequest;
+import com.deustosport.my_app.dto.ModificarReservaRequest;
 import com.deustosport.my_app.dto.ReservaRequest;
 import com.deustosport.my_app.dto.ReservaResponse;
 import com.deustosport.my_app.entity.Reserva;
@@ -54,6 +55,10 @@ public class ReservaController {
             dto.setHoraFin(reserva.getHoraFin());
             dto.setPrecioTotal(reserva.getPrecioTotal());
             dto.setEstado(reserva.getEstado());
+                dto.setPuedeModificar(reservaService.cumpleAntelacionMinima24h(
+                    reserva.getFechaReserva(), reserva.getHoraInicio()));
+                dto.setPuedeCancelarConReembolso(reservaService.cumpleAntelacionMinima24h(
+                    reserva.getFechaReserva(), reserva.getHoraInicio()));
             dto.setDescuentoSocioAplicado(reserva.getUsuario().isEsSocio());
             if (reserva.getUsuario().isEsSocio()) {
                 // Calcular precio sin descuento para mostrar al usuario
@@ -99,6 +104,53 @@ public class ReservaController {
             resp.setReferenciaPago(r.getReferenciaPago());
             resp.setFechaPago(r.getFechaPago());
             resp.setSaldoRestante(r.getUsuario().getBilletera());
+            resp.setPuedeModificar(false);
+            resp.setPuedeCancelarConReembolso(false);
+            return ResponseEntity.ok(resp);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{reservaId}/modificar")
+    @Operation(summary = "Modificar reserva",
+            description = "Permite cambiar fecha y hora si faltan más de 24h para la reserva actual y la nueva franja.")
+    public ResponseEntity<?> modificarReserva(
+            @PathVariable("reservaId") Long reservaId,
+            @RequestParam("usuarioId") Long usuarioId,
+            @RequestBody ModificarReservaRequest request) {
+        try {
+            if (request.getFecha() == null || request.getHoraInicio() == null) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Debes indicar nueva fecha y nueva hora de inicio."));
+            }
+
+            Reserva r = reservaService.modificarReserva(
+                    reservaId,
+                    usuarioId,
+                    request.getFecha(),
+                    request.getHoraInicio(),
+                    request.getDuracionMinutos());
+
+            ReservaResponse resp = new ReservaResponse();
+            resp.setId(r.getId());
+            resp.setUsuarioId(r.getUsuario().getId());
+            resp.setPistaId(r.getPista() != null ? r.getPista().getId() : null);
+            resp.setPistaNombre(r.getPista() != null ? r.getPista().getNombre() : "—");
+            resp.setTipoDeporte(r.getPista() != null ? r.getPista().getTipoDeporte() : null);
+            resp.setFechaReserva(r.getFechaReserva());
+            resp.setHoraInicio(r.getHoraInicio());
+            resp.setHoraFin(r.getHoraFin());
+            resp.setPrecioTotal(r.getPrecioTotal());
+            resp.setEstado(r.getEstado());
+            resp.setMetodoPago(r.getMetodoPago());
+            resp.setReferenciaPago(r.getReferenciaPago());
+            resp.setFechaPago(r.getFechaPago());
+            resp.setSaldoRestante(r.getUsuario().getBilletera());
+            boolean cumpleRegla24h = reservaService.cumpleAntelacionMinima24h(
+                    r.getFechaReserva(), r.getHoraInicio());
+            resp.setPuedeModificar(cumpleRegla24h && r.getEstado() != com.deustosport.my_app.enums.EstadoReserva.CANCELADA);
+            resp.setPuedeCancelarConReembolso(cumpleRegla24h && r.getEstado() != com.deustosport.my_app.enums.EstadoReserva.CANCELADA);
             return ResponseEntity.ok(resp);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -139,6 +191,10 @@ public class ReservaController {
             resp.setReferenciaPago(pagada.getReferenciaPago());
             resp.setFechaPago(pagada.getFechaPago());
             resp.setSaldoRestante(pagada.getUsuario().getBilletera());
+                boolean cumpleRegla24h = reservaService.cumpleAntelacionMinima24h(
+                    pagada.getFechaReserva(), pagada.getHoraInicio());
+                resp.setPuedeModificar(cumpleRegla24h && pagada.getEstado() != com.deustosport.my_app.enums.EstadoReserva.CANCELADA);
+                resp.setPuedeCancelarConReembolso(cumpleRegla24h && pagada.getEstado() != com.deustosport.my_app.enums.EstadoReserva.CANCELADA);
             return ResponseEntity.ok(resp);
 
         } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {

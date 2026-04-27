@@ -25,6 +25,8 @@ class ReservaServiceTest {
         @Mock private EmailService emailService;
     @Mock private TarifaService tarifaService;
         @Mock private PagoService pagoService;
+        @Mock private NotificacionService notificacionService;
+        @Mock private AbonoUsuarioService abonoUsuarioService;
 
     @InjectMocks
     private ReservaService reservaService;
@@ -51,6 +53,8 @@ class ReservaServiceTest {
         pista.setTipoDeporte(TipoDeporte.PADEL);
         pista.setActiva(true);
         pista.setInstalacion(instalacion);
+
+                lenient().when(abonoUsuarioService.obtenerAbonoActivo(anyLong())).thenReturn(Optional.empty());
     }
 
     @Test
@@ -264,4 +268,58 @@ class ReservaServiceTest {
         assertTrue(ex.getMessage().contains("24 horas"));
         verify(reservaRepository, never()).save(any());
     }
+
+        @Test
+        void modificarReserva_conMasDe24h_actualizaFechaHoraYPrecio() {
+                Reserva reserva = new Reserva();
+                reserva.setId(450L);
+                reserva.setUsuario(usuario);
+                reserva.setPista(pista);
+                reserva.setFechaReserva(LocalDate.now().plusDays(3));
+                reserva.setHoraInicio(LocalTime.of(12, 0));
+                reserva.setHoraFin(LocalTime.of(13, 0));
+                reserva.setEstado(EstadoReserva.PENDIENTE);
+                reserva.setPrecioTotal(new BigDecimal("20.00"));
+
+                LocalDate nuevaFecha = LocalDate.now().plusDays(4);
+                LocalTime nuevaHora = LocalTime.of(18, 0);
+
+                when(reservaRepository.findById(450L)).thenReturn(Optional.of(reserva));
+                when(reservaRepository.findConflictingReservationsExcludingReserva(
+                                eq(20L), eq(nuevaFecha), eq(nuevaHora), eq(nuevaHora.plusMinutes(60)), eq(450L)))
+                                .thenReturn(List.of());
+                when(tarifaService.calcularPrecio(eq(TipoDeporte.PADEL), eq(nuevaFecha), eq(nuevaHora),
+                                eq(nuevaHora.plusMinutes(60)), eq(false))).thenReturn(new BigDecimal("25.00"));
+                when(reservaRepository.save(isA(Reserva.class))).thenAnswer(inv -> inv.getArgument(0));
+
+                Reserva modificada = reservaService.modificarReserva(450L, 10L, nuevaFecha, nuevaHora, 60);
+
+                assertEquals(nuevaFecha, modificada.getFechaReserva());
+                assertEquals(nuevaHora, modificada.getHoraInicio());
+                assertEquals(LocalTime.of(19, 0), modificada.getHoraFin());
+                assertEquals(new BigDecimal("25.00"), modificada.getPrecioTotal());
+        }
+
+        @Test
+        void modificarReserva_con24hOMenos_lanzaExcepcion() {
+                LocalDateTime inicioEnMenosDe24h = LocalDateTime.now().plusHours(20).withSecond(0).withNano(0);
+
+                Reserva reserva = new Reserva();
+                reserva.setId(451L);
+                reserva.setUsuario(usuario);
+                reserva.setPista(pista);
+                reserva.setFechaReserva(inicioEnMenosDe24h.toLocalDate());
+                reserva.setHoraInicio(inicioEnMenosDe24h.toLocalTime());
+                reserva.setHoraFin(reserva.getHoraInicio().plusHours(1));
+                reserva.setEstado(EstadoReserva.PENDIENTE);
+
+                when(reservaRepository.findById(451L)).thenReturn(Optional.of(reserva));
+
+                IllegalStateException ex = assertThrows(IllegalStateException.class,
+                                () -> reservaService.modificarReserva(451L, 10L,
+                                                LocalDate.now().plusDays(2), LocalTime.of(10, 0), 60));
+
+                assertTrue(ex.getMessage().contains("24 horas"));
+                verify(reservaRepository, never()).save(any());
+        }
 }

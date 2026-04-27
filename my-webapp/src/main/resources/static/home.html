@@ -136,6 +136,12 @@
                   padding:7px 14px;border-radius:8px;font-size:13px;cursor:pointer;
                   font-family:'DM Sans',sans-serif;transition:all .2s;}
     .btn-cancel-r:hover{border-color:var(--danger);color:var(--danger);}
+	.btn-modificar-r{background:transparent;border:1px solid var(--border);color:var(--muted);
+					 padding:7px 14px;border-radius:8px;font-size:13px;cursor:pointer;
+					 font-family:'DM Sans',sans-serif;transition:all .2s;}
+	.btn-modificar-r:hover{border-color:#388bfd;color:#388bfd;}
+	.btn-modificar-r:disabled,.btn-cancel-r:disabled{opacity:.45;cursor:not-allowed;}
+	.btn-modificar-r:disabled:hover,.btn-cancel-r:disabled:hover{border-color:var(--border);color:var(--muted);}
 
     /* ── CALENDAR ── */
     .cal-grid{display:grid;grid-template-columns:52px repeat(7,minmax(80px,1fr));
@@ -591,6 +597,7 @@
 			let metodoCalSeleccionado = null;
 			let slotSeleccionado    = null;
 			let reservaRecienCreada = null;
+			let reservaEnEdicion    = null;
 			let notificationPanelOpen = false;
 			let notificationsRefreshTimer = null;
 			let planesAbonoGlobal = [];
@@ -1022,6 +1029,7 @@
 			  pistaCalendario   = pistasGlobal.find(p => p.id === pistaId);
 			  slotSeleccionado  = null;
 			  reservaRecienCreada = null;
+			  reservaEnEdicion = null;
 
 			  document.getElementById('cal-titulo').textContent    = pistaCalendario.nombre;
 			  document.getElementById('cal-subtitulo').textContent = pistaCalendario.tipoDeporte
@@ -1035,15 +1043,60 @@
 			  openModal('modal-calendario');
 
 			  try {
-			    const hoy  = new Date().toISOString().split('T')[0];
-			    const url  = API + '/api/reservas/pista/' + pistaId + '/semana?fecha=' + hoy;
-			    const res  = await fetch(url);
-			    const ocupados = await res.json();  // [{fecha,horaInicio,horaFin}, ...]
-
+			    const ocupados = await cargarOcupadosSemana(pistaId);
 			    renderCalendario(ocupados);
 			  } catch (e) {
 			    document.getElementById('cal-loading').textContent = 'Error al cargar disponibilidad.';
 			  }
+			}
+
+			async function abrirModificarReserva(reservaId) {
+			  const reserva = reservasGlobal.find(r => r.id === reservaId);
+			  if (!reserva) return;
+
+			  const regla24h = reserva.puedeModificar === true ||
+			    (new Date(reserva.fechaReserva + 'T' + (reserva.horaInicio || '00:00')).getTime() > (Date.now() + 24 * 60 * 60 * 1000));
+			  if (!regla24h) {
+			    toast('Solo puedes modificar reservas con más de 24h de antelación.', 'err');
+			    return;
+			  }
+
+			  pistaCalendario = pistasGlobal.find(p => p.id === reserva.pistaId);
+			  if (!pistaCalendario) {
+			    toast('No se pudo localizar la pista de la reserva.', 'err');
+			    return;
+			  }
+
+			  reservaEnEdicion = reserva;
+			  slotSeleccionado = null;
+			  reservaRecienCreada = null;
+
+			  document.getElementById('cal-titulo').textContent = 'Modificar reserva · ' + (reserva.pistaNombre || pistaCalendario.nombre);
+			  document.getElementById('cal-subtitulo').textContent = 'Elige un nuevo hueco (solo permitido con más de 24h)';
+
+			  document.getElementById('cal-step-1').style.display = 'block';
+			  document.getElementById('cal-step-2').style.display = 'none';
+			  document.getElementById('cal-loading').style.display = 'block';
+			  document.getElementById('cal-grid-wrapper').style.display = 'none';
+
+			  openModal('modal-calendario');
+
+			  try {
+			    const ocupados = await cargarOcupadosSemana(reserva.pistaId);
+			    renderCalendario(ocupados);
+			  } catch (e) {
+			    document.getElementById('cal-loading').textContent = 'Error al cargar disponibilidad.';
+			  }
+			}
+
+			async function cargarOcupadosSemana(pistaId) {
+			  const hoy = new Date().toISOString().split('T')[0];
+			  const url = API + '/api/reservas/pista/' + pistaId + '/semana?fecha=' + hoy;
+			  const res = await fetch(url);
+			  if (!res.ok) {
+			    throw new Error('No se pudo cargar la disponibilidad');
+			  }
+			  return await res.json();
 			}
 
 			function renderCalendario(ocupados) {
@@ -1054,6 +1107,10 @@
 			  const ocupSet = new Set(
 			    ocupados.map(o => o.fecha + '_' + o.horaInicio.substring(0,5))
 			  );
+
+			  if (reservaEnEdicion && reservaEnEdicion.fechaReserva && reservaEnEdicion.horaInicio) {
+			    ocupSet.delete(reservaEnEdicion.fechaReserva + '_' + reservaEnEdicion.horaInicio.substring(0,5));
+			  }
 
 			  const grid = document.getElementById('cal-grid');
 			  grid.innerHTML = '';
@@ -1130,8 +1187,50 @@
 			    }
 			  } catch { /* ignorar */ }
 
+			  if (reservaEnEdicion) {
+			    await confirmarModificacionReserva(fecha, hora);
+			    return;
+			  }
+
 			  const precioEst = await estimarPrecio(fecha, hora);
 			  mostrarStepPago(precioEst);
+			}
+
+			async function confirmarModificacionReserva(fecha, hora) {
+			  if (!reservaEnEdicion) return;
+			  if (!confirm('¿Confirmas el cambio de reserva al nuevo hueco seleccionado?')) return;
+
+			  try {
+			    const res = await fetch(
+			      `${API}/api/reservas/${reservaEnEdicion.id}/modificar?usuarioId=${currentUserId}`,
+			      {
+			        method: 'PUT',
+			        headers: { 'Content-Type': 'application/json' },
+			        body: JSON.stringify({
+			          fecha: fecha,
+			          horaInicio: hora,
+			          duracionMinutos: 60
+			        })
+			      }
+			    );
+
+			    const data = await res.json();
+			    if (!res.ok) {
+			      throw new Error(data.error || 'No se pudo modificar la reserva');
+			    }
+
+			    if (data.saldoRestante != null) {
+			      localStorage.setItem('billetera', data.saldoRestante);
+			      actualizarSaldoNav();
+			    }
+
+			    toast('Reserva modificada correctamente.', 'ok');
+			    reservaEnEdicion = null;
+			    closeModal('modal-calendario');
+			    await loadMisReservas();
+			  } catch (e) {
+			    toast(e.message || 'Error al modificar la reserva', 'err');
+			  }
 			}
 
 			async function estimarPrecio(fecha, hora) {
@@ -1224,6 +1323,7 @@
 
 			function cancelarYVolverCal() {
 			  // Volver al calendario sin cerrarlo
+			  reservaEnEdicion = null;
 			  document.getElementById('cal-step-1').style.display = 'block';
 			  document.getElementById('cal-step-2').style.display = 'none';
 			  // Deseleccionar slot
@@ -1374,12 +1474,16 @@
 
 			    container.innerHTML = reservasGlobal.map(r => {
 			      const esPasada = new Date(r.fechaReserva + 'T' + r.horaInicio) < new Date();
+			      const cumpleRegla24h = r.puedeModificar === true ||
+			        (new Date(r.fechaReserva + 'T' + (r.horaInicio || '00:00')).getTime() > (Date.now() + 24 * 60 * 60 * 1000));
+			      const puedeCancelar = r.puedeCancelarConReembolso === true || cumpleRegla24h;
 			      const acciones = (!esPasada && r.estado !== 'CANCELADA') ? `
 			        <div class="reserva-actions">
 			          ${r.estado === 'PENDIENTE'
 			            ? `<button class="btn-pagar" onclick="abrirPagoReserva(${r.id})">Pagar</button>`
 			            : ''}
-			          <button class="btn-cancel-r" onclick="cancelarReserva(${r.id})">Cancelar</button>
+			          <button class="btn-modificar-r" onclick="abrirModificarReserva(${r.id})" ${cumpleRegla24h ? '' : 'disabled'} title="${cumpleRegla24h ? 'Cambiar fecha/hora' : 'Solo disponible si faltan más de 24h'}">Modificar</button>
+			          <button class="btn-cancel-r" onclick="cancelarReserva(${r.id})" ${puedeCancelar ? '' : 'disabled'} title="${puedeCancelar ? 'Cancelar reserva' : 'Solo disponible si faltan más de 24h'}">Cancelar</button>
 			        </div>` : '';
 
 			      return `
@@ -1424,7 +1528,7 @@
 			        localStorage.setItem('billetera', data.saldoRestante);
 			        actualizarSaldoNav();
 			      }
-			      toast('Reserva cancelada. Importe reembolsado a tu billetera.', 'ok');
+			      toast('Reserva cancelada correctamente.', 'ok');
 			      loadMisReservas();
 			    }
 			    else {
@@ -1467,6 +1571,7 @@
 			    if (e.target === o) {
 			      closeModal(o.id);
 			      window._pagarDirecto = false;
+			      reservaEnEdicion = null;
 			    }
 			  });
 			});
