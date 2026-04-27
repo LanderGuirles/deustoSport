@@ -554,8 +554,7 @@
             if (!response.ok) throw new Error("No se pudo cambiar el estado.");
             cargarPistas();
         } catch (error) {
-            alert(error.message);
-            showStatus(tablaStatusEl, "", "");
+            showStatus(tablaStatusEl, error.message, "error");
         }
     }
 
@@ -575,8 +574,7 @@
             if (!response.ok) throw new Error("No se pudo eliminar.");
             cargarPistas();
         } catch (error) {
-            alert(error.message);
-            showStatus(tablaStatusEl, "", "");
+            showStatus(tablaStatusEl, error.message, "error");
         }
     }
 
@@ -641,8 +639,11 @@
             }
 
             // Éxito total
-            cerrarModal();
-            cargarPistas();
+            showStatus(modalStatus, "Pista actualizada correctamente.", "success");
+            setTimeout(() => {
+                cerrarModal();
+                cargarPistas();
+            }, 1200);
         } catch (error) {
             showStatus(modalStatus, error.message, "error");
         } finally {
