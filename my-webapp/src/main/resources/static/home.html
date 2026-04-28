@@ -204,8 +204,9 @@
     .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
 	.metodo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
     .metodo-btn{background:var(--surface2);border:2px solid var(--border);color:var(--muted);
-                padding:12px 8px;border-radius:10px;text-align:center;cursor:pointer;
-                font-size:12px;font-weight:600;transition:all .2s;font-family:'DM Sans',sans-serif;}
+                padding:14px 8px;border-radius:10px;text-align:center;cursor:pointer;
+                font-size:12px;font-weight:600;transition:all .2s;font-family:'DM Sans',sans-serif;
+                display:flex;align-items:center;justify-content:center;min-height:50px;}
     .metodo-btn:hover{border-color:var(--accent);color:var(--accent);}
     .metodo-btn.selected{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
     .metodo-icon{font-size:20px;display:block;margin-bottom:4px;}
@@ -383,9 +384,7 @@
 <body>
 
 <script>
-  const currentUserId  = localStorage.getItem('usuarioId');
-  const currentUserRol = (localStorage.getItem('usuarioRol') || '').trim().toUpperCase();
-  if (!currentUserId || !['CLIENTE','USUARIO'].includes(currentUserRol)) {
+  if (!localStorage.getItem('usuarioId') || !['CLIENTE','USUARIO'].includes((localStorage.getItem('usuarioRol') || '').trim().toUpperCase())) {
     window.location.replace('login.html');
   }
 </script>
@@ -538,18 +537,10 @@
         <span>Saldo insuficiente. Tu billetera tiene <strong id="cal-saldo-actual"></strong>€ pero necesitas <strong id="cal-precio-necesario"></strong>. <a href="#" onclick="event.preventDefault();openProfileModal()" style="color:inherit;text-decoration:underline;">Recargar saldo</a></span>
       </div>
       <div class="metodo-grid">
-				<button class="metodo-btn" onclick="selectMetodoCal('BILLETERA',this)">
-					<span class="metodo-icon"></span>Billetera
-				</button>
-        <button class="metodo-btn" onclick="selectMetodoCal('TARJETA',this)">
-          <span class="metodo-icon"></span>Tarjeta
-        </button>
-        <button class="metodo-btn" onclick="selectMetodoCal('BIZUM',this)">
-          <span class="metodo-icon"></span>Bizum
-        </button>
-        <button class="metodo-btn" onclick="selectMetodoCal('TRANSFERENCIA',this)">
-          <span class="metodo-icon"></span>Transferencia
-        </button>
+				<button class="metodo-btn" id="btn-metodo-billetera-cal" onclick="selectMetodoCal('BILLETERA',this)">Billetera</button>
+        <button class="metodo-btn" onclick="selectMetodoCal('TARJETA',this)">Tarjeta</button>
+        <button class="metodo-btn" onclick="selectMetodoCal('BIZUM',this)">Bizum</button>
+        <button class="metodo-btn" onclick="selectMetodoCal('TRANSFERENCIA',this)">Transferencia</button>
       </div>
       <div class="pago-fields" id="cal-f-TARJETA">
         <div class="field"><label>Número de tarjeta</label>
@@ -655,18 +646,10 @@
         <span>Saldo insuficiente. Tu billetera tiene <strong id="abono-saldo-actual"></strong>€ pero necesitas <strong id="abono-precio-necesario"></strong>. <a href="#" onclick="event.preventDefault();closeModal('modal-abono');openProfileModal()" style="color:inherit;text-decoration:underline;">Recargar saldo</a></span>
       </div>
       <div class="metodo-grid">
-        <button class="metodo-btn" onclick="selectMetodoAbono('BILLETERA',this)">
-          <span class="metodo-icon">💰</span>Billetera
-        </button>
-        <button class="metodo-btn" onclick="selectMetodoAbono('TARJETA',this)">
-          <span class="metodo-icon">💳</span>Tarjeta
-        </button>
-        <button class="metodo-btn" onclick="selectMetodoAbono('BIZUM',this)">
-          <span class="metodo-icon">📱</span>Bizum
-        </button>
-        <button class="metodo-btn" onclick="selectMetodoAbono('TRANSFERENCIA',this)">
-          <span class="metodo-icon">🏦</span>Transferencia
-        </button>
+        <button class="metodo-btn" id="btn-metodo-billetera-abono" onclick="selectMetodoAbono('BILLETERA',this)">Billetera</button>
+        <button class="metodo-btn" onclick="selectMetodoAbono('TARJETA',this)">Tarjeta</button>
+        <button class="metodo-btn" onclick="selectMetodoAbono('BIZUM',this)">Bizum</button>
+        <button class="metodo-btn" onclick="selectMetodoAbono('TRANSFERENCIA',this)">Transferencia</button>
       </div>
       <div class="pago-fields" id="abono-f-TARJETA">
         <div class="field"><label>Número de tarjeta</label>
@@ -701,6 +684,8 @@
 			//  CONSTANTES Y ESTADO GLOBAL
 			// ═══════════════════════════════════════════
 			const API = 'http://localhost:8080';
+			const currentUserId  = localStorage.getItem('usuarioId');
+			const currentUserRol = (localStorage.getItem('usuarioRol') || '').trim().toUpperCase();
 			let pistasGlobal        = [];
 			let reservasGlobal      = [];
 			let pistaCalendario     = null;
@@ -923,6 +908,12 @@
 			    const saldo = data.billetera != null ? parseFloat(data.billetera).toFixed(2) : '0.00';
 			    document.getElementById('perfil-saldo').textContent = saldo;
 			    localStorage.setItem('billetera', data.billetera || 0);
+				localStorage.setItem('esSocio', data.esSocio ? 'true' : 'false');
+				if (data.esSocio) {
+					document.getElementById('nav-socio-badge').style.display = 'inline-block';
+				} else {
+					document.getElementById('nav-socio-badge').style.display = 'none';
+				}
 			    actualizarSaldoNav();
 			  } catch (e) {
 			    alertEl.className = 'form-alert err';
@@ -1017,6 +1008,12 @@
 
 			    localStorage.setItem('usuarioNombre', data.nombreCompleto || nombre);
 			    document.getElementById('nav-nombre').textContent = (data.nombreCompleto || nombre).split(' ')[0];
+				localStorage.setItem('esSocio', data.esSocio ? 'true' : 'false');
+				if (data.esSocio) {
+					document.getElementById('nav-socio-badge').style.display = 'inline-block';
+				} else {
+					document.getElementById('nav-socio-badge').style.display = 'none';
+				}
 
 			    alertEl.className = 'form-alert ok';
 			    alertEl.textContent = 'Perfil actualizado correctamente';
@@ -1430,6 +1427,15 @@
 			    btnConfirmar.textContent = 'Pagar y confirmar';
 			  }
 
+			  // Restricción de Billetera solo para socios
+			  const btnBilletera = document.getElementById('btn-metodo-billetera-cal');
+			  const esSocio = localStorage.getItem('esSocio') === 'true';
+			  if (!esSocio) {
+			    btnBilletera.style.display = "none";
+			  } else {
+			    btnBilletera.style.display = "flex";
+			  }
+
 			  // Reset pago
 			  metodoCalSeleccionado = null;
 			  document.querySelectorAll('.metodo-btn').forEach(b => b.classList.remove('selected'));
@@ -1451,6 +1457,10 @@
 			}
 
 			function selectMetodoCal(metodo, btn) {
+			  if (metodo === 'BILLETERA' && localStorage.getItem('esSocio') !== 'true') {
+			    toast('Solo los socios pueden pagar con billetera', 'err');
+			    return;
+			  }
 			  metodoCalSeleccionado = metodo;
 			  document.querySelectorAll('.metodo-btn').forEach(b => b.classList.remove('selected'));
 			  btn.classList.add('selected');
@@ -1719,29 +1729,38 @@
 			async function checkAbonoActivo() {
 				try {
 					const res = await fetch(`${API}/api/usuarios/${currentUserId}/abonos/activo`);
-					if (res.ok && res.headers.get("content-length") !== "0") {
-						const data = await res.json();
-						if (data && data.id) {
-							usuarioTieneAbono = true;
-							document.getElementById('abono-actual-container').style.display = 'block';
-							document.getElementById('abono-sep-line').style.display = 'block';
-							document.getElementById('abono-actual-nombre').textContent = data.nombrePlan;
-							document.getElementById('abono-actual-fin').textContent = data.fechaFin;
-							
-							let infoRol = data.titularEmail === localStorage.getItem('usuarioEmail') ? "(Eres el Titular)" : "(Eres Beneficiario)";
-							document.getElementById('abono-beneficiarios-info').textContent = infoRol;
-							
-							document.getElementById('nav-plan-badge').style.display = 'inline-flex';
-							document.getElementById('nav-plan-nombre').textContent = data.nombrePlan;
-							
-							document.querySelectorAll('.btn-suscribirse').forEach(btn => {
-								btn.disabled = true;
-								btn.textContent = 'Ya estás suscrito a un plan';
-							});
-							return;
+					if (res.ok) {
+						const text = await res.text();
+						if (text && text.trim().length > 0) {
+							const data = JSON.parse(text);
+							if (data && data.id) {
+								usuarioTieneAbono = true;
+								document.getElementById('abono-actual-container').style.display = 'block';
+								document.getElementById('abono-sep-line').style.display = 'block';
+								document.getElementById('abono-actual-nombre').textContent = data.nombrePlan;
+								document.getElementById('abono-actual-fin').textContent = data.fechaFin;
+								
+								let infoRol = data.titularEmail === localStorage.getItem('usuarioEmail') ? "(Eres el Titular)" : "(Eres Beneficiario)";
+								document.getElementById('abono-beneficiarios-info').textContent = infoRol;
+								
+								document.getElementById('nav-plan-badge').style.display = 'inline-flex';
+								document.getElementById('nav-plan-nombre').textContent = data.nombrePlan;
+
+								// Sincronizar estado de socio en UI y localStorage
+								localStorage.setItem('esSocio', 'true');
+								document.getElementById('nav-socio-badge').style.display = 'inline-block';
+								
+								document.querySelectorAll('.btn-suscribirse').forEach(btn => {
+									btn.disabled = true;
+									btn.textContent = 'Ya estás suscrito a un plan';
+								});
+								return;
+							}
 						}
 					}
 					usuarioTieneAbono = false;
+					localStorage.setItem('esSocio', 'false');
+					document.getElementById('nav-socio-badge').style.display = 'none';
 					document.getElementById('abono-actual-container').style.display = 'none';
 					document.getElementById('nav-plan-badge').style.display = 'none';
 				} catch (e) { console.error("Error comprobando abono", e); }
@@ -1838,6 +1857,7 @@
 			function _mostrarStepPagoAbono() {
 				const saldo = parseFloat(localStorage.getItem('billetera') || 0);
 				const precio = parseFloat(planAbonoSeleccionado.precio);
+				const esSocio = localStorage.getItem('esSocio') === 'true';
 
 				document.getElementById('abono-precio-confirm').textContent = fmtEur(precio);
 				document.getElementById('abono-pago-subtitulo').textContent =
@@ -1852,11 +1872,22 @@
 					insufEl.style.display = 'none';
 				}
 
+				const btnBilleteraAbono = document.getElementById('btn-metodo-billetera-abono');
+				if (!esSocio) {
+					btnBilleteraAbono.style.display = 'none';
+				} else {
+					btnBilleteraAbono.style.display = 'flex';
+				}
+
 				document.getElementById('abono-step-1').style.display = 'none';
 				document.getElementById('abono-step-2').style.display = 'block';
 			}
 
 			function selectMetodoAbono(metodo, btn) {
+				if (metodo === 'BILLETERA' && localStorage.getItem('esSocio') !== 'true') {
+					toast('Solo los socios pueden pagar con billetera', 'err');
+					return;
+				}
 				metodoAbonoSeleccionado = metodo;
 				document.querySelectorAll('#abono-step-2 .metodo-btn').forEach(b => b.classList.remove('selected'));
 				btn.classList.add('selected');

@@ -147,8 +147,12 @@ public class ReservaService {
             throw new SecurityException("No tienes permiso para pagar esta reserva.");
         }
 
-        if (metodoPago == MetodoPago.BILLETERA && !reserva.getUsuario().isEsSocio()) {
-            throw new IllegalStateException("Los usuarios no socios no pueden pagar con billetera.");
+        if (metodoPago == MetodoPago.BILLETERA) {
+            boolean esSocioEfectivo = reserva.getUsuario().isEsSocio() || 
+                                     abonoUsuarioService.obtenerAbonoActivo(reserva.getUsuario().getId()).isPresent();
+            if (!esSocioEfectivo) {
+                throw new IllegalStateException("Los usuarios no socios no pueden pagar con billetera.");
+            }
         }
         if (reserva.getEstado() == EstadoReserva.CANCELADA) {
             throw new IllegalStateException("No se puede pagar una reserva cancelada.");
