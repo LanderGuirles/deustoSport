@@ -100,6 +100,7 @@
     </div>
     
     <button class="btn-primary" id="btn-login" onclick="doLogin()">Entrar</button>
+    <button class="btn-secondary" id="btn-guest" onclick="doGuestLogin()" style="margin-top: 10px;">No soy socio</button>
     <div id="login-alert" class="alert"></div>
     
     <div style="margin-top: 20px; text-align: center; font-size: 14px; color: var(--muted);">
@@ -112,6 +113,40 @@
 
   <script>
     const API_URL = 'http://localhost:8080/api/auth';
+
+    // === GUEST LOGIN ===
+    async function doGuestLogin() {
+      const btn = document.getElementById('btn-guest');
+      const alertEl = document.getElementById('login-alert');
+      btn.disabled = true;
+      btn.textContent = 'Entrando...';
+
+      try {
+        const res = await fetch(`${API_URL}/login-guest`, { method: 'POST' });
+        const data = await res.json();
+
+        if (res.ok && data.exitoso) {
+          localStorage.setItem('usuarioId', data.usuarioId);
+          localStorage.setItem('usuarioNombre', data.nombreCompleto);
+          localStorage.setItem('usuarioEmail', data.email);
+          localStorage.setItem('usuarioRol', data.rol);
+          localStorage.setItem('esSocio', 'false');
+          localStorage.setItem('billetera', data.billetera != null ? data.billetera : '0');
+
+          window.location.href = 'home.html';
+        } else {
+          alertEl.style.display = 'block';
+          alertEl.textContent = 'No se pudo entrar como invitado';
+          btn.disabled = false;
+          btn.textContent = 'No soy socio';
+        }
+      } catch (e) {
+        alertEl.style.display = 'block';
+        alertEl.textContent = 'Error de red. ¿Está encendida la API en el puerto 8080?';
+        btn.disabled = false;
+        btn.textContent = 'No soy socio';
+      }
+    }
 
     // === LOGIN ===
     async function doLogin() {

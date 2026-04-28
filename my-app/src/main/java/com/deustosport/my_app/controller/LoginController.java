@@ -57,6 +57,30 @@ public class LoginController {
                 ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
  
+    @PostMapping("/login-guest")
+    @Operation(summary = "Entrar como no socio (invitado)")
+    public ResponseEntity<LoginResponse> loginGuest() {
+        com.deustosport.my_app.entity.Usuario guest = usuarioRepository.findByEmail("invitado@deustosport.com")
+            .orElseGet(() -> {
+                com.deustosport.my_app.entity.Usuario u = new com.deustosport.my_app.entity.Usuario();
+                u.setNombreCompleto("No Socio");
+                u.setEmail("invitado@deustosport.com");
+                u.setDni("00000000X");
+                u.setActivo(true);
+                u.setEsSocio(false);
+                u.setBilletera(java.math.BigDecimal.ZERO);
+                u.setRol(com.deustosport.my_app.enums.Rol.CLIENTE);
+                return usuarioRepository.save(u);
+            });
+            
+        LoginResponse response = new LoginResponse(
+            guest.getId(), guest.getNombreCompleto(), guest.getEmail(),
+            guest.getRol().name(), guest.isEsSocio(), guest.getBilletera(),
+            "Entrada como no socio", true
+        );
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/logout")
     @Operation(summary = "Cerrar sesión", description = "Cierra la sesión del usuario autenticado")
     public ResponseEntity<LoginResponse> logout(@RequestHeader("X-Usuario-Id") Long usuarioId) {
@@ -175,6 +199,12 @@ public class LoginController {
                         // Recargar directamente
                         com.deustosport.my_app.entity.Usuario usuario = usuarioRepository.findById(usuarioId)
                                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+                                
+                        if (!usuario.isEsSocio()) {
+                                return ResponseEntity.badRequest()
+                                        .body(java.util.Map.of("error", "Los usuarios no socios no pueden usar la billetera"));
+                        }
+
                         usuario.setBilletera(usuario.getBilletera().add(cantidad));
                         usuarioRepository.save(usuario);
 

@@ -118,23 +118,33 @@ public class TarifaService {
 
             BigDecimal horas = new BigDecimal(minutos)
                     .divide(new BigDecimal(60), 4, RoundingMode.HALF_UP);
-            precio = precio.add(tarifa.getPrecioPorHora().multiply(horas));
+            BigDecimal subPrecio = tarifa.getPrecioPorHora().multiply(horas);
+
+            if (!esSocio) {
+                if (inicioSolape.getHour() >= 17) {
+                    subPrecio = subPrecio.multiply(new BigDecimal("1.25"));
+                } else {
+                    subPrecio = subPrecio.multiply(new BigDecimal("1.15"));
+                }
+            }
+
+            precio = precio.add(subPrecio);
             minutosCubiertos += minutos;
         }
 
         long minutosSolicitados = java.time.Duration.between(horaInicio, horaFin).toMinutes();
         if (minutosCubiertos < minutosSolicitados || precio.compareTo(BigDecimal.ZERO) <= 0) {
             precio = calcularFallback(horaInicio, horaFin);
-        } else {
-            precio = precio.setScale(2, RoundingMode.HALF_UP);
+            if (!esSocio) {
+                if (horaInicio.getHour() >= 17) {
+                    precio = precio.multiply(new BigDecimal("1.25"));
+                } else {
+                    precio = precio.multiply(new BigDecimal("1.15"));
+                }
+            }
         }
 
-        if (esSocio) {
-            BigDecimal factorDescuento = configuracionService.obtenerFactorDescuentoSocio();
-            BigDecimal descuento = precio.multiply(factorDescuento);
-            precio = precio.subtract(descuento).setScale(2, RoundingMode.HALF_UP);
-        }
-        return precio;
+        return precio.setScale(2, RoundingMode.HALF_UP);
     }
 
     private BigDecimal calcularFallback(LocalTime horaInicio, LocalTime horaFin) {

@@ -668,7 +668,17 @@
 			  const esSocio = localStorage.getItem('esSocio') === 'true';
 			  if (esSocio) {
 			    document.getElementById('nav-socio-badge').style.display = 'inline-block';
-			  }
+			  } else {
+                document.querySelectorAll('.metodo-btn').forEach(btn => {
+                    if (btn.textContent.includes('Billetera')) {
+                        btn.style.display = 'none';
+                    }
+                });
+                const recargaSection = document.querySelector('.recarga-section');
+                if (recargaSection) recargaSection.style.display = 'none';
+                const navBilletera = document.getElementById('nav-billetera-badge');
+                if (navBilletera) navBilletera.style.display = 'none';
+              }
 			  // Mostrar saldo
 			  actualizarSaldoNav();
 			  loadPistas();
