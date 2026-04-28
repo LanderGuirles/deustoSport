@@ -297,21 +297,84 @@
                         background:var(--primary);color:#fff;font-weight:600;
                         cursor:pointer;font-size:13px;}
 	
-	.abono-actual-card { background: radial-gradient(circle at 100% 0%, var(--abono-dim) 0%, var(--surface) 50%); border: 1px solid var(--abono); border-radius: var(--radius); padding: 24px; margin-bottom: 24px; display: none; }
-	.abono-actual-card h4 { font-family: 'Syne', sans-serif; color: var(--abono); font-size: 18px; margin-bottom: 6px; }
-	.abono-actual-card p { color: var(--text); font-size: 14px; margin-bottom: 4px; }
-	.abono-actual-card .meta { color: var(--muted); font-size: 12px; }
-	.planes-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
-	.plan-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px; display:flex; flex-direction:column; transition:border-color .2s, transform .2s; }
-	.plan-card:hover { border-color:var(--abono); transform:translateY(-2px); }
-	.plan-title { font-family:'Syne',sans-serif; font-size:20px; font-weight:700; color:var(--abono); margin-bottom:8px; }
-	.plan-desc { font-size:13px; color:var(--muted); margin-bottom:16px; line-height:1.4; }
-	.plan-price { font-family:'Syne',sans-serif; font-size:32px; font-weight:800; color:var(--text); margin-bottom:16px; }
-	.plan-price span { font-size:14px; font-weight:500; color:var(--muted); }
-	.plan-features { list-style:none; margin-bottom:24px; flex:1; }
-	.plan-features li { font-size:13px; color:var(--text); margin-bottom:8px; display:flex; align-items:center; gap:8px; }
-	.btn-suscribirse { width:100%; background:var(--abono-dim); color:var(--abono); border:1px solid rgba(123,147,255,.3); padding:10px; border-radius:8px; font-size:14px; font-weight:700; cursor:pointer; transition:all .2s; }
-	.btn-suscribirse:hover:not(:disabled) { background:var(--abono); color:#fff; }
+	.abono-actual-card { 
+    background: linear-gradient(135deg, rgba(0, 229, 160, 0.05) 0%, var(--surface) 100%); 
+    border: 1px solid var(--accent); 
+    border-radius: var(--radius); 
+    padding: 24px; 
+    margin-bottom: 40px; 
+    display: none; 
+    position: relative;
+    overflow: hidden;
+  }
+  .abono-actual-card::after {
+    content: 'VIP';
+    position: absolute;
+    top: 10px;
+    right: -25px;
+    background: var(--accent);
+    color: var(--bg);
+    font-weight: 800;
+    font-size: 10px;
+    padding: 4px 30px;
+    transform: rotate(45deg);
+    font-family: 'Syne', sans-serif;
+  }
+	.abono-actual-card h4 { font-family: 'Syne', sans-serif; color: var(--accent); font-size: 20px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+	.abono-actual-card p { color: var(--text); font-size: 15px; margin-bottom: 6px; }
+	.abono-actual-card .meta { color: var(--muted); font-size: 13px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+  
+  .abonos-separator { border: 0; height: 1px; background: linear-gradient(to right, var(--accent), transparent); margin: 30px 0; opacity: 0.3; }
+
+	.planes-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:20px; }
+	.plan-card { 
+    background:var(--surface); 
+    border:1px solid var(--border); 
+    border-radius:var(--radius); 
+    padding:24px; 
+    display:flex; 
+    flex-direction:column; 
+    transition:all .2s; 
+    position: relative;
+    overflow: hidden;
+  }
+  .plan-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity .2s;
+  }
+	.plan-card:hover { border-color:var(--accent); transform:translateY(-4px); }
+  .plan-card:hover::before { opacity: 1; }
+
+	.plan-title { font-family:'Syne',sans-serif; font-size:22px; font-weight:800; color:var(--text); margin-bottom:12px; }
+	.plan-desc { font-size:13px; color:var(--muted); margin-bottom:20px; line-height:1.5; min-height: 40px; }
+	.plan-price { font-family:'Syne',sans-serif; font-size:36px; font-weight:800; color:var(--accent); margin-bottom:20px; }
+	.plan-price span { font-size:14px; font-weight:400; color:var(--muted); }
+	.plan-features { list-style:none; margin-bottom:28px; flex:1; border-top: 1px solid var(--border); padding-top: 20px; }
+	.plan-features li { font-size:13px; color:var(--text); margin-bottom:10px; display:flex; align-items:center; gap:10px; }
+  .plan-features li::before { content: '✓'; color: var(--accent); font-weight: bold; }
+
+	.btn-suscribirse { 
+    width:100%; 
+    background:var(--accent-dim); 
+    color:var(--accent); 
+    border:1px solid rgba(0, 229, 160, 0.3); 
+    padding:12px; 
+    border-radius:10px; 
+    font-size:14px; 
+    font-weight:700; 
+    cursor:pointer; 
+    transition:all .2s;
+    font-family: 'Syne', sans-serif;
+  }
+	.btn-suscribirse:hover:not(:disabled) { background:var(--accent); color:var(--bg); }
+	.btn-suscribirse:disabled { opacity:0.5; cursor:not-allowed; background:var(--surface2); color:var(--muted); border-color:var(--border); }
 	.btn-suscribirse:disabled { opacity:0.5; cursor:not-allowed; background:var(--surface2); color:var(--muted); border-color:var(--border); }
 	.btn-remove-email { background: rgba(248,81,73,.12); color: var(--danger); border: 1px solid rgba(248,81,73,.35); padding: 4px 10px; border-radius: 8px; cursor: pointer; font-weight:bold; }
 	.btn-remove-email:hover { background: var(--danger); color: #fff; }
@@ -382,6 +445,7 @@
           <p class="meta">Válido hasta el <span id="abono-actual-fin">...</span></p>
           <div id="abono-beneficiarios-info" style="margin-top:10px; font-size:12px; color:var(--muted)"></div>
       </div>
+      <hr id="abono-sep-line" class="abonos-separator" style="display:none;">
       <div id="planes-container" class="planes-grid">
         <div class="empty"><div class="spinner"></div></div>
       </div>
@@ -668,17 +732,7 @@
 			  const esSocio = localStorage.getItem('esSocio') === 'true';
 			  if (esSocio) {
 			    document.getElementById('nav-socio-badge').style.display = 'inline-block';
-			  } else {
-                document.querySelectorAll('.metodo-btn').forEach(btn => {
-                    if (btn.textContent.includes('Billetera')) {
-                        btn.style.display = 'none';
-                    }
-                });
-                const recargaSection = document.querySelector('.recarga-section');
-                if (recargaSection) recargaSection.style.display = 'none';
-                const navBilletera = document.getElementById('nav-billetera-badge');
-                if (navBilletera) navBilletera.style.display = 'none';
-              }
+			  }
 			  // Mostrar saldo
 			  actualizarSaldoNav();
 			  loadPistas();
@@ -1670,6 +1724,7 @@
 						if (data && data.id) {
 							usuarioTieneAbono = true;
 							document.getElementById('abono-actual-container').style.display = 'block';
+							document.getElementById('abono-sep-line').style.display = 'block';
 							document.getElementById('abono-actual-nombre').textContent = data.nombrePlan;
 							document.getElementById('abono-actual-fin').textContent = data.fechaFin;
 							

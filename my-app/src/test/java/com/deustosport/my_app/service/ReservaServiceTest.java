@@ -238,6 +238,7 @@ class ReservaServiceTest {
 
     @Test
     void pagarReserva_conBilletera_descuentaSaldo() {
+        usuario.setEsSocio(true); // Debe ser socio para usar billetera
         Reserva reserva = new Reserva();
         reserva.setId(205L);
         reserva.setUsuario(usuario);
