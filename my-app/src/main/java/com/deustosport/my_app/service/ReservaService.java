@@ -113,10 +113,21 @@ public class ReservaService {
         r.setHoraInicio(horaInicio);
         r.setHoraFin(horaFin);
         r.setPrecioTotal(precioTotal);
-        r.setEstado(EstadoReserva.PENDIENTE);
-        r.setCreditosUsados(0);
+        Reserva reservaGuardada = reservaRepository.save(r);
 
-        return reservaRepository.save(r);
+        // Enviar email con detalles de la reserva y código QR
+        emailService.enviarEmailCreacionReserva(
+            reservaGuardada.getUsuario().getEmail(),
+            reservaGuardada.getPista().getNombre(),
+            reservaGuardada.getPista().getTipoDeporte().name(),
+            reservaGuardada.getFechaReserva(),
+            reservaGuardada.getHoraInicio(),
+            reservaGuardada.getHoraFin(),
+            reservaGuardada.getPrecioTotal(),
+            reservaGuardada.getId(),
+            reservaGuardada.getUsuario().getId());
+
+        return reservaGuardada;
     }
 
     // ─── Pagar reserva ────────────────────────────────────────────────────────
@@ -187,7 +198,9 @@ public class ReservaService {
             reservaFinal.getFechaReserva(),
             reservaFinal.getHoraInicio(),
             reservaFinal.getHoraFin(),
-            reservaFinal.getPrecioTotal());
+            reservaFinal.getPrecioTotal(),
+            reservaFinal.getId(),
+            reservaFinal.getUsuario().getId());
 
         notificacionService.crearNotificacionReservaConfirmada(reservaFinal);
 

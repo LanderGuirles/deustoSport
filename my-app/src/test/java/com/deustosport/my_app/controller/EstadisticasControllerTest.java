@@ -1,0 +1,78 @@
+package com.deustosport.my_app.controller;
+
+import com.deustosport.my_app.dto.EstadisticasDTO;
+import com.deustosport.my_app.service.EstadisticasService;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.math.BigDecimal;
+import java.util.Map;
+
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@WebMvcTest(EstadisticasController.class)
+class EstadisticasControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private EstadisticasService estadisticasService;
+
+    @Test
+    void obtenerEstadisticas_debeRetornarEstadisticas() throws Exception {
+        // Given
+        EstadisticasDTO estadisticas = new EstadisticasDTO();
+        estadisticas.setTotalReservasConfirmadas(150L);
+        estadisticas.setTotalReservasPendientes(25L);
+        estadisticas.setReservasMesActual(120L);
+        estadisticas.setIngresosMesActual(new BigDecimal("2400.00"));
+        estadisticas.setTotalSocios(200L);
+        estadisticas.setSaldoTotalBilleteras(new BigDecimal("1500.00"));
+
+        when(estadisticasService.obtenerEstadisticas()).thenReturn(estadisticas);
+
+        // When & Then
+        mockMvc.perform(get("/api/estadisticas"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalReservasConfirmadas").value(150))
+                .andExpect(jsonPath("$.totalReservasPendientes").value(25))
+                .andExpect(jsonPath("$.reservasMesActual").value(120))
+                .andExpect(jsonPath("$.ingresosMesActual").value(2400.00))
+                .andExpect(jsonPath("$.totalSocios").value(200))
+                .andExpect(jsonPath("$.saldoTotalBilleteras").value(1500.00));
+    }
+
+    @Test
+    void obtenerEstadisticasReservasPorInstalacion_debeRetornarMapa() throws Exception {
+        // Given
+        Map<String, Long> estadisticasPorInstalacion = Map.of(
+            "Pista Tenis 1", 45L,
+            "Pista Pádel 2", 30L
+        );
+
+        when(estadisticasService.obtenerEstadisticasReservasPorInstalacion()).thenReturn(estadisticasPorInstalacion);
+
+        // When & Then
+        mockMvc.perform(get("/api/estadisticas/reservas-por-instalacion"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.['Pista Tenis 1']").value(45))
+                .andExpect(jsonPath("$.['Pista Pádel 2']").value(30));
+    }
+
+    @Test
+    void obtenerEstadisticasReservasPorDia_debeRetornarLista() throws Exception {
+        // Given
+        when(estadisticasService.obtenerEstadisticasReservasPorDia(7)).thenReturn(java.util.List.of());
+
+        // When & Then
+        mockMvc.perform(get("/api/estadisticas/reservas-por-dia")
+                .param("dias", "7"))
+                .andExpect(status().isOk());
+    }
+}

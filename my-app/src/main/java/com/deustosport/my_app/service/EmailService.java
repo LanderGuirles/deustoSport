@@ -4,12 +4,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import javax.mail.internet.MimeMessage;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import com.google.zxing.WriterException;
 
 @Service
 public class EmailService {
@@ -26,10 +29,35 @@ public class EmailService {
     private boolean emailEnabled;
 
     /**
-     * Envía un email de recuperación de contraseña
-     * @param destinatario Email del usuario
-     * @param token Token único para restablecer la contraseña
+     * Envía un email de bienvenida a un nuevo usuario
      */
+    public void enviarEmailBienvenida(String destinatario, String nombre) {
+        String contenido = "¡Bienvenido a DeustoSport, " + nombre + "!\n\n" +
+                "Tu cuenta ha sido creada exitosamente.\n\n" +
+                "Ya puedes empezar a reservar pistas deportivas.\n\n" +
+                "Si eres socio, disfruta de descuentos exclusivos.\n\n" +
+                "¡Que disfrutes del deporte!\n\n" +
+                "Equipo DeustoSport";
+
+        if (!emailEnabled || mailSender == null) {
+            logger.info("=== [EMAIL SIMULADO] Bienvenida ===");
+            logger.info("Destinatario: {} | Nombre: {}", destinatario, nombre);
+            logger.debug("Contenido: {}", contenido);
+            return;
+        }
+
+        try {
+            SimpleMailMessage mensaje = new SimpleMailMessage();
+            mensaje.setFrom(remitente);
+            mensaje.setTo(destinatario);
+            mensaje.setSubject("Bienvenido a DeustoSport");
+            mensaje.setText(contenido);
+            mailSender.send(mensaje);
+            logger.info("Email de bienvenida enviado a: {}", destinatario);
+        } catch (Exception e) {
+            logger.error("Error al enviar email de bienvenida a {}: {}", destinatario, e.getMessage());
+        }
+    }
     public void enviarEmailRecuperacion(String destinatario, String token) {
         // Si el envío de email está deshabilitado, simular en consola
         if (!emailEnabled || mailSender == null) {
@@ -56,7 +84,7 @@ public class EmailService {
     }
 
     /**
-     * Envía un email de confirmación de reserva de pista.
+     * Envía un email de confirmación de reserva de pista con código QR adjunto.
      */
     public void enviarEmailConfirmacionReserva(String destinatario,
                                                String nombrePista,
@@ -64,19 +92,17 @@ public class EmailService {
                                                LocalDate fecha,
                                                LocalTime horaInicio,
                                                LocalTime horaFin,
-                                               BigDecimal precio) {
-        String contenido = "✨ Tu reserva ha sido confirmada! ✨\n\n" +
-                "🏟️ Pista: " + nombrePista + " (" + tipoDeporte + ")\n" +
-                "📅 Fecha: " + fecha + "\n" +
-                "⏰ Hora: " + horaInicio + " - " + horaFin + "\n" +
-                "💰 Precio: " + precio + " €\n\n" +
-                "🎉 ¡Que disfrutes del partido y que los astros estén contigo!";
+                                               BigDecimal precio,
+                                               Long reservaId,
+                                               Long usuarioId) {
+        String contenidoHtml = generarContenidoHtmlReservaConfirmada(nombrePista, tipoDeporte, fecha, horaInicio, horaFin, precio);
+        String contenidoTexto = generarContenidoTextoReservaConfirmada(nombrePista, tipoDeporte, fecha, horaInicio, horaFin, precio);
 
         if (!emailEnabled || mailSender == null) {
             logger.info("=== [EMAIL SIMULADO] Reserva confirmada ===");
             logger.info("Destinatario: {}", destinatario);
-            logger.info("Pista: {} ({}) | {} {} - {} | {}€", nombrePista, tipoDeporte, fecha, horaInicio, horaFin, precio);
-            logger.debug("Contenido completo: {}", contenido);
+            logger.info("Pista: {} ({}) | {} {} - {} | {}€ | Reserva ID: {}", nombrePista, tipoDeporte, fecha, horaInicio, horaFin, precio, reservaId);
+            logger.debug("Contenido HTML: {}", contenidoHtml);
             return;
         }
 
@@ -85,11 +111,47 @@ public class EmailService {
             mensaje.setFrom(remitente);
             mensaje.setTo(destinatario);
             mensaje.setSubject("DeustoSport - Reserva de Pista Confirmada");
-            mensaje.setText(contenido);
+            mensaje.setText(contenidoTexto);
             mailSender.send(mensaje);
             logger.info("Email de confirmación de reserva enviado a: {}", destinatario);
         } catch (Exception e) {
             logger.error("Error al enviar email de confirmación de reserva a {}: {}", destinatario, e.getMessage());
+        }
+    }
+
+    /**
+     * Envía un email de creación de reserva pendiente de pago con código QR adjunto.
+     */
+    public void enviarEmailCreacionReserva(String destinatario,
+                                           String nombrePista,
+                                           String tipoDeporte,
+                                           LocalDate fecha,
+                                           LocalTime horaInicio,
+                                           LocalTime horaFin,
+                                           BigDecimal precio,
+                                           Long reservaId,
+                                           Long usuarioId) {
+        String contenidoHtml = generarContenidoHtmlReservaCreada(nombrePista, tipoDeporte, fecha, horaInicio, horaFin, precio);
+        String contenidoTexto = generarContenidoTextoReservaCreada(nombrePista, tipoDeporte, fecha, horaInicio, horaFin, precio);
+
+        if (!emailEnabled || mailSender == null) {
+            logger.info("=== [EMAIL SIMULADO] Reserva creada ===");
+            logger.info("Destinatario: {}", destinatario);
+            logger.info("Pista: {} ({}) | {} {} - {} | {}€ | Reserva ID: {}", nombrePista, tipoDeporte, fecha, horaInicio, horaFin, precio, reservaId);
+            logger.debug("Contenido HTML: {}", contenidoHtml);
+            return;
+        }
+
+        try {
+            SimpleMailMessage mensaje = new SimpleMailMessage();
+            mensaje.setFrom(remitente);
+            mensaje.setTo(destinatario);
+            mensaje.setSubject("DeustoSport - Reserva Creada - Pendiente de Pago");
+            mensaje.setText(contenidoTexto);
+            mailSender.send(mensaje);
+            logger.info("Email de creación de reserva enviado a: {}", destinatario);
+        } catch (Exception e) {
+            logger.error("Error al enviar email de creación de reserva a {}: {}", destinatario, e.getMessage());
         }
     }
 
@@ -125,16 +187,71 @@ public class EmailService {
     }
 
     /**
-     * Genera el contenido del email de recuperación
+     * Genera el contenido HTML del email de confirmación de reserva
      */
-    private String generarContenidoRecuperacion(String token) {
-        return "Hola,\n\n" +
-                "Hemos recibido una solicitud para restablecer tu contraseña en DeustoSport.\n\n" +
-                "Tu código de seguridad de un solo uso es:\n" +
-                "[" + token + "]\n\n" +
-                "Este código caducará en 24 horas.\n\n" +
-                "Si no solicitaste esta recuperación, puedes ignorar este email.\n\n" +
-                "Saludos,\nEl equipo de DeustoSport";
+    public String generarContenidoHtmlReservaConfirmada(String nombrePista, String tipoDeporte, LocalDate fecha,
+                                               LocalTime horaInicio, LocalTime horaFin, BigDecimal precio) {
+        return "<html><body>" +
+                "<h2 style='color: #4CAF50;'>✨ ¡Tu reserva ha sido confirmada! ✨</h2>" +
+                "<p>Presenta el código QR en la entrada para acceder a las instalaciones.</p>" +
+                "<table style='border-collapse: collapse; width: 100%; max-width: 400px;'>" +
+                "<tr><td style='padding: 8px; border: 1px solid #ddd;'><strong>🏟️ Pista:</strong></td><td style='padding: 8px; border: 1px solid #ddd;'>" + nombrePista + " (" + tipoDeporte + ")</td></tr>" +
+                "<tr><td style='padding: 8px; border: 1px solid #ddd;'><strong>📅 Fecha:</strong></td><td style='padding: 8px; border: 1px solid #ddd;'>" + fecha + "</td></tr>" +
+                "<tr><td style='padding: 8px; border: 1px solid #ddd;'><strong>⏰ Hora:</strong></td><td style='padding: 8px; border: 1px solid #ddd;'>" + horaInicio + " - " + horaFin + "</td></tr>" +
+                "<tr><td style='padding: 8px; border: 1px solid #ddd;'><strong>💰 Precio:</strong></td><td style='padding: 8px; border: 1px solid #ddd;'>" + precio + " €</td></tr>" +
+                "</table>" +
+                "<p style='margin-top: 20px;'>🎉 ¡Que disfrutes del partido y que los astros estén contigo!</p>" +
+                "<p><small>Si tienes alguna duda, contacta con nosotros.</small></p>" +
+                "</body></html>";
+    }
+
+    /**
+     * Genera el contenido de texto plano del email de confirmación de reserva
+     */
+    public String generarContenidoTextoReservaConfirmada(String nombrePista, String tipoDeporte, LocalDate fecha,
+                                                LocalTime horaInicio, LocalTime horaFin, BigDecimal precio) {
+        return "✨ Tu reserva ha sido confirmada! ✨\n\n" +
+                "Presenta el código QR en la entrada para acceder a las instalaciones.\n\n" +
+                "🏟️ Pista: " + nombrePista + " (" + tipoDeporte + ")\n" +
+                "📅 Fecha: " + fecha + "\n" +
+                "⏰ Hora: " + horaInicio + " - " + horaFin + "\n" +
+                "💰 Precio: " + precio + " €\n\n" +
+                "🎉 ¡Que disfrutes del partido y que los astros estén contigo!\n\n" +
+                "Si tienes alguna duda, contacta con nosotros.";
+    }
+
+    /**
+     * Genera el contenido HTML del email de creación de reserva
+     */
+    public String generarContenidoHtmlReservaCreada(String nombrePista, String tipoDeporte, LocalDate fecha,
+                                               LocalTime horaInicio, LocalTime horaFin, BigDecimal precio) {
+        return "<html><body>" +
+                "<h2 style='color: #FF9800;'>⏳ Tu reserva ha sido creada ⏳</h2>" +
+                "<p>Tu reserva está pendiente de pago. Una vez pagada, recibirás el código QR para acceder.</p>" +
+                "<table style='border-collapse: collapse; width: 100%; max-width: 400px;'>" +
+                "<tr><td style='padding: 8px; border: 1px solid #ddd;'><strong>🏟️ Pista:</strong></td><td style='padding: 8px; border: 1px solid #ddd;'>" + nombrePista + " (" + tipoDeporte + ")</td></tr>" +
+                "<tr><td style='padding: 8px; border: 1px solid #ddd;'><strong>📅 Fecha:</strong></td><td style='padding: 8px; border: 1px solid #ddd;'>" + fecha + "</td></tr>" +
+                "<tr><td style='padding: 8px; border: 1px solid #ddd;'><strong>⏰ Hora:</strong></td><td style='padding: 8px; border: 1px solid #ddd;'>" + horaInicio + " - " + horaFin + "</td></tr>" +
+                "<tr><td style='padding: 8px; border: 1px solid #ddd;'><strong>💰 Precio:</strong></td><td style='padding: 8px; border: 1px solid #ddd;'>" + precio + " €</td></tr>" +
+                "</table>" +
+                "<p style='margin-top: 20px;'>Por favor, completa el pago para confirmar tu reserva.</p>" +
+                "<p><small>Si tienes alguna duda, contacta con nosotros.</small></p>" +
+                "</body></html>";
+    }
+
+    /**
+     * Genera el contenido de texto plano del email de creación de reserva
+     */
+    public String generarContenidoTextoReservaCreada(String nombrePista, String tipoDeporte, LocalDate fecha,
+                                                LocalTime horaInicio, LocalTime horaFin, BigDecimal precio) {
+        return "⏳ Tu reserva ha sido creada ⏳\n\n" +
+                "Tu reserva está pendiente de pago. Una vez pagada, recibirás el código QR para acceder.\n\n" +
+                "🏟️ Pista: " + nombrePista + " (" + tipoDeporte + ")\n" +
+                "📅 Fecha: " + fecha + "\n" +
+                "⏰ Hora: " + horaInicio + " - " + horaFin + "\n" +
+                "💰 Precio: " + precio + " €\n\n" +
+                "Por favor, completa el pago para confirmar tu reserva.\n\n" +
+                "Si tienes alguna duda, contacta con nosotros.";
     }
 
     /**
@@ -145,5 +262,18 @@ public class EmailService {
         logger.info("Destinatario: {}", destinatario);
         logger.debug("Token de recuperación: {}", token);
         logger.warn("Modo desarrollo activo. Para enviar emails reales configure spring.mail.* y app.email.enabled=true");
+    }
+
+    /**
+     * Genera el contenido del email de recuperación
+     */
+    private String generarContenidoRecuperacion(String token) {
+        return "Hola,\n\n" +
+                "Hemos recibido una solicitud para restablecer tu contraseña en DeustoSport.\n\n" +
+                "Tu código de seguridad de un solo uso es:\n" +
+                "[" + token + "]\n\n" +
+                "Este código caducará en 24 horas.\n\n" +
+                "Si no solicitaste esta recuperación, puedes ignorar este email.\n\n" +
+                "Saludos,\nEl equipo de DeustoSport";
     }
 }
