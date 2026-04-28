@@ -91,10 +91,37 @@ jacocoTestReport {
 	)
 }
 
+// ── Unit tests (excludes integration and performance) ────────────────────────
 tasks.named('test') {
 	useJUnitPlatform()
 	jvmArgs "-javaagent:${configurations.mockitoAgent.singleFile.absolutePath}"
+	exclude '**/performance/**'
+	exclude '**/*IntegrationTest*'
 	finalizedBy jacocoTestReport
+}
+
+// ── Integration tests ─────────────────────────────────────────────────────────
+tasks.register('integrationTest', Test) {
+	description = 'Runs integration tests (starts full Spring context with H2).'
+	group = 'verification'
+	useJUnitPlatform()
+	jvmArgs "-javaagent:${configurations.mockitoAgent.singleFile.absolutePath}"
+	include '**/*IntegrationTest*'
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
+	shouldRunAfter test
+}
+
+// ── Performance tests (requires server running on localhost:8080) ─────────────
+tasks.register('performanceTest', Test) {
+	description = 'Runs ContiPerf performance tests. Requires server at localhost:8080.'
+	group = 'verification'
+	useJUnitPlatform()
+	jvmArgs "-javaagent:${configurations.mockitoAgent.singleFile.absolutePath}"
+	include '**/performance/**'
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
+	shouldRunAfter integrationTest
 }
 
 tasks.withType(JavaCompile).configureEach {

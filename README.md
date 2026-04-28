@@ -1,27 +1,54 @@
-# Grupo8
+# DeustoSport — Grupo 8
 
-## Base de datos (PostgreSQL)
+Sistema de gestión de reservas deportivas desarrollado con Spring Boot (backend REST) y Thymeleaf (frontend web). Arquitectura de 3 capas: presentación (`my-webapp`), lógica de negocio (`my-app`) y persistencia (PostgreSQL / H2).
 
-El proyecto está preparado para usar PostgreSQL en ejecución normal y H2 en memoria por defecto (útil para tests/local rápido).
+---
 
-### Dependencias añadidas
+## Prerrequisitos
 
-- `spring-boot-starter-data-jpa`
-- `org.postgresql:postgresql`
-- `com.h2database:h2` (en test runtime)
+| Herramienta | Versión mínima |
+|-------------|----------------|
+| Java (JDK)  | 21             |
+| Gradle      | Incluido (wrapper `gradlew`) |
+| PostgreSQL  | 14+ (solo para ejecución real; los tests usan H2 en memoria) |
 
-### Variables de entorno para PostgreSQL
+---
 
-Configura estas variables antes de arrancar cualquiera de los módulos:
+## Construcción
 
-- `DB_URL` (ejemplo: `jdbc:postgresql://localhost:5432/deustosport`)
-- `DB_DRIVER` (valor: `org.postgresql.Driver`)
-- `DB_USER` (ejemplo: `postgres`)
-- `DB_PASSWORD` (tu contraseña)
+```bash
+# Compilar ambos módulos sin ejecutar tests
+./gradlew build -x test
+```
 
-Si no defines variables, la app usa H2 en memoria por defecto.
+---
 
-### Ejemplo en PowerShell (Windows)
+## Ejecución
+
+### Variables de entorno (PostgreSQL)
+
+```bash
+export DB_URL="jdbc:postgresql://localhost:5432/deustosport"
+export DB_DRIVER="org.postgresql.Driver"
+export DB_USER="postgres"
+export DB_PASSWORD="postgres"
+```
+
+> Si no se definen, la app usa H2 en memoria (útil para desarrollo local).
+
+### Arrancar el backend (API REST)
+
+```bash
+./gradlew :my-app:bootRun
+```
+
+### Arrancar el frontend (Thymeleaf)
+
+```bash
+./gradlew :my-webapp:bootRun
+```
+
+**Windows (PowerShell):**
 
 ```powershell
 $env:DB_URL="jdbc:postgresql://localhost:5432/deustosport"
@@ -31,70 +58,95 @@ $env:DB_PASSWORD="postgres"
 .\gradlew.bat :my-app:bootRun
 ```
 
-Para el otro módulo:
+---
 
-```powershell
-.\gradlew.bat :my-webapp:bootRun
+## Tests
+
+El proyecto divide las pruebas en tres fases independientes.
+
+### 1. Tests unitarios
+
+Pruebas aisladas con Mockito. No requieren servidor ni base de datos externa.
+
+```bash
+./gradlew :my-app:test
 ```
 
-## Horario general del polideportivo
+Genera reporte de cobertura JaCoCo en:
+`my-app/build/reports/jacoco/test/html/index.html`
 
-El módulo `my-app` permite definir un horario general por instalación. Las reservas y las consultas de disponibilidad quedan bloqueadas fuera de esa franja.
+### 2. Tests de integración
 
-Endpoint:
+Arrancan el contexto completo de Spring Boot con H2 en memoria y realizan llamadas HTTP reales al servidor embebido.
 
-```http
-PUT /api/instalaciones/{instalacionId}/horario-general
-Content-Type: application/json
-
-{
-	"horaApertura": "08:00:00",
-	"horaCierre": "22:00:00"
-}
+```bash
+./gradlew :my-app:integrationTest
 ```
 
-Si una reserva empieza antes de la apertura o termina después del cierre, la API responde con error y no la registra.
+### 3. Tests de rendimiento (ContiPerf)
 
-## Panel de secretaría (búsqueda de usuarios)
+Requieren el servidor arrancado en `localhost:8080`. Ejecutar en una terminal separada:
 
-Se añadió un panel para atención en secretaría que permite filtrar usuarios por DNI y consultar sus reservas rápidamente.
+```bash
+# Terminal 1 — arrancar servidor
+./gradlew :my-app:bootRun
 
-Panel web:
-
-```http
-GET /secretaria-panel.html
+# Terminal 2 — ejecutar tests de rendimiento
+./gradlew :my-app:performanceTest
 ```
 
-Endpoints usados por el panel:
+Genera reporte en: `my-app/build/reports/tests/performanceTest/index.html`
 
-```http
-GET /api/secretaria/usuarios?dni=11111111A
-GET /api/secretaria/usuarios/{usuarioId}/reservas
+### Ejecutar todas las fases de una vez
+
+```bash
+./gradlew :my-app:test :my-app:integrationTest
 ```
 
-## Registro de usuario
+---
 
-El proyecto permite crear cuentas nuevas por API y mediante formulario web.
+## Cobertura de código
 
-Formulario:
+El plugin **JaCoCo** genera el informe automáticamente al ejecutar `test`. Abre el informe HTML:
 
-```http
-GET /registro.html
+```
+my-app/build/reports/jacoco/test/html/index.html
 ```
 
-Endpoint de alta:
+---
 
-```http
-POST /api/auth/registro
-Content-Type: application/json
+## API y Swagger UI
 
-{
-	"nombreCompleto": "Juan Garcia",
-	"email": "juan@email.com",
-	"dni": "12345678A",
-	"telefono": "666111222",
-	"password": "password123"
-}
+Con el servidor arrancado, la documentación interactiva está disponible en:
+
+```
+http://localhost:8080/swagger-ui.html
 ```
 
-Validaciones aplicadas: nombre obligatorio, email valido, DNI con formato `12345678A`, contrasena minima de 8 caracteres y telefono opcional de 9 a 15 digitos.
+---
+
+## Principales endpoints
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `POST` | `/api/auth/registro` | Registro de usuario |
+| `POST` | `/api/auth/login` | Autenticación |
+| `GET`  | `/api/pistas` | Listado de pistas |
+| `GET`  | `/api/instalaciones` | Listado de instalaciones |
+| `GET`  | `/api/tarifas` | Listado de tarifas |
+| `POST` | `/api/reservas` | Crear reserva |
+| `PUT`  | `/api/instalaciones/{id}/horario-general` | Configurar horario |
+| `GET`  | `/api/secretaria/usuarios` | Búsqueda por DNI (secretaría) |
+
+---
+
+## Módulos del proyecto
+
+```
+deustoSport/
+├── my-app/          # Backend REST (Spring Boot 3.4.3, Java 21)
+│   ├── controller/  # Capa de presentación (REST controllers)
+│   ├── service/     # Capa de negocio
+│   └── repository/  # Capa de persistencia (Spring Data JPA)
+└── my-webapp/       # Frontend web (Thymeleaf + HTML/JS/CSS)
+```
