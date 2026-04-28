@@ -13,11 +13,16 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class EstadisticasServiceTest {
+
+    private static final Logger log = LoggerFactory.getLogger(EstadisticasServiceTest.class);
 
     @Mock
     private ReservaRepository reservaRepository;
@@ -30,6 +35,7 @@ class EstadisticasServiceTest {
 
     @Test
     void obtenerEstadisticas_debeRetornarEstadisticasCorrectas() {
+        log.info("[TEST] obtenerEstadisticas - verifica cálculo de estadísticas del mes");
         // Given
         LocalDateTime inicioMes = LocalDate.now().withDayOfMonth(1).atStartOfDay();
         LocalDateTime finMes = LocalDate.now().plusMonths(1).withDayOfMonth(1).atStartOfDay();

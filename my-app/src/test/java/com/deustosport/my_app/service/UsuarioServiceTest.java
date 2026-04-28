@@ -14,12 +14,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.math.BigDecimal;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UsuarioServiceTest {
+
+    private static final Logger log = LoggerFactory.getLogger(UsuarioServiceTest.class);
 
     @Mock
     private UsuarioRepository usuarioRepository;
@@ -38,6 +43,7 @@ class UsuarioServiceTest {
 
     @Test
     void registrarUsuario_debeCrearUsuarioCorrectamente() {
+        log.info("[TEST] registrarUsuario - creación correcta de usuario socio");
         // Given
         String dni = "12345678A";
         String nombre = "Juan";

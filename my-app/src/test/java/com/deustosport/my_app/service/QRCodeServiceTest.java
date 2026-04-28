@@ -7,6 +7,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mail.javamail.JavaMailSender;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -14,11 +17,14 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class QRCodeServiceTest {
 
+    private static final Logger log = LoggerFactory.getLogger(QRCodeServiceTest.class);
+
     @InjectMocks
     private QRCodeService qrCodeService;
 
     @Test
     void generateQRCode_debeGenerarArrayDeBytes() {
+        log.info("[TEST] generateQRCode - debe generar array de bytes no vacío");
         // Given
         String text = "TEST-QR-CODE";
 

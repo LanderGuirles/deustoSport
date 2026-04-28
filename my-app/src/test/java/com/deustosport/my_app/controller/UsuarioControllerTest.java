@@ -15,6 +15,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -23,6 +26,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(UsuarioController.class)
 class UsuarioControllerTest {
+
+    private static final Logger log = LoggerFactory.getLogger(UsuarioControllerTest.class);
 
     @Autowired
     private MockMvc mockMvc;
@@ -36,6 +41,7 @@ class UsuarioControllerTest {
     @Test
     @WithMockUser
     void registrarUsuario_debeRetornarUsuarioCreado() throws Exception {
+        log.info("[TEST] registrarUsuario - debe retornar usuario creado correctamente");
         RegistroUsuarioRequest request = new RegistroUsuarioRequest();
         request.setDni("12345678A");
         request.setNombre("Juan");

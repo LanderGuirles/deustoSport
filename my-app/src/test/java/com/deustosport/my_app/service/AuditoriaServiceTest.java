@@ -12,12 +12,17 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AuditoriaServiceTest {
+
+    private static final Logger log = LoggerFactory.getLogger(AuditoriaServiceTest.class);
 
     @Mock
     private AuditoriaRepository auditoriaRepository;
@@ -27,6 +32,7 @@ class AuditoriaServiceTest {
 
     @Test
     void registrarAccion_debeGuardarAuditoriaCorrectamente() {
+        log.info("[TEST] registrarAccion - debe guardar auditoría correctamente");
         // Given
         String usuario = "admin";
         String accion = "LOGIN";

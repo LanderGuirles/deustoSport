@@ -13,12 +13,17 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class EmailServiceTest {
+
+    private static final Logger log = LoggerFactory.getLogger(EmailServiceTest.class);
 
     @Mock
     private JavaMailSender mailSender;
@@ -36,6 +41,7 @@ class EmailServiceTest {
 
     @Test
     void enviarEmailCreacionReserva_debeEnviarEmailConQR() {
+        log.info("[TEST] enviarEmailCreacionReserva - no debe lanzar excepción");
         // Given
         String destinatario = "usuario@test.com";
         String nombrePista = "Pista Fútbol 1";

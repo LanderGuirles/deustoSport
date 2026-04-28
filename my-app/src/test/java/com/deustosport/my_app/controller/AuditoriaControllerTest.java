@@ -13,6 +13,9 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -20,6 +23,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(AuditoriaController.class)
 @WithMockUser(roles = "ADMIN")
 class AuditoriaControllerTest {
+
+    private static final Logger log = LoggerFactory.getLogger(AuditoriaControllerTest.class);
 
     @Autowired
     private MockMvc mockMvc;
@@ -29,6 +34,7 @@ class AuditoriaControllerTest {
 
     @Test
     void obtenerAuditoriasRecientes_debeRetornarLista() throws Exception {
+        log.info("[TEST] obtenerAuditoriasRecientes - debe retornar lista con 2 elementos");
         // Given
         List<Auditoria> auditorias = Arrays.asList(
             crearAuditoriaMock(1L, "user1", "LOGIN"),
