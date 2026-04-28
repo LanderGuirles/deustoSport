@@ -1,9 +1,12 @@
 package com.deustosport.my_app.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDate;
 
 public class RegistroRequest {
 
@@ -20,6 +23,10 @@ public class RegistroRequest {
     @Pattern(regexp = "^[0-9]{8}[A-Za-z]$", message = "El DNI debe tener formato 12345678A")
     private String dni;
 
+    @NotNull(message = "La fecha de nacimiento es obligatoria")
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate fechaNacimiento;
+
     @NotBlank(message = "La contrasena es obligatoria")
     @Size(min = 8, max = 72, message = "La contrasena debe tener entre 8 y 72 caracteres")
     private String password;
@@ -30,10 +37,11 @@ public class RegistroRequest {
     public RegistroRequest() {
     }
 
-    public RegistroRequest(String nombreCompleto, String email, String dni, String password, String telefono) {
+    public RegistroRequest(String nombreCompleto, String email, String dni, LocalDate fechaNacimiento, String password, String telefono) {
         this.nombreCompleto = nombreCompleto;
         this.email = email;
         this.dni = dni;
+        this.fechaNacimiento = fechaNacimiento;
         this.password = password;
         this.telefono = telefono;
     }
@@ -60,6 +68,14 @@ public class RegistroRequest {
 
     public void setDni(String dni) {
         this.dni = dni;
+    }
+
+    public LocalDate getFechaNacimiento() {
+        return fechaNacimiento;
+    }
+
+    public void setFechaNacimiento(LocalDate fechaNacimiento) {
+        this.fechaNacimiento = fechaNacimiento;
     }
 
     public String getPassword() {

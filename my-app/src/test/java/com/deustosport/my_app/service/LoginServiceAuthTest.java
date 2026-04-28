@@ -19,6 +19,7 @@ import com.deustosport.my_app.enums.Rol;
 import com.deustosport.my_app.repository.CredencialRepository;
 import com.deustosport.my_app.repository.UsuarioRepository;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -58,6 +59,7 @@ class LoginServiceAuthTest {
                 "Ana Lopez",
                 "ana@deustosport.com",
                 "12345678A",
+                LocalDate.of(1990, 1, 1),
                 "Secreto123",
                 "+34666111222");
 
@@ -76,6 +78,7 @@ class LoginServiceAuthTest {
                 "  Maria Ruiz  ",
                 "  MARIA@DEUSTOSPORT.COM ",
                 "12345678z",
+                LocalDate.of(1990, 1, 1),
                 "PasswordSegura1",
                 " 666111222 ");
 

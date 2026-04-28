@@ -55,6 +55,7 @@ public class LoginService {
             nuevoUsuario.setNombreCompleto(solicitud.getNombreCompleto().trim());
             nuevoUsuario.setEmail(email);
             nuevoUsuario.setDni(dni);
+            nuevoUsuario.setFechaNacimiento(solicitud.getFechaNacimiento());
             nuevoUsuario.setTelefono(solicitud.getTelefono() != null ? solicitud.getTelefono().trim() : null);
             nuevoUsuario.setActivo(true);
             

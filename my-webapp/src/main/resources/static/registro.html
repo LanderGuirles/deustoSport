@@ -216,6 +216,11 @@
             </div>
 
             <div class="form-group">
+                <label for="fechaNacimiento">Fecha de nacimiento</label>
+                <input type="date" id="fechaNacimiento" required>
+            </div>
+
+            <div class="form-group">
                 <label for="telefono">Telefono (opcional)</label>
                 <input type="text" id="telefono" placeholder="Ej: 666111222">
             </div>
@@ -254,6 +259,7 @@
             nombreCompleto: document.getElementById("nombreCompleto").value,
             email: document.getElementById("email").value,
             dni: document.getElementById("dni").value,
+            fechaNacimiento: document.getElementById("fechaNacimiento").value,
             telefono: document.getElementById("telefono").value,
             password: password
         };

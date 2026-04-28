@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Map;
 import java.util.Optional;
 
@@ -47,7 +48,7 @@ class LoginControllerTest {
         when(loginService.registrarUsuario(any())).thenReturn(ok);
 
         ResponseEntity<LoginResponse> resp = loginController.registro(
-                new RegistroRequest("Juan García", "juan@test.com", "12345678A", "password123", null));
+                new RegistroRequest("Juan García", "juan@test.com", "12345678A", LocalDate.of(1990, 1, 1), "password123", null));
 
         assertEquals(HttpStatus.CREATED, resp.getStatusCode());
         assertTrue(resp.getBody().isExitoso());
@@ -62,7 +63,7 @@ class LoginControllerTest {
         when(loginService.registrarUsuario(any())).thenReturn(fail);
 
         ResponseEntity<LoginResponse> resp = loginController.registro(
-                new RegistroRequest("Juan García", "juan@test.com", "12345678A", "password123", null));
+                new RegistroRequest("Juan García", "juan@test.com", "12345678A", LocalDate.of(1990, 1, 1), "password123", null));
 
         assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
         assertFalse(resp.getBody().isExitoso());
