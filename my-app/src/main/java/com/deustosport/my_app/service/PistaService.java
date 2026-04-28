@@ -8,6 +8,10 @@ import com.deustosport.my_app.entity.Instalacion;
 import com.deustosport.my_app.entity.Pista;
 import com.deustosport.my_app.repository.InstalacionRepository;
 import com.deustosport.my_app.repository.PistaRepository;
+import com.deustosport.my_app.repository.ReservaRepository;
+import com.deustosport.my_app.entity.Reserva;
+import org.springframework.context.annotation.Lazy;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -17,10 +21,17 @@ public class PistaService {
 
     private final PistaRepository pistaRepository;
     private final InstalacionRepository instalacionRepository;
+    private final ReservaRepository reservaRepository;
+    private final ReservaService reservaService;
 
-    public PistaService(PistaRepository pistaRepository, InstalacionRepository instalacionRepository) {
+    public PistaService(PistaRepository pistaRepository, 
+                        InstalacionRepository instalacionRepository,
+                        ReservaRepository reservaRepository,
+                        @Lazy ReservaService reservaService) {
         this.pistaRepository = pistaRepository;
         this.instalacionRepository = instalacionRepository;
+        this.reservaRepository = reservaRepository;
+        this.reservaService = reservaService;
     }
 
 
@@ -139,9 +150,21 @@ public class PistaService {
         Objects.requireNonNull(id, "id no puede ser null");
         Pista pistaExistente = pistaRepository.findById(id).orElseThrow(() -> new RuntimeException("No se puede modificar: La pista con ID " + id + " no existe."));
 
-        pistaExistente.setActiva(!pistaExistente.isActiva());
+        boolean antesEstabaActiva = pistaExistente.isActiva();
+        pistaExistente.setActiva(!antesEstabaActiva);
 
         Pista pistaGuardada =  pistaRepository.save(pistaExistente);
+
+        // Si la pista se acaba de BLOQUEAR (estaba activa y ahora no lo está)
+        if (antesEstabaActiva && !pistaGuardada.isActiva()) {
+            // Cancelar reservas desde hoy en adelante
+            List<Reserva> reservasFuturas = reservaRepository.findActivasByPistaAndRango(
+                    id, LocalDate.now(), LocalDate.now().plusYears(1)); // Un rango razonable
+
+            for (Reserva r : reservasFuturas) {
+                reservaService.cancelarReservaPorBloqueo(r.getId());
+            }
+        }
 
         // pasamos a DTO para el controller
         PistaResponse pistaDto = convertirPistaToDto(pistaGuardada);

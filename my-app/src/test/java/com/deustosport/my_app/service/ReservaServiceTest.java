@@ -415,4 +415,53 @@ class ReservaServiceTest {
 
                 verify(notificacionService).notificarModificacionReservaPorSecretaria(any(Reserva.class));
         }
+
+    @Test
+    void cancelarReservaPorBloqueo_reembolsaYNotifica_aunqueSeaMenosDe24h() {
+        log.info("[TEST] cancelarReservaPorBloqueo_reembolsaYNotifica - saltando regla 24h");
+        
+        // Reserva para dentro de 2 horas (menos de 24h)
+        LocalDateTime inicioProximo = LocalDateTime.now().plusHours(2);
+
+        Reserva reserva = new Reserva();
+        reserva.setId(600L);
+        reserva.setUsuario(usuario);
+        reserva.setPista(pista);
+        reserva.setFechaReserva(inicioProximo.toLocalDate());
+        reserva.setHoraInicio(inicioProximo.toLocalTime());
+        reserva.setEstado(EstadoReserva.CONFIRMADA);
+        reserva.setMetodoPago(MetodoPago.BILLETERA);
+        reserva.setPrecioTotal(new BigDecimal("15.00"));
+
+        when(reservaRepository.findById(600L)).thenReturn(Optional.of(reserva));
+        when(reservaRepository.save(isA(Reserva.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(usuarioRepository.save(isA(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        reservaService.cancelarReservaPorBloqueo(600L);
+
+        assertEquals(EstadoReserva.CANCELADA, reserva.getEstado());
+        assertEquals(new BigDecimal("115.00"), usuario.getBilletera());
+        verify(notificacionService).notificarIncidenciaReserva(eq(600L), anyString(), anyString(), eq(true));
+    }
+
+    @Test
+    void cancelarReservaPorBloqueo_noHaceNadaSiEsPasada() {
+        log.info("[TEST] cancelarReservaPorBloqueo_noHaceNadaSiEsPasada");
+
+        // Reserva de hace 5 horas
+        LocalDateTime inicioPasado = LocalDateTime.now().minusHours(5);
+
+        Reserva reserva = new Reserva();
+        reserva.setId(601L);
+        reserva.setFechaReserva(inicioPasado.toLocalDate());
+        reserva.setHoraInicio(inicioPasado.toLocalTime());
+        reserva.setEstado(EstadoReserva.CONFIRMADA);
+
+        when(reservaRepository.findById(601L)).thenReturn(Optional.of(reserva));
+
+        reservaService.cancelarReservaPorBloqueo(601L);
+
+        assertEquals(EstadoReserva.CONFIRMADA, reserva.getEstado()); // No cambia
+        verify(reservaRepository, never()).save(any());
+    }
 }

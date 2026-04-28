@@ -235,6 +235,45 @@ public class ReservaService {
     }
 
     @Transactional
+    public void cancelarReservaPorBloqueo(Long reservaId) {
+        Reserva reserva = reservaRepository.findById(reservaId)
+                .orElseThrow(() -> new IllegalArgumentException("Reserva no encontrada"));
+
+        if (reserva.getEstado() == EstadoReserva.CANCELADA) {
+            return;
+        }
+
+        // Solo cancelar si la reserva es futura
+        LocalDateTime ahora = LocalDateTime.now();
+        LocalDateTime inicioReserva = LocalDateTime.of(reserva.getFechaReserva(), reserva.getHoraInicio());
+        if (inicioReserva.isBefore(ahora)) {
+            return;
+        }
+
+        // Reembolsar siempre si se pago con billetera, ignorando la regla de las 24h
+        if (reserva.getEstado() == EstadoReserva.CONFIRMADA &&
+                reserva.getPrecioTotal() != null &&
+                reserva.getMetodoPago() == MetodoPago.BILLETERA) {
+            Usuario usuario = reserva.getUsuario();
+            BigDecimal nuevoSaldo = usuario.getBilletera().add(reserva.getPrecioTotal());
+            usuario.setBilletera(nuevoSaldo);
+            usuarioRepository.save(usuario);
+        }
+
+        reserva.setEstado(EstadoReserva.CANCELADA);
+        reservaRepository.save(reserva);
+
+        // Notificar al usuario
+        String titulo = "Reserva cancelada por mantenimiento";
+        String mensaje = "Tu reserva en " + reserva.getPista().getNombre() + " para el "
+                + reserva.getFechaReserva() + " a las " + reserva.getHoraInicio()
+                + " ha sido cancelada debido a que la pista ha sido bloqueada por el coordinador. "
+                + (reserva.getMetodoPago() == MetodoPago.BILLETERA ? "Se ha reembolsado el importe en tu billetera." : "");
+
+        notificacionService.notificarIncidenciaReserva(reservaId, titulo, mensaje, true);
+    }
+
+    @Transactional
     public Reserva modificarReserva(Long reservaId, Long usuarioId,
                                     LocalDate nuevaFecha, LocalTime nuevaHoraInicio,
                                     Integer duracionMinutos) {

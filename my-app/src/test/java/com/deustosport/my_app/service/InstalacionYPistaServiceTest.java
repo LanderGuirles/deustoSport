@@ -10,6 +10,8 @@ import com.deustosport.my_app.entity.Pista;
 import com.deustosport.my_app.enums.TipoDeporte;
 import com.deustosport.my_app.repository.InstalacionRepository;
 import com.deustosport.my_app.repository.PistaRepository;
+import com.deustosport.my_app.repository.ReservaRepository;
+import com.deustosport.my_app.service.ReservaService;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +36,8 @@ class InstalacionYPistaServiceTest {
 
     // ── PistaService ──────────────────────────────────────────────────────────
     @Mock private PistaRepository pistaRepository;
+    @Mock private ReservaRepository reservaRepository;
+    @Mock private ReservaService reservaService;
     @InjectMocks private PistaService pistaService;
 
     private Instalacion instalacion;
@@ -157,15 +161,36 @@ class InstalacionYPistaServiceTest {
     }
 
     @Test
-    void pista_bloquear_alternaBloqueada() {
-        log.info("[TEST] PistaService.bloquearPista - pista activa → bloqueada");
+    void pista_bloquear_alternaBloqueada_yCancelaReservas() {
+        log.info("[TEST] PistaService.bloquearPista - pista activa → bloqueada (cancela reservas)");
+        when(pistaRepository.findById(5L)).thenReturn(Optional.of(pista));
+        when(pistaRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        
+        // Mock de reservas futuras
+        com.deustosport.my_app.entity.Reserva r1 = new com.deustosport.my_app.entity.Reserva();
+        r1.setId(100L);
+        when(reservaRepository.findActivasByPistaAndRango(eq(5L), any(), any()))
+                .thenReturn(List.of(r1));
+
+        PistaResponse resultado = pistaService.bloquearPista(5L);
+
+        assertFalse(resultado.isActiva(), "La pista debería quedar bloqueada (inactiva)");
+        verify(reservaService, times(1)).cancelarReservaPorBloqueo(100L);
+        log.info("[TEST] Estado tras bloquear: activa={}. Reserva 100 cancelada.", resultado.isActiva());
+    }
+
+    @Test
+    void pista_desbloquear_noCancelaReservas() {
+        log.info("[TEST] PistaService.bloquearPista - pista bloqueada → activa");
+        pista.setActiva(false);
         when(pistaRepository.findById(5L)).thenReturn(Optional.of(pista));
         when(pistaRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         PistaResponse resultado = pistaService.bloquearPista(5L);
 
-        assertFalse(resultado.isActiva(), "La pista debería quedar bloqueada (inactiva)");
-        log.info("[TEST] Estado tras bloquear: activa={}", resultado.isActiva());
+        assertTrue(resultado.isActiva(), "La pista debería quedar activa");
+        verify(reservaRepository, never()).findActivasByPistaAndRango(any(), any(), any());
+        verify(reservaService, never()).cancelarReservaPorBloqueo(any());
     }
 
     @Test
