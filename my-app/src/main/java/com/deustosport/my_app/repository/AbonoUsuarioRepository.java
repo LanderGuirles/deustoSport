@@ -17,4 +17,6 @@ public interface AbonoUsuarioRepository extends JpaRepository<AbonoUsuario, Long
     Optional<AbonoUsuario> findAbonoActivoByUsuarioId(@Param("usuarioId") Long usuarioId, @Param("fechaActual") LocalDate fechaActual);
 
     List<AbonoUsuario> findByActivoTrueAndFechaFinBefore(LocalDate fecha);
+
+    List<AbonoUsuario> findByActivoTrueAndFechaFin(LocalDate fecha);
 }

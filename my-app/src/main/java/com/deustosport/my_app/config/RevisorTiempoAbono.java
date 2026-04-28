@@ -22,4 +22,10 @@ public class RevisorTiempoAbono {
         int caducados = abonoUsuarioService.desactivarAbonosCaducados();
         log.info("CRON abonos: {} abonos caducados desactivados.", caducados);
     }
+
+    @Scheduled(cron = "0 0 10 * * ?") // A las 10:00 AM cada día
+    public void notificarVencimientos() {
+        int notificados = abonoUsuarioService.notificarVencimientos();
+        log.info("CRON abonos: {} usuarios notificados sobre vencimiento mañana.", notificados);
+    }
 }

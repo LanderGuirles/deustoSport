@@ -8,4 +8,5 @@ public class AbonoUsuarioRequest {
     private Long usuarioId;
     private Long planAbonoId;
     private List<String> emailsBeneficiarios;
+    private String metodoPago;
 }

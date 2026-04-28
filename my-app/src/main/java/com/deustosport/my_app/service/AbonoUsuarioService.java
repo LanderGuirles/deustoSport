@@ -7,6 +7,7 @@ import com.deustosport.my_app.enums.DuracionAbonos;
 import com.deustosport.my_app.repository.AbonoUsuarioRepository;
 import com.deustosport.my_app.repository.PlanAbonoRepository;
 import com.deustosport.my_app.repository.UsuarioRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class AbonoUsuarioService {
 
@@ -27,6 +29,9 @@ public class AbonoUsuarioService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private NotificacionService notificacionService;
 
     public List<PlanAbono> obtenerPlanesActivos() {
         // En un caso real usaríamos planAbonoRepository.findByActivoTrue()
@@ -62,7 +67,7 @@ public class AbonoUsuarioService {
     }
 
     @Transactional
-    public AbonoUsuario comprarAbono(Long titularId, Long planId, List<String> emailsBeneficiarios) {
+    public AbonoUsuario comprarAbono(Long titularId, Long planId, List<String> emailsBeneficiarios, String metodoPago) {
         Usuario titular = usuarioRepository.findById(titularId)
                 .orElseThrow(() -> new RuntimeException("Titular no encontrado"));
 
@@ -82,7 +87,7 @@ public class AbonoUsuarioService {
         List<Usuario> beneficiarios = new ArrayList<>();
         if (emailsBeneficiarios != null && !emailsBeneficiarios.isEmpty()) {
             for (String email : emailsBeneficiarios) {
-                if (email.trim().equalsIgnoreCase(titular.getEmail())) continue; // Evitar que el titular se ponga a si mismo
+                if (email.trim().equalsIgnoreCase(titular.getEmail())) continue;
 
                 Usuario b = usuarioRepository.findByEmail(email.trim())
                         .orElseThrow(() -> new RuntimeException("No existe ningún usuario registrado con el email: " + email));
@@ -91,18 +96,23 @@ public class AbonoUsuarioService {
                     throw new RuntimeException("El usuario " + email + " ya está disfrutando de otro abono activo.");
                 }
 
-                validarEdadUsuario(b, planId); // Validar que los familiares cumplen la edad
+                validarEdadUsuario(b, planId);
                 beneficiarios.add(b);
             }
         }
 
-        // Cobrar al titular
-        if (titular.getBilletera().compareTo(plan.getPrecio()) < 0) {
-            throw new RuntimeException("Saldo insuficiente. El plan cuesta " + plan.getPrecio() + "€ y tienes " + titular.getBilletera() + "€.");
+        // --- LÓGICA DE PAGO ---
+        if ("BILLETERA".equalsIgnoreCase(metodoPago)) {
+            if (titular.getBilletera().compareTo(plan.getPrecio()) < 0) {
+                throw new RuntimeException("Saldo insuficiente en billetera. El plan cuesta " + plan.getPrecio() + "€.");
+            }
+            titular.setBilletera(titular.getBilletera().subtract(plan.getPrecio()));
+            usuarioRepository.save(titular);
+        } else {
+            // Para otros métodos (TARJETA, BIZUM, etc.) simulamos validación exitosa
+            // En un sistema real aquí se llamaría a la pasarela de pago
+            log.info("Procesando pago de abono via {} para el usuario {}", metodoPago, titular.getEmail());
         }
-        
-        titular.setBilletera(titular.getBilletera().subtract(plan.getPrecio()));
-        usuarioRepository.save(titular);
 
         // Crear la suscripción
         AbonoUsuario nuevoAbono = new AbonoUsuario();
@@ -122,7 +132,12 @@ public class AbonoUsuarioService {
             nuevoAbono.setFechaFin(LocalDate.now().plusDays(1)); // Seguridad
         }
 
-        return abonoUsuarioRepository.save(nuevoAbono);
+        AbonoUsuario guardado = abonoUsuarioRepository.save(nuevoAbono);
+
+        // Notificar al titular
+        notificacionService.notificarCompraAbono(titular, plan.getNombre(), guardado.getFechaFin().toString());
+
+        return guardado;
     }
 
     public Optional<AbonoUsuario> obtenerAbonoActivo(Long usuarioId) {
@@ -137,5 +152,15 @@ public class AbonoUsuarioService {
         }
         abonoUsuarioRepository.saveAll(caducados);
         return caducados.size();
+    }
+
+    @Transactional
+    public int notificarVencimientos() {
+        LocalDate manana = LocalDate.now().plusDays(1);
+        List<AbonoUsuario> vencenManana = abonoUsuarioRepository.findByActivoTrueAndFechaFin(manana);
+        for (AbonoUsuario abono : vencenManana) {
+            notificacionService.notificarVencimientoProximo(abono.getTitular(), abono.getPlan().getNombre());
+        }
+        return vencenManana.size();
     }
 }

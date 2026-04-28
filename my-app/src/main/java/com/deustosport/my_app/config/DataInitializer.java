@@ -67,8 +67,8 @@ public class DataInitializer implements CommandLineRunner {
 
         // ── Usuarios ─────────────────────────────────────────────────
         jdbcTemplate.update(
-            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol) VALUES (?,?,?,?,?,?,?,?)",
-            "Juan García", "juan@deustosport.com", "11111111A", "666111222", true, false, 50.00, "CLIENTE");
+            "INSERT INTO usuarios (nombre_completo, email, dni, fecha_nacimiento, telefono, activo, es_socio, billetera, rol) VALUES (?,?,?,?,?,?,?,?,?)",
+            "Juan García", "juan@deustosport.com", "11111111A", LocalDate.of(1995, 10, 17), "666111222", true, false, 50.00, "CLIENTE");
         jdbcTemplate.update(
             "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol) VALUES (?,?,?,?,?,?,?,?)",
             "María López", "maria@deustosport.com", "22222222B", "666333444", true, true, 100.00, "SECRETARIA");

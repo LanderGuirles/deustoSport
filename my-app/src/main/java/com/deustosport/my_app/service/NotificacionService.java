@@ -196,6 +196,38 @@ public class NotificacionService {
         return toDto(notificacion);
     }
 
+    @Transactional
+    public NotificacionResponse notificarCompraAbono(Usuario usuario, String nombrePlan, String fechaFin) {
+        String titulo = "Suscripción confirmada";
+        String mensaje = "Te has suscrito correctamente al plan " + nombrePlan + ". "
+                + "Tu abono estará activo hasta el " + fechaFin + ".";
+
+        Notificacion notificacion = crearNotificacion(
+                usuario,
+                titulo,
+                mensaje,
+                TipoNotificacion.COMUNICADO,
+                null);
+
+        return toDto(notificacion);
+    }
+
+    @Transactional
+    public void notificarVencimientoProximo(Usuario usuario, String nombrePlan) {
+        String titulo = "Tu suscripción vence pronto";
+        String mensaje = "Tu suscripción al plan " + nombrePlan + " finalizará en 24 horas.";
+
+        crearNotificacion(
+                usuario,
+                titulo,
+                mensaje,
+                TipoNotificacion.INCIDENCIA,
+                null);
+
+        // Opcional: enviar email también
+        emailService.enviarEmailNotificacion(usuario.getEmail(), titulo, mensaje);
+    }
+
     private Notificacion crearNotificacion(Usuario usuario,
                                            String titulo,
                                            String mensaje,

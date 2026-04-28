@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,10 +49,10 @@ public class AbonoUserController {
             @PathVariable("usuarioId") Long usuarioId,
             @RequestBody AbonoUsuarioRequest request) {
         try {
-            AbonoUsuario abono = abonoService.comprarAbono(usuarioId, request.getPlanAbonoId(), request.getEmailsBeneficiarios());
+            AbonoUsuario abono = abonoService.comprarAbono(usuarioId, request.getPlanAbonoId(), request.getEmailsBeneficiarios(), request.getMetodoPago());
             return ResponseEntity.ok(mapearResponse(abono));
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(Collections.singletonMap("error", e.getMessage()));
         }
     }
 
