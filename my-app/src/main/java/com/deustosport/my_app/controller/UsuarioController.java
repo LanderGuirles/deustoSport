@@ -47,8 +47,8 @@ public class UsuarioController {
 
             RegistroUsuarioResponse response = new RegistroUsuarioResponse();
             response.setId(usuario.getId());
-            response.setNombre(usuario.getNombre());
-            response.setApellidos(usuario.getApellidos());
+            response.setNombre(extraerNombre(usuario.getNombreCompleto()));
+            response.setApellidos(extraerApellidos(usuario.getNombreCompleto()));
             response.setEmail(usuario.getEmail());
             response.setEsSocio(usuario.isEsSocio());
             response.setMensaje("Usuario registrado exitosamente");
@@ -74,8 +74,8 @@ public class UsuarioController {
         UsuarioPerfilResponse response = new UsuarioPerfilResponse();
         response.setId(usuario.getId());
         response.setDni(usuario.getDni());
-        response.setNombre(usuario.getNombre());
-        response.setApellidos(usuario.getApellidos());
+        response.setNombre(extraerNombre(usuario.getNombreCompleto()));
+        response.setApellidos(extraerApellidos(usuario.getNombreCompleto()));
         response.setEmail(usuario.getEmail());
         response.setTelefono(usuario.getTelefono());
         response.setEsSocio(usuario.isEsSocio());
@@ -93,14 +93,16 @@ public class UsuarioController {
     public ResponseEntity<?> actualizarPerfil(Authentication auth,
                                               @Valid @RequestBody ActualizarPerfilRequest request) {
         Long usuarioId = Long.parseLong(auth.getName());
+        Usuario usuarioActual = usuarioService.obtenerPorId(usuarioId)
+            .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 
         try {
             Usuario usuario = usuarioService.actualizarPerfil(
                     usuarioId,
-                    request.getNombre(),
-                    request.getApellidos(),
+                    request.getNombreCompleto(),
+                    "",
                     request.getTelefono(),
-                    request.getEmail()
+                usuarioActual.getEmail()
             );
 
             return ResponseEntity.ok(Map.of("mensaje", "Perfil actualizado exitosamente"));
@@ -176,8 +178,8 @@ public class UsuarioController {
                     UsuarioBusquedaResponse r = new UsuarioBusquedaResponse();
                     r.setId(u.getId());
                     r.setDni(u.getDni());
-                    r.setNombre(u.getNombre());
-                    r.setApellidos(u.getApellidos());
+                r.setNombre(extraerNombre(u.getNombreCompleto()));
+                r.setApellidos(extraerApellidos(u.getNombreCompleto()));
                     r.setEmail(u.getEmail());
                     r.setTelefono(u.getTelefono());
                     r.setEsSocio(u.isEsSocio());
@@ -203,8 +205,8 @@ public class UsuarioController {
                     UsuarioListadoResponse r = new UsuarioListadoResponse();
                     r.setId(u.getId());
                     r.setDni(u.getDni());
-                    r.setNombre(u.getNombre());
-                    r.setApellidos(u.getApellidos());
+                    r.setNombre(extraerNombre(u.getNombreCompleto()));
+                    r.setApellidos(extraerApellidos(u.getNombreCompleto()));
                     r.setEmail(u.getEmail());
                     r.setEsSocio(u.isEsSocio());
                     r.setBilletera(u.getBilletera());
@@ -243,5 +245,21 @@ public class UsuarioController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
+    }
+
+    private String extraerNombre(String nombreCompleto) {
+        if (nombreCompleto == null || nombreCompleto.isBlank()) {
+            return "";
+        }
+        String[] partes = nombreCompleto.trim().split("\\s+", 2);
+        return partes[0];
+    }
+
+    private String extraerApellidos(String nombreCompleto) {
+        if (nombreCompleto == null || nombreCompleto.isBlank()) {
+            return "";
+        }
+        String[] partes = nombreCompleto.trim().split("\\s+", 2);
+        return partes.length > 1 ? partes[1] : "";
     }
 }

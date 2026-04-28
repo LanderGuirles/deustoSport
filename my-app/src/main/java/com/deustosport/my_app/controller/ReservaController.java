@@ -7,15 +7,19 @@ import com.deustosport.my_app.dto.ReservaResponse;
 import com.deustosport.my_app.entity.Reserva;
 import com.deustosport.my_app.enums.MetodoPago;
 import com.deustosport.my_app.service.ReservaService;
+import com.deustosport.my_app.service.QRCodeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/reservas")
@@ -23,9 +27,11 @@ import java.util.Map;
 public class ReservaController {
 
     private final ReservaService reservaService;
+    private final QRCodeService qrCodeService;
 
-    public ReservaController(ReservaService reservaService) {
+    public ReservaController(ReservaService reservaService, QRCodeService qrCodeService) {
         this.reservaService = reservaService;
+        this.qrCodeService = qrCodeService;
     }
 
     @PostMapping("/crear")
@@ -63,6 +69,15 @@ public class ReservaController {
             if (reserva.getUsuario().isEsSocio()) {
                 // Calcular precio sin descuento para mostrar al usuario
                 dto.setPrecioOriginal(reserva.getPrecioTotal()); // Se calcula en toDto para listas
+            }
+            // Generate and save QR code as PNG file
+            try {
+                String qrUrl = qrCodeService.generateAndSaveReservaQR(reserva.getId(), reserva.getUsuario().getId(),
+                        reserva.getPista().getNombre(), reserva.getFechaReserva().toString(), reserva.getHoraInicio().toString());
+                dto.setQrCode(qrUrl);
+            } catch (IOException e) {
+                // Log but don't fail the reservation if QR generation fails
+                dto.setQrCode(null);
             }
             return ResponseEntity.ok(dto);
 
@@ -195,6 +210,15 @@ public class ReservaController {
                     pagada.getFechaReserva(), pagada.getHoraInicio());
                 resp.setPuedeModificar(cumpleRegla24h && pagada.getEstado() != com.deustosport.my_app.enums.EstadoReserva.CANCELADA);
                 resp.setPuedeCancelarConReembolso(cumpleRegla24h && pagada.getEstado() != com.deustosport.my_app.enums.EstadoReserva.CANCELADA);
+            // Generate and save QR code as PNG file
+            try {
+                String qrUrl = qrCodeService.generateAndSaveReservaQR(pagada.getId(), pagada.getUsuario().getId(),
+                        pagada.getPista().getNombre(), pagada.getFechaReserva().toString(), pagada.getHoraInicio().toString());
+                resp.setQrCode(qrUrl);
+            } catch (IOException e) {
+                // Log but don't fail the payment if QR generation fails
+                resp.setQrCode(null);
+            }
             return ResponseEntity.ok(resp);
 
         } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
@@ -282,6 +306,20 @@ public class ReservaController {
         } catch (Exception e) {
             return ResponseEntity.badRequest()
                     .body(Map.of("error", "Error al estimar precio: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/qr/{filename}")
+    @Operation(summary = "Descargar código QR de reserva como PNG")
+    public ResponseEntity<byte[]> descargarQR(@PathVariable String filename) {
+        try {
+            byte[] qrImage = qrCodeService.readQRFile(filename);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .contentType(MediaType.IMAGE_PNG)
+                    .body(qrImage);
+        } catch (IOException e) {
+            return ResponseEntity.notFound().build();
         }
     }
 }

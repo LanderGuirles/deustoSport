@@ -2,6 +2,7 @@ package com.deustosport.my_app.repository;
 
 import com.deustosport.my_app.entity.Reserva;
 import com.deustosport.my_app.enums.EstadoReserva;
+import com.deustosport.my_app.enums.MetodoPago;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -27,6 +29,48 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
     List<Reserva> findByPistaId(Long pistaId);
 
     List<Reserva> findByEstado(EstadoReserva estado);
+
+        long countByEstado(EstadoReserva estado);
+    
+        // Compatibility method used by tests (accepting estado as String)
+        long countByEstado(String estado);
+
+    long countByMetodoPago(MetodoPago metodoPago);
+
+        @Query("SELECT COALESCE(SUM(r.precioTotal), 0) FROM Reserva r WHERE r.estado = :estado")
+        java.math.BigDecimal sumPrecioTotalByEstado(@Param("estado") EstadoReserva estado);
+
+        @Query("SELECT COALESCE(SUM(r.precioTotal), 0) FROM Reserva r WHERE r.fechaPago BETWEEN :inicio AND :fin")
+        java.math.BigDecimal sumPrecioTotalByFechaPagoBetween(@Param("inicio") LocalDateTime inicio,
+                                                             @Param("fin") LocalDateTime fin);
+
+        @Query("SELECT COUNT(r) FROM Reserva r WHERE r.fechaPago BETWEEN :inicio AND :fin")
+        long countByFechaPagoBetween(@Param("inicio") LocalDateTime inicio,
+                                                                 @Param("fin") LocalDateTime fin);
+
+        long countByFechaReservaBetween(LocalDate inicio, LocalDate fin);
+
+    // Methods expected by tests
+    @Query("SELECT COUNT(r) FROM Reserva r WHERE r.fechaPago BETWEEN :inicio AND :fin")
+    long countReservasMesActual(@Param("inicio") LocalDateTime inicio, @Param("fin") LocalDateTime fin);
+
+    @Query("SELECT COALESCE(SUM(r.precioTotal), 0) FROM Reserva r WHERE r.fechaPago BETWEEN :inicio AND :fin")
+    java.math.BigDecimal sumIngresosMesActual(@Param("inicio") LocalDateTime inicio, @Param("fin") LocalDateTime fin);
+
+    @Query("SELECT COUNT(r) FROM Reserva r WHERE r.fechaReserva = :fecha")
+    long countReservasHoy(@Param("fecha") LocalDate fecha);
+
+    @Query("SELECT COALESCE(SUM(r.precioTotal), 0) FROM Reserva r WHERE r.fechaReserva = :fecha")
+    java.math.BigDecimal sumIngresosHoy(@Param("fecha") LocalDate fecha);
+
+    @Query("SELECT r.pista.nombre, COUNT(r) FROM Reserva r GROUP BY r.pista.nombre")
+    java.util.Map<String, Long> countReservasPorInstalacion();
+
+    @Query("SELECT r.fechaReserva, COUNT(r) FROM Reserva r WHERE r.fechaReserva BETWEEN :inicio AND :fin GROUP BY r.fechaReserva ORDER BY r.fechaReserva DESC")
+    java.util.List<Object[]> countReservasPorDia(@Param("inicio") LocalDate inicio, @Param("fin") LocalDate fin);
+
+        @Query(value = "SELECT COUNT(*) FROM reservas r WHERE MOD(EXTRACT(DOW FROM r.fecha_reserva) + 6, 7) + 1 = :diaSemana", nativeQuery = true)
+        long countByDiaSemana(@Param("diaSemana") int diaSemana);
 
     @Query("SELECT r FROM Reserva r WHERE r.pista.id = :pistaId " +
            "AND r.fechaReserva = :fecha " +

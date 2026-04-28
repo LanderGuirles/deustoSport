@@ -30,4 +30,5 @@ public class ReservaResponse {
     private BigDecimal saldoRestante;
     private boolean puedeModificar;
     private boolean puedeCancelarConReembolso;
+    private String qrCode;
 }

@@ -1,0 +1,138 @@
+C:\Users\ietxe\OneDrive\Documents\GitHub\deustoSport\my-app\src\main\java\com\deustosport\my_app\service\EstadisticasService.java:126: error: cannot find symbol
+        long pagosTarjeta = reservaRepository.countByMetodoPago("TARJETA");
+                                             ^
+  symbol:   method countByMetodoPago(String)
+  location: variable reservaRepository of type ReservaRepository
+C:\Users\ietxe\OneDrive\Documents\GitHub\deustoSport\my-app\src\main\java\com\deustosport\my_app\service\EstadisticasService.java:127: error: cannot find symbol
+        long pagosBizum = reservaRepository.countByMetodoPago("BIZUM");
+                                           ^
+  symbol:   method countByMetodoPago(String)
+  location: variable reservaRepository of type ReservaRepository
+C:\Users\ietxe\OneDrive\Documents\GitHub\deustoSport\my-app\src\main\java\com\deustosport\my_app\service\EstadisticasService.java:128: error: cannot find symbol
+        long pagosTransferencia = reservaRepository.countByMetodoPago("TRANSFERENCIA");
+                                                   ^
+  symbol:   method countByMetodoPago(String)
+  location: variable reservaRepository of type ReservaRepository
+C:\Users\ietxe\OneDrive\Documents\GitHub\deustoSport\my-app\src\main\java\com\deustosport\my_app\service\EstadisticasService.java:129: error: cannot find symbol
+        long pagosBilletera = reservaRepository.countByMetodoPago("BILLETERA");
+                                               ^
+  symbol:   method countByMetodoPago(String)
+  location: variable reservaRepository of type ReservaRepository
+C:\Users\ietxe\OneDrive\Documents\GitHub\deustoSport\my-app\src\main\java\com\deustosport\my_app\controller\UsuarioController.java:50: error: cannot find symbol
+            response.setNombre(usuario.getNombre());
+                                      ^
+  symbol:   method getNombre()
+  location: variable usuario of type Usuario
+C:\Users\ietxe\OneDrive\Documents\GitHub\deustoSport\my-app\src\main\java\com\deustosport\my_app\controller\UsuarioController.java:51: error: cannot find symbol
+            response.setApellidos(usuario.getApellidos());
+                                         ^
+  symbol:   method getApellidos()
+  location: variable usuario of type Usuario
+C:\Users\ietxe\OneDrive\Documents\GitHub\deustoSport\my-app\src\main\java\com\deustosport\my_app\controller\UsuarioController.java:100: error: cannot find symbol
+                    request.getNombre(),
+                           ^
+  symbol:   method getNombre()
+  location: variable request of type @jakarta.validation.Valid ActualizarPerfilRequest
+C:\Users\ietxe\OneDrive\Documents\GitHub\deustoSport\my-app\src\main\java\com\deustosport\my_app\controller\UsuarioController.java:101: error: cannot find symbol
+                    request.getApellidos(),
+                           ^
+  symbol:   method getApellidos()
+  location: variable request of type @jakarta.validation.Valid ActualizarPerfilRequest
+C:\Users\ietxe\OneDrive\Documents\GitHub\deustoSport\my-app\src\main\java\com\deustosport\my_app\controller\UsuarioController.java:103: error: cannot find symbol
+                    request.getEmail()
+                           ^
+  symbol:   method getEmail()
+  location: variable request of type @jakarta.validation.Valid ActualizarPerfilRequest
+C:\Users\ietxe\OneDrive\Documents\GitHub\deustoSport\my-app\src\main\java\com\deustosport\my_app\service\UsuarioService.java:47: error: cannot find symbol
+        usuario.setPassword(passwordEncoder.encode(password));
+               ^
+  symbol:   method setPassword(String)
+  location: variable usuario of type Usuario
+C:\Users\ietxe\OneDrive\Documents\GitHub\deustoSport\my-app\src\main\java\com\deustosport\my_app\service\UsuarioService.java:91: error: cannot find symbol
+        if (!passwordEncoder.matches(oldPassword, usuario.getPassword())) {
+                                                         ^
+  symbol:   method getPassword()
+  location: variable usuario of type Usuario
+C:\Users\ietxe\OneDrive\Documents\GitHub\deustoSport\my-app\src\main\java\com\deustosport\my_app\service\UsuarioService.java:95: error: cannot find symbol
+        usuario.setPassword(passwordEncoder.encode(newPassword));
+               ^
+  symbol:   method setPassword(String)
+  location: variable usuario of type Usuario
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+12 errors
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':my-app:compileJava'.
+> Compilation failed; see the compiler output below.
+  Note: Recompile with -Xlint:deprecation for details.
+  Note: Some input files use or override a deprecated API.
+  C:\Users\ietxe\OneDrive\Documents\GitHub\deustoSport\my-app\src\main\java\com\deustosport\my_app\service\EstadisticasService.java:126: error: cannot find symbol
+          long pagosTarjeta = reservaRepository.countByMetodoPago("TARJETA");
+                                               ^
+    symbol:   method countByMetodoPago(String)
+    location: variable reservaRepository of type ReservaRepository
+  C:\Users\ietxe\OneDrive\Documents\GitHub\deustoSport\my-app\src\main\java\com\deustosport\my_app\service\EstadisticasService.java:127: error: cannot find symbol
+          long pagosBizum = reservaRepository.countByMetodoPago("BIZUM");
+                                             ^
+    symbol:   method countByMetodoPago(String)
+    location: variable reservaRepository of type ReservaRepository
+  C:\Users\ietxe\OneDrive\Documents\GitHub\deustoSport\my-app\src\main\java\com\deustosport\my_app\service\EstadisticasService.java:128: error: cannot find symbol
+          long pagosTransferencia = reservaRepository.countByMetodoPago("TRANSFERENCIA");
+                                                     ^
+    symbol:   method countByMetodoPago(String)
+    location: variable reservaRepository of type ReservaRepository
+  C:\Users\ietxe\OneDrive\Documents\GitHub\deustoSport\my-app\src\main\java\com\deustosport\my_app\service\EstadisticasService.java:129: error: cannot find symbol
+          long pagosBilletera = reservaRepository.countByMetodoPago("BILLETERA");
+                                                 ^
+    symbol:   method countByMetodoPago(String)
+    location: variable reservaRepository of type ReservaRepository
+  C:\Users\ietxe\OneDrive\Documents\GitHub\deustoSport\my-app\src\main\java\com\deustosport\my_app\controller\UsuarioController.java:50: error: cannot find symbol
+              response.setNombre(usuario.getNombre());
+                                        ^
+    symbol:   method getNombre()
+    location: variable usuario of type Usuario
+  C:\Users\ietxe\OneDrive\Documents\GitHub\deustoSport\my-app\src\main\java\com\deustosport\my_app\controller\UsuarioController.java:51: error: cannot find symbol
+              response.setApellidos(usuario.getApellidos());
+                                           ^
+    symbol:   method getApellidos()
+    location: variable usuario of type Usuario
+  C:\Users\ietxe\OneDrive\Documents\GitHub\deustoSport\my-app\src\main\java\com\deustosport\my_app\controller\UsuarioController.java:100: error: cannot find symbol
+                      request.getNombre(),
+                             ^
+    symbol:   method getNombre()
+    location: variable request of type @jakarta.validation.Valid ActualizarPerfilRequest
+  C:\Users\ietxe\OneDrive\Documents\GitHub\deustoSport\my-app\src\main\java\com\deustosport\my_app\controller\UsuarioController.java:101: error: cannot find symbol
+                      request.getApellidos(),
+                             ^
+    symbol:   method getApellidos()
+    location: variable request of type @jakarta.validation.Valid ActualizarPerfilRequest
+  C:\Users\ietxe\OneDrive\Documents\GitHub\deustoSport\my-app\src\main\java\com\deustosport\my_app\controller\UsuarioController.java:103: error: cannot find symbol
+                      request.getEmail()
+                             ^
+    symbol:   method getEmail()
+    location: variable request of type @jakarta.validation.Valid ActualizarPerfilRequest
+  C:\Users\ietxe\OneDrive\Documents\GitHub\deustoSport\my-app\src\main\java\com\deustosport\my_app\service\UsuarioService.java:47: error: cannot find symbol
+          usuario.setPassword(passwordEncoder.encode(password));
+                 ^
+    symbol:   method setPassword(String)
+    location: variable usuario of type Usuario
+  C:\Users\ietxe\OneDrive\Documents\GitHub\deustoSport\my-app\src\main\java\com\deustosport\my_app\service\UsuarioService.java:91: error: cannot find symbol
+          if (!passwordEncoder.matches(oldPassword, usuario.getPassword())) {
+                                                           ^
+    symbol:   method getPassword()
+    location: variable usuario of type Usuario
+  C:\Users\ietxe\OneDrive\Documents\GitHub\deustoSport\my-app\src\main\java\com\deustosport\my_app\service\UsuarioService.java:95: error: cannot find symbol
+          usuario.setPassword(passwordEncoder.encode(newPassword));
+                 ^
+    symbol:   method setPassword(String)
+    location: variable usuario of type Usuario
+  12 errors
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights.
+
+BUILD FAILED in 6s

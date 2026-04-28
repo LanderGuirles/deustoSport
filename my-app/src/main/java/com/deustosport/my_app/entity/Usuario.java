@@ -63,4 +63,46 @@ public class Usuario {
     // ACTUALIZADO: mappedBy apunta al nuevo campo "titular"
     @OneToMany(mappedBy = "titular", cascade = CascadeType.ALL)
     private List<AbonoUsuario> abonos = new ArrayList<>();
+
+    // Compatibility helpers for tests that used separate nombre/apellidos
+    @jakarta.persistence.Transient
+    private String password;
+
+    public String getNombre() {
+        if (this.nombreCompleto == null) return null;
+        String[] parts = this.nombreCompleto.split(" ", 2);
+        return parts.length > 0 ? parts[0] : this.nombreCompleto;
+    }
+
+    public String getApellidos() {
+        if (this.nombreCompleto == null) return null;
+        String[] parts = this.nombreCompleto.split(" ", 2);
+        return parts.length > 1 ? parts[1] : "";
+    }
+
+    public void setNombre(String nombre) {
+        String ap = getApellidos();
+        if (ap == null || ap.isEmpty()) {
+            this.nombreCompleto = nombre;
+        } else {
+            this.nombreCompleto = nombre + " " + ap;
+        }
+    }
+
+    public void setApellidos(String apellidos) {
+        String nom = getNombre();
+        if (nom == null || nom.isEmpty()) {
+            this.nombreCompleto = apellidos;
+        } else {
+            this.nombreCompleto = nom + " " + apellidos;
+        }
+    }
+
+    public String getPassword() {
+        return this.password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }

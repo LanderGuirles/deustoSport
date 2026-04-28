@@ -18,6 +18,20 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     boolean existsByDni(String dni);
 
+    List<Usuario> findByActivoTrue();
+
+    long countByActivoTrue();
+
+    long countByEsSocioTrue();
+
+    // Compatibility for tests: accept boolean parameter
+    long countByEsSocio(boolean esSocio);
+
+    @Query("SELECT COALESCE(SUM(u.billetera), 0) FROM Usuario u")
+    java.math.BigDecimal sumBilleteraTotal();
+
+    List<Usuario> findByDniContainingIgnoreCase(String dni);
+
     @Query("SELECT u FROM Usuario u " +
            "WHERE (:dni IS NULL OR LOWER(u.dni) LIKE LOWER(CONCAT('%', :dni, '%'))) " +
            "ORDER BY u.nombreCompleto ASC")
