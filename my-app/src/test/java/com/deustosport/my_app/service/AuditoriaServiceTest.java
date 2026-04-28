@@ -38,13 +38,12 @@ class AuditoriaServiceTest {
         auditoriaMock.setUsuario(usuario);
         auditoriaMock.setAccion(accion);
         auditoriaMock.setDetalles(detalles);
-        auditoriaMock.setIp(ip);
         auditoriaMock.setFechaHora(LocalDateTime.now());
 
         when(auditoriaRepository.save(any(Auditoria.class))).thenReturn(auditoriaMock);
 
         // When
-        auditoriaService.registrarAccion(usuario, accion, detalles, ip);
+        auditoriaService.registrarAccion(usuario, accion, "Sistema", null, detalles);
 
         // Then
         verify(auditoriaRepository).save(any(Auditoria.class));

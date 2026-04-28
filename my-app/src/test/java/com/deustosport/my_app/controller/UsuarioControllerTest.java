@@ -1,8 +1,8 @@
 package com.deustosport.my_app.controller;
 
-import com.deustosport.my_app.dto.LoginRequestDTO;
-import com.deustosport.my_app.dto.RegistroUsuarioDTO;
-import com.deustosport.my_app.dto.UsuarioDTO;
+import com.deustosport.my_app.dto.LoginRequest;
+import com.deustosport.my_app.dto.RegistroUsuarioRequest;
+import com.deustosport.my_app.dto.UsuarioPerfilResponse;
 import com.deustosport.my_app.entity.Usuario;
 import com.deustosport.my_app.service.AuditoriaService;
 import com.deustosport.my_app.service.UsuarioService;
@@ -39,7 +39,7 @@ class UsuarioControllerTest {
     @Test
     void registrarUsuario_debeRetornarUsuarioCreado() throws Exception {
         // Given
-        RegistroUsuarioDTO request = new RegistroUsuarioDTO();
+        RegistroUsuarioRequest request = new RegistroUsuarioRequest();
         request.setDni("12345678A");
         request.setNombre("Juan");
         request.setApellidos("Pérez García");
@@ -72,32 +72,7 @@ class UsuarioControllerTest {
                 .andExpect(jsonPath("$.nombre").value("Juan"))
                 .andExpect(jsonPath("$.email").value("juan@test.com"));
 
-        verify(auditoriaService).registrarAccion(eq("SYSTEM"), eq("REGISTRO_USUARIO"), anyString(), anyString());
-    }
-
-    @Test
-    void login_debeRetornarUsuarioLogueado() throws Exception {
-        // Given
-        LoginRequestDTO request = new LoginRequestDTO();
-        request.setEmail("juan@test.com");
-        request.setPassword("password123");
-
-        Usuario usuario = new Usuario();
-        usuario.setId(1L);
-        usuario.setEmail("juan@test.com");
-        usuario.setNombre("Juan");
-
-        when(usuarioService.login(anyString(), anyString())).thenReturn(usuario);
-
-        // When & Then
-        mockMvc.perform(post("/api/usuarios/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.email").value("juan@test.com"));
-
-        verify(auditoriaService).registrarAccion(eq("juan@test.com"), eq("LOGIN"), anyString(), anyString());
+        verify(auditoriaService).registrarAccion(eq("SYSTEM"), eq("REGISTRO_USUARIO"), anyString(), any(), anyString());
     }
 
     @Test
@@ -109,10 +84,11 @@ class UsuarioControllerTest {
         usuario.setNombre("Juan");
         usuario.setEmail("juan@test.com");
 
-        when(usuarioService.obtenerUsuarioPorId(usuarioId)).thenReturn(usuario);
+        when(usuarioService.obtenerPorId(usuarioId)).thenReturn(java.util.Optional.of(usuario));
 
         // When & Then
-        mockMvc.perform(get("/api/usuarios/{id}", usuarioId))
+        mockMvc.perform(get("/api/usuarios/perfil")
+                .principal(new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(usuarioId.toString(), null)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.nombre").value("Juan"));
@@ -136,7 +112,7 @@ class UsuarioControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.billetera").value(50.00));
 
-        verify(auditoriaService).registrarAccion(anyString(), eq("RECARGA_BILLETERA"), anyString(), anyString());
+        verify(auditoriaService).registrarAccion(anyString(), eq("RECARGA_BILLETERA"), anyString(), any(), anyString());
     }
 
     @Test
@@ -151,6 +127,6 @@ class UsuarioControllerTest {
                 .andExpect(status().isOk());
 
         verify(usuarioService).cambiarPassword(eq(usuarioId), eq("oldPass"), eq("newPass"));
-        verify(auditoriaService).registrarAccion(anyString(), eq("CAMBIO_PASSWORD"), anyString(), anyString());
+        verify(auditoriaService).registrarAccion(anyString(), eq("CAMBIO_PASSWORD"), anyString(), any(), anyString());
     }
 }

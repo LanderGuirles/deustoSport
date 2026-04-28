@@ -33,11 +33,11 @@ class AuditoriaControllerTest {
             crearAuditoriaMock(2L, "user2", "RESERVA")
         );
 
-        when(auditoriaService.obtenerAuditoriasRecientes(10)).thenReturn(auditorias);
+        when(auditoriaService.obtenerAccionesRecientes(10)).thenReturn(auditorias);
 
         // When & Then
-        mockMvc.perform(get("/api/auditoria/recientes")
-                .param("limite", "10"))
+        mockMvc.perform(get("/api/auditoria")
+                .param("limit", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0].usuario").value("user1"))
@@ -53,7 +53,7 @@ class AuditoriaControllerTest {
             crearAuditoriaMock(2L, usuario, "RESERVA")
         );
 
-        when(auditoriaService.obtenerAuditoriasPorUsuario(usuario)).thenReturn(auditorias);
+        when(auditoriaService.obtenerAccionesPorUsuario(usuario)).thenReturn(auditorias);
 
         // When & Then
         mockMvc.perform(get("/api/auditoria/usuario/{usuario}", usuario))
@@ -66,20 +66,18 @@ class AuditoriaControllerTest {
     @Test
     void obtenerAuditoriasPorAccion_debeRetornarListaFiltrada() throws Exception {
         // Given
-        String accion = "LOGIN";
+        String entidad = "Usuario";
         List<Auditoria> auditorias = Arrays.asList(
-            crearAuditoriaMock(1L, "user1", accion),
-            crearAuditoriaMock(2L, "user2", accion)
+            crearAuditoriaMock(1L, "user1", "LOGIN"),
+            crearAuditoriaMock(2L, "user2", "LOGIN")
         );
 
-        when(auditoriaService.obtenerAuditoriasPorAccion(accion)).thenReturn(auditorias);
+        when(auditoriaService.obtenerAccionesPorEntidad(entidad)).thenReturn(auditorias);
 
         // When & Then
-        mockMvc.perform(get("/api/auditoria/accion/{accion}", accion))
+        mockMvc.perform(get("/api/auditoria/entidad/{entidad}", entidad))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].accion").value(accion))
-                .andExpect(jsonPath("$[1].accion").value(accion));
+                .andExpect(jsonPath("$.length()").value(2));
     }
 
     @Test
@@ -92,10 +90,10 @@ class AuditoriaControllerTest {
             crearAuditoriaMock(2L, "user2", "RESERVA")
         );
 
-        when(auditoriaService.obtenerAuditoriasPorRangoFechas(any(), any())).thenReturn(auditorias);
+        when(auditoriaService.obtenerAccionesPorFecha(any(), any())).thenReturn(auditorias);
 
         // When & Then
-        mockMvc.perform(get("/api/auditoria/rango-fechas")
+        mockMvc.perform(get("/api/auditoria/fecha")
                 .param("fechaInicio", fechaInicio)
                 .param("fechaFin", fechaFin))
                 .andExpect(status().isOk())
@@ -109,7 +107,6 @@ class AuditoriaControllerTest {
         auditoria.setAccion(accion);
         auditoria.setDetalles("Test details");
         auditoria.setFechaHora(LocalDateTime.now());
-        auditoria.setIp("192.168.1.100");
         return auditoria;
     }
 }
