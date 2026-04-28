@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(xargs wc *)",
-      "Bash(awk -F'\"' 'BEGIN{m=0;c=0} {m+=$4; c+=$6} END{t=m+c; printf \"Cubiertas: %d / Total: %d = %d%%\\\\n\", c, t, int\\(c/t*100\\)}')"
-    ]
-  }
-}

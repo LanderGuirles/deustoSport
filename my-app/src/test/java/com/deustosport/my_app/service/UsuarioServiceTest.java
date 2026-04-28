@@ -1,6 +1,8 @@
 package com.deustosport.my_app.service;
 
+import com.deustosport.my_app.entity.Credencial;
 import com.deustosport.my_app.entity.Usuario;
+import com.deustosport.my_app.repository.CredencialRepository;
 import com.deustosport.my_app.repository.UsuarioRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +23,9 @@ class UsuarioServiceTest {
 
     @Mock
     private UsuarioRepository usuarioRepository;
+
+    @Mock
+    private CredencialRepository credencialRepository;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -69,7 +74,7 @@ class UsuarioServiceTest {
         assertTrue(result.isEsSocio());
         assertEquals(BigDecimal.ZERO, result.getBilletera());
 
-        verify(emailService).enviarEmailBienvenida(email, nombre);
+        verify(emailService).enviarEmailBienvenida(email, nombre + " " + apellidos);
         verify(usuarioRepository).save(any(Usuario.class));
     }
 
@@ -133,11 +138,10 @@ class UsuarioServiceTest {
         String oldPassword = "oldPass";
         String newPassword = "newPass";
 
-        Usuario usuario = new Usuario();
-        usuario.setId(usuarioId);
-        usuario.setPassword("encodedOldPass");
+        Credencial credencial = new Credencial();
+        credencial.setPasswordHash("encodedOldPass");
 
-        when(usuarioRepository.findById(usuarioId)).thenReturn(Optional.of(usuario));
+        when(credencialRepository.findByUsuarioId(usuarioId)).thenReturn(Optional.of(credencial));
         when(passwordEncoder.matches(oldPassword, "encodedOldPass")).thenReturn(true);
         when(passwordEncoder.encode(newPassword)).thenReturn("encodedNewPass");
 
@@ -146,17 +150,17 @@ class UsuarioServiceTest {
 
         // Then
         verify(passwordEncoder).encode(newPassword);
-        verify(usuarioRepository).save(any(Usuario.class));
+        verify(credencialRepository).save(any(Credencial.class));
     }
 
     @Test
     void cambiarPassword_conPasswordIncorrecta_debeLanzarExcepcion() {
         // Given
         Long usuarioId = 1L;
-        Usuario usuario = new Usuario();
-        usuario.setPassword("encodedPass");
+        Credencial credencial = new Credencial();
+        credencial.setPasswordHash("encodedPass");
 
-        when(usuarioRepository.findById(usuarioId)).thenReturn(Optional.of(usuario));
+        when(credencialRepository.findByUsuarioId(usuarioId)).thenReturn(Optional.of(credencial));
         when(passwordEncoder.matches("wrongPass", "encodedPass")).thenReturn(false);
 
         // When & Then

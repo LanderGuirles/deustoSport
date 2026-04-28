@@ -15,6 +15,7 @@ import com.deustosport.my_app.entity.Usuario;
 import com.deustosport.my_app.enums.EstadoReserva;
 import com.deustosport.my_app.enums.MetodoPago;
 import com.deustosport.my_app.enums.TipoDeporte;
+import com.deustosport.my_app.service.QRCodeService;
 import com.deustosport.my_app.service.ReservaService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -38,6 +39,9 @@ class ReservaControllerTest {
 
     @Mock
     private ReservaService reservaService;
+
+    @Mock
+    private QRCodeService qrCodeService;
 
     @InjectMocks
     private ReservaController reservaController;

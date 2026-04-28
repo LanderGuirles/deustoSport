@@ -147,6 +147,13 @@ public class AuditoriaService {
     }
 
     /**
+     * Obtiene acciones de auditoría por tipo de acción
+     */
+    public List<Auditoria> obtenerAuditoriasPorAccion(String accion) {
+        return auditoriaRepository.findByAccionOrderByFechaHoraDesc(accion);
+    }
+
+    /**
      * Obtiene acciones de auditoría por entidad
      */
     public List<Auditoria> obtenerAccionesPorEntidad(String entidad) {

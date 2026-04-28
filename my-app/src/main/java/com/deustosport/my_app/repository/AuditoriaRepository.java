@@ -30,6 +30,8 @@ public interface AuditoriaRepository extends JpaRepository<Auditoria, Long> {
 
     void deleteByFechaHoraBefore(LocalDateTime fechaLimite);
 
+    List<Auditoria> findByAccionOrderByFechaHoraDesc(String accion);
+
     @Query("SELECT a FROM Auditoria a WHERE a.entidad = :entidad AND a.entidadId = :entidadId ORDER BY a.fechaHora DESC")
     List<Auditoria> findByEntidadAndEntidadIdOrderByFechaHoraDesc(@Param("entidad") String entidad, @Param("entidadId") Long entidadId);
 

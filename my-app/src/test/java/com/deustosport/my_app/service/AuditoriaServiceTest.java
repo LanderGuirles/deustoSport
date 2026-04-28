@@ -58,10 +58,10 @@ class AuditoriaServiceTest {
             crearAuditoriaMock(2L, "user2", "RESERVA", "Reserva creada")
         );
 
-        when(auditoriaRepository.findTopNByOrderByFechaHoraDesc(limite)).thenReturn(auditoriasMock);
+        when(auditoriaRepository.findTopByOrderByFechaHoraDesc(limite)).thenReturn(auditoriasMock);
 
         // When
-        List<Auditoria> result = auditoriaService.obtenerAuditoriasRecientes(limite);
+        List<Auditoria> result = auditoriaService.obtenerAccionesRecientes(limite);
 
         // Then
         assertNotNull(result);
@@ -82,7 +82,7 @@ class AuditoriaServiceTest {
         when(auditoriaRepository.findByUsuarioOrderByFechaHoraDesc(usuario)).thenReturn(auditoriasMock);
 
         // When
-        List<Auditoria> result = auditoriaService.obtenerAuditoriasPorUsuario(usuario);
+        List<Auditoria> result = auditoriaService.obtenerAccionesPorUsuario(usuario);
 
         // Then
         assertNotNull(result);
@@ -126,7 +126,7 @@ class AuditoriaServiceTest {
             .thenReturn(auditoriasMock);
 
         // When
-        List<Auditoria> result = auditoriaService.obtenerAuditoriasPorRangoFechas(fechaInicio, fechaFin);
+        List<Auditoria> result = auditoriaService.obtenerAccionesPorFecha(fechaInicio, fechaFin);
 
         // Then
         assertNotNull(result);

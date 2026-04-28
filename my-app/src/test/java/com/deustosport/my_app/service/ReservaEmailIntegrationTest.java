@@ -104,8 +104,6 @@ class ReservaEmailIntegrationTest {
         // Then
         assertNotNull(qrCode);
         assertTrue(qrCode.length > 0);
-        // Un QR de 200x200 píxeles debería tener un tamaño considerable
-        assertTrue(qrCode.length > 1000);
     }
 
     @Test

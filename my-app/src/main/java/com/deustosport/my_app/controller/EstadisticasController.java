@@ -1,5 +1,6 @@
 package com.deustosport.my_app.controller;
 
+import com.deustosport.my_app.dto.EstadisticasDTO;
 import com.deustosport.my_app.service.EstadisticasService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -8,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -19,6 +21,28 @@ public class EstadisticasController {
 
     public EstadisticasController(EstadisticasService estadisticasService) {
         this.estadisticasService = estadisticasService;
+    }
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Estadísticas resumidas del sistema")
+    public ResponseEntity<EstadisticasDTO> obtenerEstadisticas() {
+        return ResponseEntity.ok(estadisticasService.obtenerEstadisticas());
+    }
+
+    @GetMapping("/reservas-por-instalacion")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Reservas agrupadas por instalación")
+    public ResponseEntity<Map<String, Long>> obtenerEstadisticasReservasPorInstalacion() {
+        return ResponseEntity.ok(estadisticasService.obtenerEstadisticasReservasPorInstalacion());
+    }
+
+    @GetMapping("/reservas-por-dia")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Reservas por día en los últimos N días")
+    public ResponseEntity<List<Object[]>> obtenerEstadisticasReservasPorDia(
+            @RequestParam(defaultValue = "7") int dias) {
+        return ResponseEntity.ok(estadisticasService.obtenerEstadisticasReservasPorDia(dias));
     }
 
     /**

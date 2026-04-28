@@ -169,7 +169,9 @@ class ReservaServiceTest {
                 eq(pagada.getFechaReserva()),
                 eq(pagada.getHoraInicio()),
                 eq(pagada.getHoraFin()),
-                eq(new BigDecimal("30.00")));
+                eq(new BigDecimal("30.00")),
+                eq(99L),
+                eq(10L));
     }
 
     @Test
@@ -230,7 +232,8 @@ class ReservaServiceTest {
         verify(pagoService).procesarPagoInterno(eq(200L), eq(iban), eq(MetodoPago.TRANSFERENCIA));
         verify(usuarioRepository, never()).save(any());
         verify(emailService).enviarEmailConfirmacionReserva(
-                eq("usuario@deustosport.com"), anyString(), anyString(), any(), any(), any(), any());
+                eq("usuario@deustosport.com"), anyString(), anyString(), any(), any(), any(), any(),
+                eq(200L), eq(10L));
     }
 
     @Test
