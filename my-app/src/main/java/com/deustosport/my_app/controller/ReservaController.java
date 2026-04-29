@@ -75,6 +75,7 @@ public class ReservaController {
                 String qrUrl = qrCodeService.generateAndSaveReservaQR(reserva.getId(), reserva.getUsuario().getId(),
                         reserva.getPista().getNombre(), reserva.getFechaReserva().toString(), reserva.getHoraInicio().toString());
                 dto.setQrCode(qrUrl);
+                dto.setQrUrl(qrUrl);
             } catch (IOException e) {
                 // Log but don't fail the reservation if QR generation fails
                 dto.setQrCode(null);
@@ -215,6 +216,7 @@ public class ReservaController {
                 String qrUrl = qrCodeService.generateAndSaveReservaQR(pagada.getId(), pagada.getUsuario().getId(),
                         pagada.getPista().getNombre(), pagada.getFechaReserva().toString(), pagada.getHoraInicio().toString());
                 resp.setQrCode(qrUrl);
+                resp.setQrUrl(qrUrl);
             } catch (IOException e) {
                 // Log but don't fail the payment if QR generation fails
                 resp.setQrCode(null);

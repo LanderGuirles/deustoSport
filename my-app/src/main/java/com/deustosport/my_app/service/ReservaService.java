@@ -520,6 +520,8 @@ public class ReservaService {
         dto.setPuedeModificar(cumpleRegla24h && r.getEstado() != EstadoReserva.CANCELADA);
         dto.setPuedeCancelarConReembolso(cumpleRegla24h && r.getEstado() != EstadoReserva.CANCELADA);
 
+        dto.setQrUrl(r.getQrUrl());
+
         // Información de descuento
         boolean esSocio = r.getUsuario().isEsSocio();
         dto.setDescuentoSocioAplicado(esSocio);

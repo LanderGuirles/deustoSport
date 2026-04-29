@@ -2,6 +2,8 @@
 
 Sistema de gestión de reservas deportivas desarrollado con Spring Boot (backend REST) y Thymeleaf (frontend web). Arquitectura de 3 capas: presentación (`my-webapp`), lógica de negocio (`my-app`) y persistencia (PostgreSQL / H2).
 
+Nota: se añadió un enlace de QR visible en las reservas confirmadas para facilitar el acceso rápido.
+
 ---
 
 ## Prerrequisitos
