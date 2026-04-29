@@ -4,15 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import javax.mail.internet.MimeMessage;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import com.google.zxing.WriterException;
 
 @Service
 public class EmailService {
@@ -22,15 +19,15 @@ public class EmailService {
     @Autowired(required = false)
     private JavaMailSender mailSender;
 
+    @Autowired
+    private QRCodeService qrCodeService;
+
     @Value("${spring.mail.username:noreply@deustosport.com}")
     private String remitente;
 
     @Value("${app.email.enabled:false}")
     private boolean emailEnabled;
 
-    /**
-     * Envía un email de bienvenida a un nuevo usuario
-     */
     public void enviarEmailBienvenida(String destinatario, String nombre) {
         String contenido = "¡Bienvenido a DeustoSport, " + nombre + "!\n\n" +
                 "Tu cuenta ha sido creada exitosamente.\n\n" +
@@ -84,7 +81,7 @@ public class EmailService {
     }
 
     /**
-     * Envía un email de confirmación de reserva de pista con código QR adjunto.
+     * Envía un email de confirmación de reserva de pista con enlace al código QR.
      */
     public void enviarEmailConfirmacionReserva(String destinatario,
                                                String nombrePista,
@@ -95,14 +92,21 @@ public class EmailService {
                                                BigDecimal precio,
                                                Long reservaId,
                                                Long usuarioId) {
-        String contenidoHtml = generarContenidoHtmlReservaConfirmada(nombrePista, tipoDeporte, fecha, horaInicio, horaFin, precio);
         String contenidoTexto = generarContenidoTextoReservaConfirmada(nombrePista, tipoDeporte, fecha, horaInicio, horaFin, precio);
+
+        // Generar y guardar QR
+        try {
+            qrCodeService.generateAndSaveReservaQR(reservaId, usuarioId, nombrePista, fecha.toString(), horaInicio.toString());
+            String qrUrl = "/api/qr/reserva_" + reservaId + ".png";  // Enlace relativo al QR
+            contenidoTexto += "\n\nCódigo QR para acceso: " + qrUrl;
+        } catch (Exception e) {
+            logger.warn("No se pudo generar QR para reserva {}: {}", reservaId, e.getMessage());
+        }
 
         if (!emailEnabled || mailSender == null) {
             logger.info("=== [EMAIL SIMULADO] Reserva confirmada ===");
             logger.info("Destinatario: {}", destinatario);
             logger.info("Pista: {} ({}) | {} {} - {} | {}€ | Reserva ID: {}", nombrePista, tipoDeporte, fecha, horaInicio, horaFin, precio, reservaId);
-            logger.debug("Contenido HTML: {}", contenidoHtml);
             return;
         }
 
@@ -120,7 +124,7 @@ public class EmailService {
     }
 
     /**
-     * Envía un email de creación de reserva pendiente de pago con código QR adjunto.
+     * Envía un email de creación de reserva pendiente de pago con enlace al código QR.
      */
     public void enviarEmailCreacionReserva(String destinatario,
                                            String nombrePista,
@@ -131,14 +135,21 @@ public class EmailService {
                                            BigDecimal precio,
                                            Long reservaId,
                                            Long usuarioId) {
-        String contenidoHtml = generarContenidoHtmlReservaCreada(nombrePista, tipoDeporte, fecha, horaInicio, horaFin, precio);
         String contenidoTexto = generarContenidoTextoReservaCreada(nombrePista, tipoDeporte, fecha, horaInicio, horaFin, precio);
+
+        // Generar y guardar QR
+        try {
+            qrCodeService.generateAndSaveReservaQR(reservaId, usuarioId, nombrePista, fecha.toString(), horaInicio.toString());
+            String qrUrl = "/api/qr/reserva_" + reservaId + ".png";  // Enlace relativo al QR
+            contenidoTexto += "\n\nCódigo QR de tu reserva: " + qrUrl;
+        } catch (Exception e) {
+            logger.warn("No se pudo generar QR para reserva {}: {}", reservaId, e.getMessage());
+        }
 
         if (!emailEnabled || mailSender == null) {
             logger.info("=== [EMAIL SIMULADO] Reserva creada ===");
             logger.info("Destinatario: {}", destinatario);
             logger.info("Pista: {} ({}) | {} {} - {} | {}€ | Reserva ID: {}", nombrePista, tipoDeporte, fecha, horaInicio, horaFin, precio, reservaId);
-            logger.debug("Contenido HTML: {}", contenidoHtml);
             return;
         }
 
@@ -193,6 +204,10 @@ public class EmailService {
                                                LocalTime horaInicio, LocalTime horaFin, BigDecimal precio) {
         return "<html><body>" +
                 "<h2 style='color: #4CAF50;'>✨ ¡Tu reserva ha sido confirmada! ✨</h2>" +
+            "<p>A continuación tienes tu código QR para mostrar en la entrada:</p>" +
+            "<div style='margin: 20px 0; text-align: center;'>" +
+            "<img src='cid:qrCodeImage' alt='Código QR de reserva' style='width:200px;height:200px;border:1px solid #ddd;padding:10px;'/>" +
+            "</div>" +
                 "<p>Presenta el código QR en la entrada para acceder a las instalaciones.</p>" +
                 "<table style='border-collapse: collapse; width: 100%; max-width: 400px;'>" +
                 "<tr><td style='padding: 8px; border: 1px solid #ddd;'><strong>🏟️ Pista:</strong></td><td style='padding: 8px; border: 1px solid #ddd;'>" + nombrePista + " (" + tipoDeporte + ")</td></tr>" +
@@ -227,6 +242,10 @@ public class EmailService {
                                                LocalTime horaInicio, LocalTime horaFin, BigDecimal precio) {
         return "<html><body>" +
                 "<h2 style='color: #FF9800;'>⏳ Tu reserva ha sido creada ⏳</h2>" +
+            "<p>Aquí tienes el código QR de tu reserva pendiente de pago:</p>" +
+            "<div style='margin: 20px 0; text-align: center;'>" +
+            "<img src='cid:qrCodeImage' alt='Código QR de reserva' style='width:200px;height:200px;border:1px solid #ddd;padding:10px;'/>" +
+            "</div>" +
                 "<p>Tu reserva está pendiente de pago. Una vez pagada, recibirás el código QR para acceder.</p>" +
                 "<table style='border-collapse: collapse; width: 100%; max-width: 400px;'>" +
                 "<tr><td style='padding: 8px; border: 1px solid #ddd;'><strong>🏟️ Pista:</strong></td><td style='padding: 8px; border: 1px solid #ddd;'>" + nombrePista + " (" + tipoDeporte + ")</td></tr>" +

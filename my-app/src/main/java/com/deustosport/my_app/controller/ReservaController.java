@@ -310,12 +310,12 @@ public class ReservaController {
     }
 
     @GetMapping("/qr/{filename}")
-    @Operation(summary = "Descargar código QR de reserva como PNG")
-    public ResponseEntity<byte[]> descargarQR(@PathVariable String filename) {
+    @Operation(summary = "Ver código QR de reserva como imagen")
+    public ResponseEntity<byte[]> verQR(@PathVariable String filename) {
         try {
             byte[] qrImage = qrCodeService.readQRFile(filename);
             return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
                     .contentType(MediaType.IMAGE_PNG)
                     .body(qrImage);
         } catch (IOException e) {

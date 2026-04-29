@@ -37,6 +37,7 @@ class EmailServiceTest {
     @BeforeEach
     void setUp() {
         ReflectionTestUtils.setField(emailService, "emailEnabled", true);
+        // No need for MimeMessage mock since we use SimpleMailMessage
     }
 
     @Test
@@ -56,6 +57,8 @@ class EmailServiceTest {
         // When & Then - el método no debe lanzar excepción
         emailService.enviarEmailCreacionReserva(destinatario, nombrePista, tipoDeporte,
                 fecha, horaInicio, horaFin, precio, reservaId, usuarioId);
+
+        verify(mailSender, times(1)).send(any(org.springframework.mail.SimpleMailMessage.class));
     }
 
     @Test
@@ -74,6 +77,8 @@ class EmailServiceTest {
         // When & Then - el método no debe lanzar excepción
         emailService.enviarEmailConfirmacionReserva(destinatario, nombrePista, tipoDeporte,
                 fecha, horaInicio, horaFin, precio, reservaId, usuarioId);
+
+        verify(mailSender, times(1)).send(any(org.springframework.mail.SimpleMailMessage.class));
     }
 
     @Test
