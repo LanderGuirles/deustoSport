@@ -13,14 +13,15 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import java.time.LocalDateTime;
  
 @RestController
 @RequestMapping("/api/auth")
@@ -56,6 +57,16 @@ public class LoginController {
                 ResponseEntity.ok(response) :
                 ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
+
+        @GetMapping("/status")
+        @Operation(summary = "Estado del servicio", description = "Devuelve información básica de salud del backend")
+        public ResponseEntity<?> status() {
+                return ResponseEntity.ok(java.util.Map.of(
+                                "status", "UP",
+                                "timestamp", LocalDateTime.now().toString(),
+                                "service", "DeustoSport API"
+                ));
+        }
  
     @PostMapping("/login-guest")
     @Operation(summary = "Entrar como no socio (invitado)")
