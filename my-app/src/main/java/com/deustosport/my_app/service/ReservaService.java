@@ -45,6 +45,7 @@ public class ReservaService {
     private final PagoService        pagoService;
     private final NotificacionService notificacionService;
     private final AbonoUsuarioService abonoUsuarioService; // NUEVA INYECCIÓN
+    private final QRCodeService      qrCodeService;
 
     public ReservaService(ReservaRepository reservaRepository,
                           PistaRepository pistaRepository,
@@ -53,7 +54,8 @@ public class ReservaService {
                           TarifaService tarifaService,
                           @Lazy PagoService pagoService,
                           NotificacionService notificacionService,
-                          AbonoUsuarioService abonoUsuarioService) {
+                          AbonoUsuarioService abonoUsuarioService,
+                          QRCodeService qrCodeService) {
         this.reservaRepository = reservaRepository;
         this.pistaRepository   = pistaRepository;
         this.usuarioRepository = usuarioRepository;
@@ -62,6 +64,7 @@ public class ReservaService {
         this.pagoService       = pagoService;
         this.notificacionService = notificacionService;
         this.abonoUsuarioService = abonoUsuarioService; // INICIALIZACIÓN
+        this.qrCodeService = qrCodeService;
     }
 
     // ─── Crear reserva ────────────────────────────────────────────────────────
@@ -189,6 +192,17 @@ public class ReservaService {
         reserva.setEstado(EstadoReserva.CONFIRMADA);
 
         Reserva reservaFinal = reservaRepository.save(reserva);
+
+        // Generar QR y setear URL
+        try {
+            qrCodeService.generateAndSaveReservaQR(reservaFinal.getId(), reservaFinal.getUsuario().getId(),
+                    reservaFinal.getPista().getNombre(), reservaFinal.getFechaReserva().toString(), reservaFinal.getHoraInicio().toString());
+            String qrUrl = "/api/qr/reserva_" + reservaFinal.getId() + ".png";
+            reservaFinal.setQrUrl(qrUrl);
+            reservaRepository.save(reservaFinal);
+        } catch (Exception e) {
+            // Log but don't fail if QR generation fails
+        }
 
         // Solo se mueve saldo de billetera cuando el metodo de pago es BILLETERA.
         if (metodoPago == MetodoPago.BILLETERA) {

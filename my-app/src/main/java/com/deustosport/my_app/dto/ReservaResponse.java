@@ -31,4 +31,5 @@ public class ReservaResponse {
     private boolean puedeModificar;
     private boolean puedeCancelarConReembolso;
     private String qrCode;
+    private String qrUrl;
 }

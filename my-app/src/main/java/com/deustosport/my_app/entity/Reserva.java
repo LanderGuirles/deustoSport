@@ -80,4 +80,7 @@ public class Reserva {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bono_usuario_id")
     private BonoUsuario bonoUsado;
+
+    @Column(length = 255)
+    private String qrUrl;
 }
