@@ -28,7 +28,6 @@ class EstadisticasControllerTest {
 
     @Test
     void obtenerEstadisticas_debeRetornarEstadisticas() throws Exception {
-        // Given
         EstadisticasDTO estadisticas = new EstadisticasDTO();
         estadisticas.setTotalReservasConfirmadas(150L);
         estadisticas.setTotalReservasPendientes(25L);
@@ -39,7 +38,6 @@ class EstadisticasControllerTest {
 
         when(estadisticasService.obtenerEstadisticas()).thenReturn(estadisticas);
 
-        // When & Then
         mockMvc.perform(get("/api/estadisticas"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalReservasConfirmadas").value(150))
@@ -52,7 +50,6 @@ class EstadisticasControllerTest {
 
     @Test
     void obtenerEstadisticasReservasPorInstalacion_debeRetornarMapa() throws Exception {
-        // Given
         Map<String, Long> estadisticasPorInstalacion = Map.of(
             "Pista Tenis 1", 45L,
             "Pista Pádel 2", 30L
@@ -60,7 +57,6 @@ class EstadisticasControllerTest {
 
         when(estadisticasService.obtenerEstadisticasReservasPorInstalacion()).thenReturn(estadisticasPorInstalacion);
 
-        // When & Then
         mockMvc.perform(get("/api/estadisticas/reservas-por-instalacion"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.['Pista Tenis 1']").value(45))
@@ -69,10 +65,8 @@ class EstadisticasControllerTest {
 
     @Test
     void obtenerEstadisticasReservasPorDia_debeRetornarLista() throws Exception {
-        // Given
         when(estadisticasService.obtenerEstadisticasReservasPorDia(7)).thenReturn(java.util.List.of());
 
-        // When & Then
         mockMvc.perform(get("/api/estadisticas/reservas-por-dia")
                 .param("dias", "7"))
                 .andExpect(status().isOk());
