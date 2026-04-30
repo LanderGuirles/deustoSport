@@ -13,6 +13,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -25,6 +27,8 @@ import java.io.IOException;
 @RequestMapping("/api/reservas")
 @Tag(name = "Reservas", description = "Gestión de reservas de pistas deportivas")
 public class ReservaController {
+
+    private static final Logger logger = LoggerFactory.getLogger(ReservaController.class);
 
     private final ReservaService reservaService;
     private final QRCodeService qrCodeService;
@@ -311,9 +315,9 @@ public class ReservaController {
         }
     }
 
-    @GetMapping("/qr/{filename}")
+    @GetMapping("/qr/{filename:.+}")
     @Operation(summary = "Ver código QR de reserva como imagen")
-    public ResponseEntity<byte[]> verQR(@PathVariable String filename) {
+    public ResponseEntity<byte[]> verQR(@PathVariable("filename") String filename) {
         try {
             byte[] qrImage = qrCodeService.readQRFile(filename);
             return ResponseEntity.ok()
@@ -321,7 +325,11 @@ public class ReservaController {
                     .contentType(MediaType.IMAGE_PNG)
                     .body(qrImage);
         } catch (IOException e) {
+            logger.debug("QR not found: {}", filename);
             return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            logger.error("Error reading QR file {}", filename, e);
+            return ResponseEntity.status(500).build();
         }
     }
 }

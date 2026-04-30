@@ -678,6 +678,25 @@
   </div>
 </div>
 
+<!-- MODAL VER QR -->
+<div class="modal-overlay" id="modalQR">
+	<div class="modal" style="text-align:center;max-width:420px;">
+		<div class="modal-header">
+			<div>
+				<h3>QR Reserva</h3>
+				<p style="color:var(--muted);font-size:13px">Muestra el código QR de tu reserva</p>
+			</div>
+			<button class="btn-close" onclick="closeModal('modalQR')">×</button>
+		</div>
+		<div style="padding:12px 6px;">
+			<img id="qrImage" src="" alt="Código QR" style="max-width:320px;width:100%;border-radius:8px;border:1px solid var(--border);">
+			<div style="margin-top:14px;">
+				<button class="btn-primary" onclick="closeModal('modalQR')">Cerrar</button>
+			</div>
+		</div>
+	</div>
+</div>
+
 <div id="toast"></div>
 			<script>
 			// ═══════════════════════════════════════════
@@ -753,6 +772,15 @@
 
 			function openModal(id)  { document.getElementById(id).classList.add('open'); }
 			function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+			function mostrarQR(reservaId) {
+			  const qrImage = document.getElementById('qrImage');
+			  if (!qrImage) return;
+			  qrImage.src = API + `/api/reservas/qr/reserva_${reservaId}.png`;
+			  openModal('modalQR');
+			}
+
+			function cerrarModalQR() { closeModal('modalQR'); }
 
 			function sportClass(dep) {
 			  if (!dep) return '';
@@ -1615,7 +1643,8 @@
 			            : ''}
 			          <button class="btn-modificar-r" onclick="abrirModificarReserva(${r.id})" ${cumpleRegla24h ? '' : 'disabled'} title="${cumpleRegla24h ? 'Cambiar fecha/hora' : 'Solo disponible si faltan más de 24h'}">Modificar</button>
 			          <button class="btn-cancel-r" onclick="cancelarReserva(${r.id})" ${puedeCancelar ? '' : 'disabled'} title="${puedeCancelar ? 'Cancelar reserva' : 'Solo disponible si faltan más de 24h'}">Cancelar</button>
-			        </div>` : '';
+					  ${r.estado === 'CONFIRMADA' ? `<button class="btn-ghost" onclick="mostrarQR(${r.id})">QR</button>` : ''}
+					</div>` : '';
 
 			      return `
 			        <div class="reserva-card">
