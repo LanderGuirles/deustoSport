@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Ayuntamiento</title>
+    <title>Panel ayuntamiento</title>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
     <script>
         const currentUserId    = localStorage.getItem('usuarioId');
@@ -325,20 +325,20 @@
 
     <div class="header">
         <div>
-            <h1>Panel Ayuntamiento</h1>
+            <h1>Panel ayuntamiento</h1>
             <p class="subtitle">Gestión de tarifas de pistas y planes de abono municipal.</p>
         </div>
         <div>
-            <div class="session">Sesion: <strong id="sessionUser">-</strong></div>
+            <div class="session">Sesión: <strong id="sessionUser">-</strong></div>
             <div class="actions" style="justify-content:flex-end;margin-top:8px;">
-                <button class="btn-ghost" id="logoutBtn">Cerrar sesion</button>
+                <button class="btn-ghost" id="logoutBtn">Cerrar sesión</button>
             </div>
         </div>
     </div>
 
     <section class="card">
         <div class="actions" style="justify-content:space-between;margin-top:0;margin-bottom:10px;">
-            <h2 style="margin:0;">Recaudacion del mes actual</h2>
+            <h2 style="margin:0;">Recaudación del mes actual</h2>
             <button class="btn-secondary" id="refreshRecaudacionBtn">Recargar</button>
         </div>
         <div class="stats-grid">
@@ -361,8 +361,7 @@
     <div class="chooser">
         <div class="panel-tile tarifas-tile" id="tileTarifas" onclick="openPanel('tarifas')">
             <div>
-                <span class="tile-icon">⚡</span>
-                <div class="tile-title green">Tarifas de Pistas</div>
+                <div class="tile-title green">Tarifas de pistas</div>
                 <p class="tile-desc">Configura los precios por hora según deporte, día de la semana y franja horaria. Gestiona también el descuento global para socios.</p>
             </div>
             <button class="tile-cta green" onclick="event.stopPropagation();openPanel('tarifas')">Gestionar tarifas →</button>
@@ -370,8 +369,7 @@
 
         <div class="panel-tile abonos-tile" id="tileAbonos" onclick="openPanel('abonos')">
             <div>
-                <span class="tile-icon">🎫</span>
-                <div class="tile-title blue">Planes de Abono</div>
+                <div class="tile-title blue">Planes de abono</div>
                 <p class="tile-desc">Crea y edita los planes unificados con nombre, duración, número de integrantes, edad y precio, todo en un solo lugar.</p>
             </div>
             <button class="tile-cta blue" onclick="event.stopPropagation();openPanel('abonos')">Gestionar abonos →</button>
@@ -384,7 +382,7 @@
 <div class="panel-overlay" id="overlayTarifas">
     <div class="panel-overlay-header">
         <button class="back-btn" onclick="closePanel()">← Volver al panel</button>
-        <h2 class="green">⚡ Tarifas de Pistas por Hora</h2>
+        <h2 class="green">Tarifas de pistas por hora</h2>
     </div>
     <div class="panel-overlay-body">
 
@@ -478,7 +476,7 @@
 <div class="panel-overlay" id="overlayAbonos">
     <div class="panel-overlay-header">
         <button class="back-btn" onclick="closePanel()">← Volver al panel</button>
-        <h2 class="blue">🎫 Planes de Abono</h2>
+        <h2 class="blue">Planes de abono</h2>
     </div>
     <div class="panel-overlay-body">
 

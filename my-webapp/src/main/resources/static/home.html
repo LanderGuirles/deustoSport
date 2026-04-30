@@ -359,7 +359,7 @@
 	.plan-price span { font-size:14px; font-weight:400; color:var(--muted); }
 	.plan-features { list-style:none; margin-bottom:28px; flex:1; border-top: 1px solid var(--border); padding-top: 20px; }
 	.plan-features li { font-size:13px; color:var(--text); margin-bottom:10px; display:flex; align-items:center; gap:10px; }
-  .plan-features li::before { content: '✓'; color: var(--accent); font-weight: bold; }
+	.plan-features li::before { content: '•'; color: var(--accent); font-weight: bold; }
 
 	.btn-suscribirse { 
     width:100%; 
@@ -395,7 +395,7 @@
     <span>Hola, <strong id="nav-nombre">—</strong>
       <span id="nav-socio-badge" class="badge-socio" style="display:none;">Socio</span>
 	  <span id="nav-plan-badge" class="badge-billetera" style="display:none; background:var(--abono-dim); color:var(--abono); border:1px solid rgba(123,147,255,.3);">
-    🎫 <span id="nav-plan-nombre"></span>
+	<span id="nav-plan-nombre"></span>
 </span>
       <span id="nav-billetera-badge" class="badge-billetera">💰 <span id="nav-saldo">0.00</span>€</span>
     </span>
@@ -418,7 +418,7 @@
       <button class="tab-btn" onclick="switchTab('pistas',this)">Reservar</button>
 	  <button class="tab-btn" onclick="switchTab('abonos',this)">Abonos</button>
       <button class="tab-btn" id="tab-misreservas-btn"
-              onclick="switchTab('misreservas',this)">Mis Reservas</button>
+			  onclick="switchTab('misreservas',this)">Mis reservas</button>
     </div>
 
     <div id="tab-tarifas" class="tab-content active">
@@ -437,7 +437,7 @@
     </div>
 
     <div id="tab-abonos" class="tab-content">
-      <div class="section-header"><h3>Planes de Abono Disponibles</h3></div>
+	<div class="section-header"><h3>Planes de abono disponibles</h3></div>
       <div id="abono-actual-container" class="abono-actual-card">
           <h4>Tienes una suscripción activa</h4>
           <p>Plan: <strong id="abono-actual-nombre">...</strong></p>
@@ -529,11 +529,9 @@
         </div>
       </div>
       <div class="descuento-info" id="cal-descuento-info" style="display:none;">
-        <span class="icon">🌟</span>
         <span>Descuento de socio aplicado: <strong id="cal-descuento-porcentaje"></strong></span>
       </div>
       <div class="saldo-insuficiente" id="cal-saldo-insuficiente" style="display:none;">
-        <span class="icon">⚠️</span>
         <span>Saldo insuficiente. Tu billetera tiene <strong id="cal-saldo-actual"></strong>€ pero necesitas <strong id="cal-precio-necesario"></strong>. <a href="#" onclick="event.preventDefault();openProfileModal()" style="color:inherit;text-decoration:underline;">Recargar saldo</a></span>
       </div>
       <div class="metodo-grid">
@@ -590,7 +588,7 @@
 		<div id="perfil-alert" class="form-alert"></div>
 
 		<div class="recarga-section">
-			<h4>💰 Billetera — Saldo actual: <strong id="perfil-saldo">0.00</strong>€</h4>
+			<h4>Billetera — Saldo actual: <strong id="perfil-saldo">0.00</strong>€</h4>
 			<div class="recarga-row">
 				<input type="number" id="recarga-cantidad" min="1" step="0.01" placeholder="Cantidad a recargar (€)">
 				<button onclick="recargarBilletera()">Recargar</button>
@@ -616,7 +614,7 @@
         <p style="font-size:13px; color:var(--muted); margin-bottom:14px; line-height:1.5;">
           Este plan admite a <strong id="abono-max-personas" style="color:var(--text);"></strong> personas
           (Tú + <strong id="abono-max-invitados" style="color:var(--text);"></strong> familiares).
-          <br><span style="color:var(--warn);">⚠ Es obligatorio añadir al menos 1 familiar para continuar.</span>
+		  <br><span style="color:var(--warn);">Es obligatorio añadir al menos 1 familiar para continuar.</span>
         </p>
         <div style="display:flex; gap:8px; margin-bottom:12px;" class="field">
           <input type="email" id="input-email-familiar" placeholder="Email del familiar registrado" style="flex:1;">
@@ -642,7 +640,6 @@
         <span class="value" id="abono-precio-confirm">—</span>
       </div>
       <div id="abono-saldo-insuficiente" class="saldo-insuficiente" style="display:none; margin-bottom:8px;">
-        <span class="icon">⚠️</span>
         <span>Saldo insuficiente. Tu billetera tiene <strong id="abono-saldo-actual"></strong>€ pero necesitas <strong id="abono-precio-necesario"></strong>. <a href="#" onclick="event.preventDefault();closeModal('modal-abono');openProfileModal()" style="color:inherit;text-decoration:underline;">Recargar saldo</a></span>
       </div>
       <div class="metodo-grid">
@@ -984,7 +981,7 @@
 			      parseFloat(data.billetera).toFixed(2);
 			    cantidadInput.value = '';
 			    alertEl.className = 'form-alert ok';
-			    alertEl.textContent = `✅ Recargados ${cantidad.toFixed(2)}€. Nuevo saldo: ${parseFloat(data.billetera).toFixed(2)}€`;
+				    alertEl.textContent = `Recargados ${cantidad.toFixed(2)}€. Nuevo saldo: ${parseFloat(data.billetera).toFixed(2)}€`;
 			  } catch (e) {
 			    alertEl.className = 'form-alert err';
 			    alertEl.textContent = e.message;
