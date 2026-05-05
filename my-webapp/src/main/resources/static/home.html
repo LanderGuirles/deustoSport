@@ -202,6 +202,12 @@
                  font-family:'Syne',sans-serif;cursor:pointer;transition:background .2s;}
     .btn-primary:hover{background:var(--accent2);}
     .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+    .btn-danger{background:var(--danger);color:white;border:none;
+                padding:10px 16px;border-radius:8px;font-size:14px;font-weight:600;
+                cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;
+                text-decoration:none;display:inline-block;}
+    .btn-danger:hover{background:#d91f1f;transform:translateY(-2px);box-shadow:0 4px 12px rgba(248,81,73,.3);}
+    .btn-danger:active{transform:translateY(0);}
 	.metodo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
     .metodo-btn{background:var(--surface2);border:2px solid var(--border);color:var(--muted);
                 padding:14px 8px;border-radius:10px;text-align:center;cursor:pointer;
@@ -594,6 +600,14 @@
 				<button onclick="recargarBilletera()">Recargar</button>
 			</div>
 			<div id="recarga-alert" class="form-alert" style="margin-top:8px;"></div>
+		</div>
+
+		<div style="margin-top:30px; padding-top:20px; border-top:1px solid var(--border);">
+			<h4 style="color:var(--danger); margin-bottom:12px;">⚠️ Zona de Peligro</h4>
+			<p style="font-size:13px; color:var(--muted); margin-bottom:12px;">Una vez elimines tu cuenta, todos tus datos serán borrados permanentemente.</p>
+			<a href="/eliminar-cuenta.html" class="btn-danger" style="display:inline-block; padding:10px 16px; background:var(--danger); color:white; border-radius:8px; text-decoration:none; font-size:14px; font-weight:600; transition:all .2s; text-align:center;">
+				Eliminar mi cuenta
+			</a>
 		</div>
 	</div>
 </div>
