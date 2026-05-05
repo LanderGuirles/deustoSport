@@ -295,4 +295,72 @@ public class EmailService {
                 "Si no solicitaste esta recuperación, puedes ignorar este email.\n\n" +
                 "Saludos,\nEl equipo de DeustoSport";
     }
+
+    /**
+     * Envía un email de confirmación de eliminación de cuenta.
+     * Se envía después de que la cuenta ha sido eliminada exitosamente.
+     */
+    public void enviarEmailEliminacionCuenta(String destinatario, String nombre) {
+        String contenido = "Hola " + nombre + ",\n\n" +
+                "Tu cuenta en DeustoSport ha sido eliminada exitosamente.\n\n" +
+                "Se han borrado todos tus datos personales del sistema incluyendo:\n" +
+                "- Información de perfil\n" +
+                "- Historial de reservas\n" +
+                "- Información de pagos\n" +
+                "- Credenciales de acceso\n\n" +
+                "Si deseas recuperar tu cuenta en el futuro, deberás registrarte nuevamente.\n\n" +
+                "Gracias por usar DeustoSport durante este tiempo.\n" +
+                "Si tienes dudas, no dudes en contactarnos.\n\n" +
+                "Saludos,\nEl equipo de DeustoSport";
+
+        if (!emailEnabled || mailSender == null) {
+            logger.info("=== [EMAIL SIMULADO] Eliminación de Cuenta ===");
+            logger.info("Destinatario: {} | Nombre: {}", destinatario, nombre);
+            logger.info("Contenido: {}", contenido);
+            return;
+        }
+
+        try {
+            SimpleMailMessage mensaje = new SimpleMailMessage();
+            mensaje.setFrom(remitente);
+            mensaje.setTo(destinatario);
+            mensaje.setSubject("Confirmación de eliminación de cuenta - DeustoSport");
+            mensaje.setText(contenido);
+            mailSender.send(mensaje);
+            logger.info("Email de eliminación de cuenta enviado a: {}", destinatario);
+        } catch (Exception e) {
+            logger.error("Error al enviar email de eliminación de cuenta a {}: {}", destinatario, e.getMessage());
+        }
+    }
+
+    /**
+     * Envía un email de advertencia si hay reservas o datos pendientes antes de la eliminación.
+     */
+    public void enviarEmailAdvertenciaEliminacion(String destinatario, String nombre, String motivos) {
+        String contenido = "Hola " + nombre + ",\n\n" +
+                "Tu solicitud de eliminación de cuenta ha sido rechazada por los siguientes motivos:\n\n" +
+                motivos + "\n\n" +
+                "Por favor, resuelve estos asuntos antes de solicitar nuevamente la eliminación.\n" +
+                "Si necesitas ayuda, contacta con nuestro equipo de soporte.\n\n" +
+                "Saludos,\nEl equipo de DeustoSport";
+
+        if (!emailEnabled || mailSender == null) {
+            logger.info("=== [EMAIL SIMULADO] Advertencia de Eliminación ===");
+            logger.info("Destinatario: {} | Nombre: {}", destinatario, nombre);
+            logger.info("Motivos: {}", motivos);
+            return;
+        }
+
+        try {
+            SimpleMailMessage mensaje = new SimpleMailMessage();
+            mensaje.setFrom(remitente);
+            mensaje.setTo(destinatario);
+            mensaje.setSubject("Solicitud de eliminación de cuenta rechazada - DeustoSport");
+            mensaje.setText(contenido);
+            mailSender.send(mensaje);
+            logger.info("Email de advertencia de eliminación enviado a: {}", destinatario);
+        } catch (Exception e) {
+            logger.error("Error al enviar email de advertencia de eliminación a {}: {}", destinatario, e.getMessage());
+        }
+    }
 }

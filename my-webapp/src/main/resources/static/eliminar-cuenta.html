@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eliminar Cuenta - DeustoSport</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 24px;
+            background: #667eea;
+            border-radius: 2px;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+            color: #856404;
+        }
+
+        .warning-box strong {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+
+        .info-list {
+            list-style: none;
+            margin: 15px 0;
+        }
+
+        .info-list li {
+            padding: 10px 0;
+            padding-left: 25px;
+            position: relative;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .info-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .danger-list {
+            list-style: none;
+            margin: 15px 0;
+        }
+
+        .danger-list li {
+            padding: 10px 0;
+            padding-left: 25px;
+            position: relative;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .danger-list li::before {
+            content: '⚠';
+            position: absolute;
+            left: 0;
+            color: #dc3545;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="email"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        input[type="email"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-top: 2px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+            color: #555;
+            font-weight: 400;
+        }
+
+        .motivo-container {
+            margin: 15px 0;
+        }
+
+        .motivo-option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .motivo-option:hover {
+            border-color: #667eea;
+            background-color: #f8f9ff;
+        }
+
+        .motivo-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .motivo-option label {
+            margin: 0;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+
+        .status-badge.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-badge.warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #e0e0e0;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(220, 53, 69, 0.4);
+        }
+
+        .btn-danger:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-10px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .btn.loading .spinner {
+            display: inline-block;
+        }
+
+        .btn.loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .divider {
+            height: 1px;
+            background: #e0e0e0;
+            margin: 30px 0;
+        }
+
+        .validation-step {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+
+        .validation-step.completed {
+            border-left-color: #28a745;
+            background: #f0f8f0;
+        }
+
+        .validation-step.error {
+            border-left-color: #dc3545;
+            background: #faf5f5;
+        }
+
+        .step-indicator {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            text-align: center;
+            line-height: 24px;
+            margin-right: 10px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .step-indicator.completed {
+            background: #28a745;
+            content: '✓';
+        }
+
+        .step-indicator.error {
+            background: #dc3545;
+            content: '✕';
+        }
+
+        .step-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .step-description {
+            color: #666;
+            font-size: 14px;
+            margin-left: 34px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                border-radius: 8px;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .content {
+                padding: 25px 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-content h2 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .modal-content p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .loading-text {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚠️ Eliminar Cuenta</h1>
+            <p>Esta acción es permanente y no se puede deshacer</p>
+        </div>
+
+        <div class="content">
+            <div id="alertContainer"></div>
+
+            <!-- Sección de Validación -->
+            <div class="section" id="validationSection">
+                <div class="section-title">Verificación Previa</div>
+                <p style="color: #666; margin-bottom: 15px;">Estamos validando si tu cuenta puede ser eliminada...</p>
+                <div class="loading-text">
+                    <div class="spinner" style="display: inline-block;"></div>
+                    Cargando información...
+                </div>
+            </div>
+
+            <!-- Sección de Información -->
+            <div class="section" id="infoSection" style="display: none;">
+                <div class="section-title">Información Importante</div>
+                
+                <div class="warning-box">
+                    <strong>⚠️ Aviso Legal</strong>
+                    <p>La eliminación de tu cuenta es <strong>permanente</strong>. No podremos recuperar tus datos una vez eliminados. Se mantendrán registros de auditoría según normativa legal.</p>
+                </div>
+
+                <h3 style="font-size: 16px; color: #333; margin-top: 20px; margin-bottom: 10px;">Se eliminarán los siguientes datos:</h3>
+                <ul class="danger-list">
+                    <li>Información completa del perfil</li>
+                    <li>Email y credenciales de acceso</li>
+                    <li>Historial completo de reservas</li>
+                    <li>Información de abonos y suscripciones</li>
+                    <li>Datos de transacciones y pagos</li>
+                    <li>Saldo de la billetera</li>
+                    <li>Preferencias y configuración</li>
+                </ul>
+
+                <h3 style="font-size: 16px; color: #333; margin-top: 20px; margin-bottom: 10px;">Qué sucede después:</h3>
+                <ul class="info-list">
+                    <li>Recibirás un email de confirmación</li>
+                    <li>Tu cuenta quedará inactiva inmediatamente</li>
+                    <li>Podrás registrarte nuevamente con el mismo email en el futuro</li>
+                </ul>
+            </div>
+
+            <!-- Sección de Pendientes -->
+            <div class="section" id="pendingSection" style="display: none;">
+                <div class="section-title">Pendientes por Resolver</div>
+                <div class="warning-box">
+                    <strong>⚠️ No puedes eliminar tu cuenta en este momento</strong>
+                </div>
+                <div id="pendingReasons" style="color: #666; margin-top: 15px;">
+                    <!-- Se llenará con JavaScript -->
+                </div>
+                <p style="color: #666; margin-top: 15px; font-size: 14px;">Por favor, resuelve estos asuntos antes de solicitar nuevamente la eliminación. Si necesitas ayuda, contacta con nuestro equipo de soporte.</p>
+            </div>
+
+            <!-- Sección de Formulario -->
+            <div class="section" id="formSection" style="display: none;">
+                <div class="section-title">Confirmar Eliminación</div>
+
+                <form id="eliminationForm">
+                    <div class="form-group">
+                        <label for="motivo">¿Por qué deseas eliminar tu cuenta? *</label>
+                        <div class="motivo-container" id="motivoContainer">
+                            <!-- Se llenará con JavaScript -->
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contrasena">Contraseña *</label>
+                        <input 
+                            type="password" 
+                            id="contrasena" 
+                            name="contrasena" 
+                            placeholder="Ingresa tu contraseña para verificación"
+                            required
+                        >
+                        <small style="color: #666; margin-top: 5px; display: block;">Se requiere contraseña por seguridad</small>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input 
+                            type="checkbox" 
+                            id="confirmacion" 
+                            name="confirmacion" 
+                            required
+                        >
+                        <label for="confirmacion">
+                            Entiendo que esta acción es <strong>permanente</strong> y que <strong>no se puede deshacer</strong>. He leído y acepto que todos mis datos serán eliminados.
+                        </label>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="button" class="btn-secondary" onclick="window.history.back()">
+                            Cancelar
+                        </button>
+                        <button type="button" class="btn-danger" id="submitBtn" onclick="solicitarEliminacion()" disabled>
+                            <span class="spinner"></span>
+                            Eliminar Cuenta Permanentemente
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Sección de Éxito -->
+            <div class="section" id="successSection" style="display: none;">
+                <div style="text-align: center;">
+                    <div style="font-size: 60px; margin-bottom: 20px;">✓</div>
+                    <h2 style="color: #28a745; margin-bottom: 15px; font-size: 24px;">Cuenta Eliminada</h2>
+                    <p style="color: #666; margin-bottom: 15px; line-height: 1.6;">
+                        Tu cuenta ha sido eliminada permanentemente. Se ha enviado un email de confirmación a tu dirección de correo.
+                    </p>
+                    <p style="color: #999; font-size: 14px; margin-bottom: 20px;">
+                        Si deseas volver a usar DeustoSport en el futuro, podrás registrarte nuevamente.
+                    </p>
+                    <button type="button" class="btn-primary" onclick="location.href='/'">
+                        Volver al Inicio
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración
+        const API_URL = '/api';
+        const USUARIO_ID = localStorage.getItem('usuarioId') || sessionStorage.getItem('usuarioId');
+        const TOKEN = localStorage.getItem('token') || sessionStorage.getItem('token');
+
+        // Mapeo de motivos
+        const MOTIVOS = {
+            'NO_SATISFECHOS': 'No satisfechos con el servicio',
+            'PRIVACIDAD': 'Preocupación por privacidad',
+            'NO_UTILIZAMOS': 'No utilizamos el servicio',
+            'MIGRACION': 'Migración a otra plataforma',
+            'OTRO': 'Otro motivo'
+        };
+
+        // Elemento del formulario
+        const eliminationForm = document.getElementById('eliminationForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const contrasenaInput = document.getElementById('contrasena');
+        const confirmacionCheckbox = document.getElementById('confirmacion');
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!USUARIO_ID) {
+                mostrarError('Por favor, inicia sesión primero');
+                setTimeout(() => location.href = '/login', 2000);
+                return;
+            }
+            validarEliminacionPosible();
+            setupFormValidation();
+        });
+
+        /**
+         * Valida si la cuenta puede ser eliminada
+         */
+        async function validarEliminacionPosible() {
+            try {
+                const response = await fetch(`${API_URL}/cuenta/validar-eliminacion`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Usuario-Id': USUARIO_ID,
+                        'Authorization': `Bearer ${TOKEN}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                document.getElementById('validationSection').style.display = 'none';
+
+                if (data.puedeSerEliminado) {
+                    // Cargar información y formulario
+                    cargarInfoEliminacion();
+                    mostrarFormulario();
+                } else {
+                    // Mostrar razones por las que no puede eliminarse
+                    mostrarPendientes(data.motivos);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('Error al validar la cuenta: ' + error.message);
+            }
+        }
+
+        /**
+         * Carga la información sobre qué se eliminará
+         */
+        async function cargarInfoEliminacion() {
+            try {
+                const response = await fetch(`${API_URL}/cuenta/info-eliminacion`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Usuario-Id': USUARIO_ID,
+                        'Authorization': `Bearer ${TOKEN}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                document.getElementById('infoSection').style.display = 'block';
+            } catch (error) {
+                console.error('Error al cargar información:', error);
+            }
+        }
+
+        /**
+         * Muestra los formularios para solicitar eliminación
+         */
+        function mostrarFormulario() {
+            const formSection = document.getElementById('formSection');
+            formSection.style.display = 'block';
+
+            // Llenar opciones de motivos
+            const motivoContainer = document.getElementById('motivoContainer');
+            Object.entries(MOTIVOS).forEach(([key, valor]) => {
+                const div = document.createElement('div');
+                div.className = 'motivo-option';
+                div.innerHTML = `
+                    <input type="radio" id="motivo_${key}" name="motivo" value="${key}" required>
+                    <label for="motivo_${key}">${valor}</label>
+                `;
+                motivoContainer.appendChild(div);
+            });
+        }
+
+        /**
+         * Muestra las razones por las que no puede eliminarse
+         */
+        function mostrarPendientes(motivos) {
+            document.getElementById('pendingSection').style.display = 'block';
+            const reasonsDiv = document.getElementById('pendingReasons');
+            reasonsDiv.innerHTML = `<p>${motivos}</p>`;
+        }
+
+        /**
+         * Configura validación del formulario en tiempo real
+         */
+        function setupFormValidation() {
+            const inputs = [contrasenaInput, confirmacionCheckbox];
+            inputs.forEach(input => {
+                input.addEventListener('change', validarFormulario);
+                input.addEventListener('input', validarFormulario);
+            });
+
+            // Validar selección de motivo
+            document.addEventListener('change', (e) => {
+                if (e.target.name === 'motivo') {
+                    validarFormulario();
+                }
+            });
+        }
+
+        /**
+         * Valida el estado del formulario
+         */
+        function validarFormulario() {
+            const motivoSeleccionado = document.querySelector('input[name="motivo"]:checked');
+            const contrasenaCompleta = contrasenaInput.value.length > 0;
+            const confirmado = confirmacionCheckbox.checked;
+
+            const valido = motivoSeleccionado && contrasenaCompleta && confirmado;
+            submitBtn.disabled = !valido;
+        }
+
+        /**
+         * Solicita la eliminación de la cuenta
+         */
+        async function solicitarEliminacion() {
+            const motivo = document.querySelector('input[name="motivo"]:checked')?.value;
+            const contrasena = contrasenaInput.value;
+            const confirmacion = confirmacionCheckbox.checked;
+
+            if (!motivo || !contrasena || !confirmacion) {
+                mostrarError('Por favor completa todos los campos');
+                return;
+            }
+
+            // Mostrar loading
+            submitBtn.classList.add('loading');
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_URL}/cuenta/solicitar-eliminacion`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Usuario-Id': USUARIO_ID,
+                        'Authorization': `Bearer ${TOKEN}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contrasena: contrasena,
+                        confirmacion: confirmacion,
+                        motivo: motivo
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.exitoso) {
+                    // Eliminación exitosa
+                    document.getElementById('formSection').style.display = 'none';
+                    document.getElementById('infoSection').style.display = 'none';
+                    document.getElementById('successSection').style.display = 'block';
+                    mostrarExito('¡Tu cuenta ha sido eliminada permanentemente!');
+                    
+                    // Limpiar localStorage y sessionStorage
+                    localStorage.clear();
+                    sessionStorage.clear();
+                } else {
+                    mostrarError(data.mensaje || 'Error al eliminar la cuenta');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('Error al procesar la solicitud: ' + error.message);
+            } finally {
+                submitBtn.classList.remove('loading');
+                validarFormulario();
+            }
+        }
+
+        /**
+         * Muestra un mensaje de error
+         */
+        function mostrarError(mensaje) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger show';
+            alert.textContent = mensaje;
+            alertContainer.innerHTML = '';
+            alertContainer.appendChild(alert);
+            setTimeout(() => alert.remove(), 5000);
+        }
+
+        /**
+         * Muestra un mensaje de éxito
+         */
+        function mostrarExito(mensaje) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success show';
+            alert.textContent = mensaje;
+            alertContainer.innerHTML = '';
+            alertContainer.appendChild(alert);
+        }
+    </script>
+</body>
+</html>
