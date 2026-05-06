@@ -5,58 +5,7 @@
 
 ---
 
-## ✅ Estado: COMPLETADO
-
-### 📊 Líneas de Código Implementadas
-- **Backend Java**: 650+ líneas
-- **Tests (21 tests)**: 550+ líneas  
-- **Frontend HTML/CSS/JS**: 1100+ líneas
-- **Documentación**: 800+ líneas
-- **TOTAL**: 3100+ líneas de código
-
----
-
 ## 📁 Archivos Creados
-
-### Backend (Java)
-```
-✅ my-app/src/main/java/com/deustosport/my_app/
-   ├── controller/
-   │   └── EliminacionCuentaController.java         (340 líneas)
-   ├── service/
-   │   ├── UsuarioService.java                      (+140 líneas agregadas)
-   │   └── EmailService.java                        (+60 líneas agregadas)
-   └── dto/
-       ├── SolicitudEliminacionCuentaRequest.java   (60 líneas)
-       └── EliminacionCuentaResponse.java           (50 líneas)
-```
-
-### Tests (JUnit 5 + Mockito)
-```
-✅ my-app/src/test/java/com/deustosport/my_app/
-   ├── controller/
-   │   └── EliminacionCuentaControllerTest.java     (280 líneas, 11 tests)
-   └── service/
-       └── EliminacionCuentaIntegrationTest.java    (270 líneas, 10 tests)
-```
-
-### Frontend
-```
-✅ my-webapp/src/main/resources/static/
-   └── eliminar-cuenta.html                         (1100 líneas)
-       ├── HTML estructural: 200 líneas
-       ├── CSS moderno: 700 líneas
-       └── JavaScript funcional: 200 líneas
-```
-
-### Documentación
-```
-✅ Proyecto/
-   ├── ELIMINACION_CUENTA_SPEC.md                   (400+ líneas)
-   ├── IMPLEMENTACION_ELIMINACION_CUENTA.md         (Documentación técnica)
-   └── Este archivo (RESUMEN)
-```
-
 ---
 
 ## 🎯 Funcionalidades Implementadas

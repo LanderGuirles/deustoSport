@@ -28,20 +28,20 @@ FEATURES:
 - Frontend moderno con validación en tiempo real
 - 21 tests (unitarios + integración) con ~95% cobertura
 
-BACKEND (650+ líneas):
+BACKEND :
 - Nuevo controlador: EliminacionCuentaController.java
 - DTOs: SolicitudEliminacionCuentaRequest, EliminacionCuentaResponse
 - Métodos en UsuarioService: solicitarEliminacionCuenta(), puedeSerEliminado()
 - Métodos en EmailService: enviarEmailEliminacionCuenta()
 
-FRONTEND (1100+ líneas):
+FRONTEND :
 - Página eliminar-cuenta.html con:
   - 700+ líneas de CSS moderno y responsive
   - 200+ líneas de JavaScript funcional
   - Validación en tiempo real
   - UX clara y segura
 
-TESTS (550+ líneas):
+TESTS :
 - EliminacionCuentaControllerTest: 11 tests
 - EliminacionCuentaIntegrationTest: 10 tests
 - Coverage: ~95%
@@ -112,7 +112,6 @@ git commit -m "feat: Implementación completa de eliminación de cuentas de usua
 - 21 tests con ~95% cobertura
 
 STATS:
-- 3100+ líneas de código
 - 8 archivos creados
 - 650+ líneas backend Java
 - 1100+ líneas frontend HTML/CSS/JS
@@ -123,20 +122,6 @@ SEGURIDAD:
 ✅ Multi-level validation
 ✅ Cascade delete
 ✅ Audit logging"
-```
-
-## 📊 Metrices que Mostrar en el Commit
-
-```
-Insertions: 3100+
-Deletions: 0 (solo nuevos archivos)
-Files changed: 8
-
-Breakdown:
-- Backend Java: 650 líneas
-- Frontend: 1100 líneas  
-- Tests: 550 líneas
-- Documentación: 800 líneas
 ```
 
 ## ✨ Ventajas de Este Commit
@@ -165,12 +150,11 @@ Breakdown:
 
 ## 🎯 Puntos Clave para Mencionar
 
-1. **Volumen de Código**: "3100+ líneas de código en un solo commit"
-2. **Cobertura de Tests**: "21 tests, ~95% cobertura"
-3. **Funcionalidad**: "Feature completa y funcional"
-4. **Seguridad**: "Múltiples niveles de validación"
-5. **Documentación**: "Documentación profesional incluida"
-6. **UX/UI**: "Frontend moderno y responsive"
+1. **Cobertura de Tests**: "21 tests, ~95% cobertura"
+2. **Funcionalidad**: "Feature completa y funcional"
+3. **Seguridad**: "Múltiples niveles de validación"
+4. **Documentación**: "Documentación profesional incluida"
+5. **UX/UI**: "Frontend moderno y responsive"
 
 ## 🚀 Próximos Pasos Después del Commit
 
@@ -217,5 +201,3 @@ commit: feat(eliminacion-cuenta): Implementación completa
 - Documentación profesional
 - Seguridad implementada
 - UX moderna
-
-✨ **¡Perfecto para impresionar en CV/Portfolio!**

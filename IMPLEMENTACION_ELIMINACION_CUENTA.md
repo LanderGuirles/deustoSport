@@ -13,14 +13,14 @@ Esta implementación proporciona un flujo completo y seguro para que los usuario
 #### DTOs
 ```
 my-app/src/main/java/com/deustosport/my_app/dto/
-├── SolicitudEliminacionCuentaRequest.java      (60 líneas)
-└── EliminacionCuentaResponse.java              (50 líneas)
+├── SolicitudEliminacionCuentaRequest.java      
+└── EliminacionCuentaResponse.java              
 ```
 
 #### Controlador
 ```
 my-app/src/main/java/com/deustosport/my_app/controller/
-└── EliminacionCuentaController.java            (340 líneas)
+└── EliminacionCuentaController.java            
    - 4 endpoints REST
    - Validaciones completas
    - Documentación Swagger
@@ -29,12 +29,12 @@ my-app/src/main/java/com/deustosport/my_app/controller/
 #### Servicios (Modificados)
 ```
 my-app/src/main/java/com/deustosport/my_app/service/
-├── UsuarioService.java                         (+140 líneas)
+├── UsuarioService.java                         
 │  ├── solicitarEliminacionCuenta()
 │  ├── puedeSerEliminado()
 │  └── obtenerMotivoNoEliminable()
 │
-└── EmailService.java                           (+60 líneas)
+└── EmailService.java                         
    ├── enviarEmailEliminacionCuenta()
    └── enviarEmailAdvertenciaEliminacion()
 ```
@@ -44,7 +44,7 @@ my-app/src/main/java/com/deustosport/my_app/service/
 #### Tests Unitarios
 ```
 my-app/src/test/java/com/deustosport/my_app/controller/
-└── EliminacionCuentaControllerTest.java        (280 líneas)
+└── EliminacionCuentaControllerTest.java       
    - 11 tests del controlador
    - Validación de entradas
    - Casos exitosos y fallidos
@@ -53,7 +53,7 @@ my-app/src/test/java/com/deustosport/my_app/controller/
 #### Tests de Integración
 ```
 my-app/src/test/java/com/deustosport/my_app/service/
-└── EliminacionCuentaIntegrationTest.java       (270 líneas)
+└── EliminacionCuentaIntegrationTest.java       
    - 10 tests de servicio
    - Eliminación con BD real
    - Flujos completos
@@ -64,7 +64,7 @@ my-app/src/test/java/com/deustosport/my_app/service/
 #### HTML/CSS/JavaScript
 ```
 my-webapp/src/main/resources/static/
-└── eliminar-cuenta.html                        (1100 líneas)
+└── eliminar-cuenta.html                    
    - Diseño responsivo moderno
    - Validación en tiempo real
    - UX intuitiva y segura
@@ -74,7 +74,7 @@ my-webapp/src/main/resources/static/
 ### Documentación
 ```
 proyecto/
-├── ELIMINACION_CUENTA_SPEC.md                  (400+ líneas)
+├── ELIMINACION_CUENTA_SPEC.md                 
 │  - Especificación completa
 │  - Casos de uso
 │  - Ejemplos API

@@ -605,9 +605,9 @@
 		<div style="margin-top:30px; padding-top:20px; border-top:1px solid var(--border);">
 			<h4 style="color:var(--danger); margin-bottom:12px;">⚠️ Zona de Peligro</h4>
 			<p style="font-size:13px; color:var(--muted); margin-bottom:12px;">Una vez elimines tu cuenta, todos tus datos serán borrados permanentemente.</p>
-			<a href="/eliminar-cuenta.html" class="btn-danger" style="display:inline-block; padding:10px 16px; background:var(--danger); color:white; border-radius:8px; text-decoration:none; font-size:14px; font-weight:600; transition:all .2s; text-align:center;">
+			<button onclick="openModal('modal-eliminar-cuenta')" class="btn-danger" style="display:inline-block; padding:10px 16px; background:var(--danger); color:white; border:none; border-radius:8px; text-decoration:none; font-size:14px; font-weight:600; transition:all .2s; text-align:center; cursor:pointer;">
 				Eliminar mi cuenta
-			</a>
+			</button>
 		</div>
 	</div>
 </div>
@@ -707,6 +707,159 @@
 		</div>
 	</div>
 </div>
+
+<!-- Modal: Eliminar Cuenta -->
+<div class="modal-overlay" id="modal-eliminar-cuenta">
+	<div class="modal modal-wide">
+		<div class="modal-header">
+			<div>
+				<h3>⚠️ Eliminar mi Cuenta</h3>
+				<p>Esta acción es permanente y no se puede deshacer</p>
+			</div>
+			<button class="btn-close" onclick="closeModal('modal-eliminar-cuenta')">×</button>
+		</div>
+		<div id="eliminar-modal-content" style="max-height: 70vh; overflow-y: auto;">
+			<div id="eliminar-validation-section">
+				<p style="color:var(--muted); margin-bottom:15px; font-size:13px;">Estamos validando si tu cuenta puede ser eliminada...</p>
+				<div style="text-align:center; padding:20px;">
+					<div class="spinner-inline"></div>
+					<p style="color:var(--muted); margin-top:10px; font-size:13px;">Cargando información...</p>
+				</div>
+			</div>
+
+			<div id="eliminar-info-section" style="display:none;">
+				<div style="margin-bottom:20px; padding:15px; background:rgba(240,165,0,.12); border-left:4px solid var(--warn); border-radius:8px;">
+					<strong style="color:var(--warn);">⚠️ Aviso Legal</strong>
+					<p style="color:var(--muted); margin-top:8px; font-size:13px; line-height:1.5;">
+						La eliminación de tu cuenta es <strong>permanente</strong>. No podremos recuperar tus datos una vez eliminados. Se mantendrán registros de auditoría según normativa legal.
+					</p>
+				</div>
+
+				<h4 style="font-size:14px; color:var(--text); margin-top:16px; margin-bottom:10px; font-weight:600;">Se eliminarán los siguientes datos:</h4>
+				<ul style="list-style:none; margin:12px 0; color:var(--muted); font-size:13px;">
+					<li style="padding:6px 0; padding-left:20px; position:relative;">
+						<span style="position:absolute; left:0; color:var(--danger);">⚠</span>
+						Información completa del perfil
+					</li>
+					<li style="padding:6px 0; padding-left:20px; position:relative;">
+						<span style="position:absolute; left:0; color:var(--danger);">⚠</span>
+						Email y credenciales de acceso
+					</li>
+					<li style="padding:6px 0; padding-left:20px; position:relative;">
+						<span style="position:absolute; left:0; color:var(--danger);">⚠</span>
+						Historial completo de reservas
+					</li>
+					<li style="padding:6px 0; padding-left:20px; position:relative;">
+						<span style="position:absolute; left:0; color:var(--danger);">⚠</span>
+						Información de abonos y suscripciones
+					</li>
+					<li style="padding:6px 0; padding-left:20px; position:relative;">
+						<span style="position:absolute; left:0; color:var(--danger);">⚠</span>
+						Datos de transacciones y pagos
+					</li>
+					<li style="padding:6px 0; padding-left:20px; position:relative;">
+						<span style="position:absolute; left:0; color:var(--danger);">⚠</span>
+						Saldo de la billetera
+					</li>
+				</ul>
+
+				<h4 style="font-size:14px; color:var(--text); margin-top:16px; margin-bottom:10px; font-weight:600;">Qué sucede después:</h4>
+				<ul style="list-style:none; margin:12px 0; color:var(--muted); font-size:13px;">
+					<li style="padding:6px 0; padding-left:20px; position:relative;">
+						<span style="position:absolute; left:0; color:var(--success);">✓</span>
+						Recibirás un email de confirmación
+					</li>
+					<li style="padding:6px 0; padding-left:20px; position:relative;">
+						<span style="position:absolute; left:0; color:var(--success);">✓</span>
+						Tu cuenta quedará inactiva inmediatamente
+					</li>
+					<li style="padding:6px 0; padding-left:20px; position:relative;">
+						<span style="position:absolute; left:0; color:var(--success);">✓</span>
+						Podrás registrarte nuevamente con el mismo email en el futuro
+					</li>
+				</ul>
+			</div>
+
+			<div id="eliminar-pending-section" style="display:none;">
+				<div style="margin-bottom:15px; padding:15px; background:rgba(248,81,73,.12); border-left:4px solid var(--danger); border-radius:8px;">
+					<strong style="color:var(--danger);">⚠️ No puedes eliminar tu cuenta en este momento</strong>
+				</div>
+				<div id="eliminar-pending-reasons" style="color:var(--muted); margin-top:15px; font-size:13px; line-height:1.6;">
+					<!-- Se llenará con JavaScript -->
+				</div>
+				<p style="color:var(--muted); margin-top:15px; font-size:12px;">
+					Por favor, resuelve estos asuntos antes de solicitar nuevamente la eliminación.
+				</p>
+			</div>
+
+			<div id="eliminar-form-section" style="display:none;">
+				<div style="margin-bottom:20px;">
+					<label style="font-size:13px; font-weight:600; color:var(--text); display:block; margin-bottom:10px;">¿Por qué deseas eliminar tu cuenta? *</label>
+					<div id="eliminar-motivo-container" style="display:flex; flex-direction:column; gap:8px;">
+						<!-- Se llenará con JavaScript -->
+					</div>
+				</div>
+
+				<div style="margin-bottom:16px;">
+					<label for="eliminar-contrasena" style="font-size:13px; font-weight:600; color:var(--text); display:block; margin-bottom:8px;">Contraseña *</label>
+					<input 
+						type="password" 
+						id="eliminar-contrasena" 
+						placeholder="Ingresa tu contraseña para verificación"
+						style="width:100%; padding:10px 12px; background:var(--surface); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; font-family:inherit;"
+					>
+					<small style="color:var(--muted); margin-top:4px; display:block; font-size:12px;">Se requiere contraseña por seguridad</small>
+				</div>
+
+				<div style="display:flex; align-items:flex-start; gap:10px; margin-bottom:16px;">
+					<input 
+						type="checkbox" 
+						id="eliminar-confirmacion"
+						style="width:18px; height:18px; margin-top:2px; cursor:pointer; accent-color:var(--danger); flex-shrink:0;"
+					>
+					<label for="eliminar-confirmacion" style="font-size:12px; color:var(--muted); cursor:pointer; line-height:1.5;">
+						Entiendo que esta acción es <strong>permanente</strong> y que <strong>no se puede deshacer</strong>. He leído y acepto que todos mis datos serán eliminados.
+					</label>
+				</div>
+
+				<div id="eliminar-form-alert" class="form-alert" style="margin-bottom:16px;"></div>
+
+				<div style="display:flex; gap:12px;">
+					<button class="btn-ghost" style="flex:1;" onclick="closeModal('modal-eliminar-cuenta')">
+						Cancelar
+					</button>
+					<button id="eliminar-submit-btn" class="btn-danger" style="flex:1; padding:10px; cursor:pointer; opacity:0.5;" disabled onclick="solicitarEliminacionCuenta()">
+						Eliminar Cuenta Permanentemente
+					</button>
+				</div>
+			</div>
+
+			<div id="eliminar-success-section" style="display:none; text-align:center; padding:20px 0;">
+				<div style="font-size:48px; margin-bottom:16px;">✓</div>
+				<h3 style="color:var(--success); margin-bottom:12px; font-family:'Syne',sans-serif;">Cuenta Eliminada</h3>
+				<p style="color:var(--muted); margin-bottom:16px; font-size:13px; line-height:1.6;">
+					Tu cuenta ha sido eliminada permanentemente. Se ha enviado un email de confirmación a tu dirección de correo.
+				</p>
+				<button class="btn-ghost" onclick="location.href='/'">Volver al Inicio</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<style>
+	.spinner-inline {
+		display: inline-block;
+		width: 20px;
+		height: 20px;
+		border: 3px solid rgba(255, 255, 255, 0.2);
+		border-top-color: var(--accent);
+		border-radius: 50%;
+		animation: spin-inline 0.8s linear infinite;
+	}
+	@keyframes spin-inline {
+		to { transform: rotate(360deg); }
+	}
+</style>
 
 <div id="toast"></div>
 			<script>
@@ -2066,5 +2219,181 @@
 				}
 			}
 			</script>
-			</body>
-			</html>
+			<script>
+			// ═══════════════════════════════════════════
+			//  ELIMINACIÓN DE CUENTA
+			// ═══════════════════════════════════════════
+			const MOTIVOS_ELIMINACION = {
+				'NO_SATISFECHOS': 'No satisfechos con el servicio',
+				'PRIVACIDAD': 'Preocupación por privacidad',
+				'NO_UTILIZAMOS': 'No utilizamos el servicio',
+				'MIGRACION': 'Migración a otra plataforma',
+				'OTRO': 'Otro motivo'
+			};
+
+			function abrirModalEliminacion() {
+				openModal('modal-eliminar-cuenta');
+				validarEliminacionCuentaPosible();
+			}
+
+			async function validarEliminacionCuentaPosible() {
+				try {
+					const response = await fetch(`${API}/api/cuenta/validar-eliminacion`, {
+						method: 'GET',
+						headers: {
+							'X-Usuario-Id': currentUserId,
+							'Content-Type': 'application/json'
+						}
+					});
+
+					const data = await response.json();
+					document.getElementById('eliminar-validation-section').style.display = 'none';
+
+					if (data.puedeSerEliminado) {
+						document.getElementById('eliminar-info-section').style.display = 'block';
+						mostrarFormularioEliminacion();
+					} else {
+						document.getElementById('eliminar-pending-section').style.display = 'block';
+						document.getElementById('eliminar-pending-reasons').innerHTML = `<p>${escHtml(data.motivos || 'No puedes eliminar tu cuenta en este momento.')}</p>`;
+					}
+				} catch (error) {
+					console.error('Error al validar:', error);
+					mostrarAlertaEliminacion('Error al validar la cuenta: ' + error.message, 'err');
+				}
+			}
+
+			function mostrarFormularioEliminacion() {
+				const formSection = document.getElementById('eliminar-form-section');
+				formSection.style.display = 'block';
+
+				// Llenar opciones de motivos
+				const motivoContainer = document.getElementById('eliminar-motivo-container');
+				motivoContainer.innerHTML = '';
+				Object.entries(MOTIVOS_ELIMINACION).forEach(([key, valor]) => {
+					const div = document.createElement('div');
+					div.style.cssText = 'display:flex; align-items:center; padding:10px 12px; border:1px solid var(--border); border-radius:8px; cursor:pointer; transition:all .2s;';
+					div.innerHTML = `
+						<input type="radio" id="eliminar_motivo_${key}" name="eliminar-motivo" value="${key}" style="width:18px; height:18px; margin-right:10px; cursor:pointer; accent-color:var(--danger);">
+						<label for="eliminar_motivo_${key}" style="margin:0; cursor:pointer; flex:1; font-size:13px; color:var(--text);">${valor}</label>
+					`;
+					div.addEventListener('click', () => {
+						document.getElementById(`eliminar_motivo_${key}`).checked = true;
+						validarFormularioEliminacion();
+					});
+					motivoContainer.appendChild(div);
+				});
+
+				setupValidacionFormularioEliminacion();
+			}
+
+			function setupValidacionFormularioEliminacion() {
+				const contrasena = document.getElementById('eliminar-contrasena');
+				const confirmacion = document.getElementById('eliminar-confirmacion');
+
+				contrasena.addEventListener('input', validarFormularioEliminacion);
+				confirmacion.addEventListener('change', validarFormularioEliminacion);
+
+				document.addEventListener('change', (e) => {
+					if (e.target.name === 'eliminar-motivo') {
+						validarFormularioEliminacion();
+					}
+				});
+			}
+
+			function validarFormularioEliminacion() {
+				const motivoSeleccionado = document.querySelector('input[name="eliminar-motivo"]:checked');
+				const contrasenaCompleta = document.getElementById('eliminar-contrasena').value.length > 0;
+				const confirmado = document.getElementById('eliminar-confirmacion').checked;
+
+				const valido = motivoSeleccionado && contrasenaCompleta && confirmado;
+				const btn = document.getElementById('eliminar-submit-btn');
+				btn.disabled = !valido;
+				btn.style.opacity = valido ? '1' : '0.5';
+				btn.style.cursor = valido ? 'pointer' : 'not-allowed';
+			}
+
+			async function solicitarEliminacionCuenta() {
+				const motivo = document.querySelector('input[name="eliminar-motivo"]:checked')?.value;
+				const contrasena = document.getElementById('eliminar-contrasena').value;
+				const confirmacion = document.getElementById('eliminar-confirmacion').checked;
+
+				if (!motivo || !contrasena || !confirmacion) {
+					mostrarAlertaEliminacion('Por favor completa todos los campos', 'err');
+					return;
+				}
+
+				const btn = document.getElementById('eliminar-submit-btn');
+				btn.disabled = true;
+				btn.textContent = 'Procesando...';
+
+				try {
+					const response = await fetch(`${API}/api/cuenta/solicitar-eliminacion`, {
+						method: 'POST',
+						headers: {
+							'X-Usuario-Id': currentUserId,
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({
+							contrasena: contrasena,
+							confirmacion: confirmacion,
+							motivo: motivo
+						})
+					});
+
+					const data = await response.json();
+
+					if (response.ok && data.exitoso) {
+						document.getElementById('eliminar-form-section').style.display = 'none';
+						document.getElementById('eliminar-info-section').style.display = 'none';
+						document.getElementById('eliminar-success-section').style.display = 'block';
+						toast('¡Tu cuenta ha sido eliminada permanentemente!', 'ok');
+						
+						// Limpiar y redirigir después de 3s
+						setTimeout(() => {
+							localStorage.clear();
+							sessionStorage.clear();
+							location.href = '/';
+						}, 3000);
+					} else {
+						mostrarAlertaEliminacion(data.mensaje || 'Error al eliminar la cuenta', 'err');
+						btn.disabled = false;
+						btn.textContent = 'Eliminar Cuenta Permanentemente';
+					}
+				} catch (error) {
+					console.error('Error:', error);
+					mostrarAlertaEliminacion('Error al procesar la solicitud: ' + error.message, 'err');
+					btn.disabled = false;
+					btn.textContent = 'Eliminar Cuenta Permanentemente';
+				}
+			}
+
+			function mostrarAlertaEliminacion(mensaje, tipo) {
+				const alertEl = document.getElementById('eliminar-form-alert');
+				alertEl.className = 'form-alert';
+				if (tipo === 'err') {
+					alertEl.classList.add('err');
+				} else {
+					alertEl.classList.add('ok');
+				}
+				alertEl.textContent = mensaje;
+				alertEl.style.display = 'block';
+			}
+
+			// Resetear el modal cuando se cierra
+			const modalOverlay = document.getElementById('modal-eliminar-cuenta');
+			const observer = new MutationObserver(() => {
+				if (!modalOverlay.classList.contains('open')) {
+					document.getElementById('eliminar-form-section').style.display = 'none';
+					document.getElementById('eliminar-info-section').style.display = 'none';
+					document.getElementById('eliminar-pending-section').style.display = 'none';
+					document.getElementById('eliminar-success-section').style.display = 'none';
+					document.getElementById('eliminar-validation-section').style.display = 'block';
+					document.getElementById('eliminar-form-alert').style.display = 'none';
+					document.getElementById('eliminar-contrasena').value = '';
+					document.getElementById('eliminar-confirmacion').checked = false;
+					document.querySelectorAll('input[name="eliminar-motivo"]').forEach(r => r.checked = false);
+					validarFormularioEliminacion();
+				}
+			});
+			observer.observe(modalOverlay, { attributes: true, attributeFilter: ['class'] });
+			</script>
