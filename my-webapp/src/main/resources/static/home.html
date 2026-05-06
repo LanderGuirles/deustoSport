@@ -2698,32 +2698,531 @@
 			});
 			observer.observe(modalOverlay, { attributes: true, attributeFilter: ['class'] });
 
-			// ═══════════════════════════════════════════════════════════════
-			//  SISTEMA DE MAPA INTERACTIVO DE PISTAS - POLIDEPORTIVO
-			// ═══════════════════════════════════════════════════════════════
+			// ═══════════════════════════════════════════════════════════════════════════════════════════
+			//  SISTEMA AVANZADO DE MAPA INTERACTIVO DEL CLUB COMPLETO - POLIDEPORTIVO DEUSTO SPORT
+			// ═══════════════════════════════════════════════════════════════════════════════════════════
 			
-			// Estado global del mapa
+			/**
+			 * MÓDULO DE CONFIGURACIÓN Y ESTADO GLOBAL
+			 * Gestiona todo el estado del mapa del club, estadísticas, zona activa, etc.
+			 */
 			const estadoMapa = {
 				pistaActiva: null,
 				historicoPistas: [],
 				ultimaVisualizacion: null,
-				modo: 'vista' // 'vista' o 'reserva'
-			};
-			
-			// Configuración de pistas
-			const configuracionPistas = {
-				'Pádel 1': { tipo: 'padel', zona: 'superior', capacidad: '2-4', color: '#00e5a0' },
-				'Pádel 2': { tipo: 'padel', zona: 'superior', capacidad: '2-4', color: '#00d799' },
-				'Tenis 1': { tipo: 'tenis', zona: 'superior', capacidad: '2-4', color: '#f0a500' },
-				'Tenis 2': { tipo: 'tenis', zona: 'superior', capacidad: '2-4', color: '#e89a00' },
-				'Cancha de Fútbol': { tipo: 'futbol', zona: 'inferior', capacidad: '8-22', color: '#388bfd' }
+				modo: 'vista',
+				zonaActiva: null,
+				estadisticas: {
+					clicksZonas: 0,
+					clicksPistas: 0,
+					tiempoExploracion: 0,
+					zonasVisitadas: 0
+				},
+				historialZonas: []
 			};
 			
 			/**
-			 * Activa una pista en el mapa: cambios visuales y estado
+			 * CONFIGURACIÓN COMPLETA DE PISTAS Y SERVICIOS
+			 * Define nombre, tipo, ubicación, capacidad, horario e iconos
+			 */
+			const configuracionPistas = {
+				'Pádel 1': { 
+					tipo: 'padel', 
+					zona: 'superior', 
+					capacidad: '2-4', 
+					color: '#00e5a0',
+					horario: '08:00 - 22:00',
+					icono: '🏐',
+					descripcion: 'Pista profesional de pádel'
+				},
+				'Pádel 2': { 
+					tipo: 'padel', 
+					zona: 'superior', 
+					capacidad: '2-4', 
+					color: '#00d799',
+					horario: '08:00 - 22:00',
+					icono: '🏐',
+					descripcion: 'Pista profesional de pádel'
+				},
+				'Tenis 1': { 
+					tipo: 'tenis', 
+					zona: 'superior', 
+					capacidad: '2-4', 
+					color: '#f0a500',
+					horario: '08:00 - 22:00',
+					icono: '🎾',
+					descripcion: 'Pista con iluminación profesional'
+				},
+				'Tenis 2': { 
+					tipo: 'tenis', 
+					zona: 'superior', 
+					capacidad: '2-4', 
+					color: '#e89a00',
+					horario: '08:00 - 22:00',
+					icono: '🎾',
+					descripcion: 'Pista con iluminación profesional'
+				},
+				'Cancha de Fútbol': { 
+					tipo: 'futbol', 
+					zona: 'inferior', 
+					capacidad: '8-22', 
+					color: '#388bfd',
+					horario: '08:00 - 22:00',
+					icono: '⚽',
+					descripcion: 'Campo profesional de fútbol'
+				}
+			};
+			
+			/**
+			 * FUNCIÓN: mostrarTooltipZona
+			 * Muestra un tooltip interactivo mejorado con información detallada de una zona
+			 * Maneja posicionamiento dinámico para evitar salirse del viewport
+			 * @param {string} nombre - Nombre de la zona (Entrada, Estacionamiento, etc)
+			 * @param {string} desc - Descripción corta de la zona
+			 * @param {Event} event - Evento del ratón para obtener posición
+			 */
+			function mostrarTooltipZona(nombre, desc, event) {
+				const tooltip = document.getElementById('tooltip-zona-mapa');
+				const container = document.getElementById('mapa-svg-container-principal');
+				
+				if (!tooltip || !container) {
+					console.warn('Tooltip o contenedor del mapa no encontrado');
+					return;
+				}
+				
+				// Buscar configuración de la zona
+				let config = null;
+				if (configuracionPistas[nombre]) {
+					config = configuracionPistas[nombre];
+				} else {
+					config = {
+						icono: nombre.includes('Entrada') ? '🚪' : 
+							   nombre.includes('Estacionamiento') ? '🅿️' : 
+							   nombre.includes('Pabellón') ? '🚿' : 
+							   nombre.includes('Bar') ? '🍴' : '👥',
+						horario: '08:00 - 23:00',
+						capacidad: '—'
+					};
+				}
+				
+				// Construcción del contenido del tooltip
+				tooltip.innerHTML = `
+					<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+						<span style="font-size: 18px;">${config.icono || '📍'}</span>
+						<strong style="font-size: 13px; color: var(--text);">${nombre}</strong>
+					</div>
+					<div style="font-size: 11px; color: var(--muted); line-height: 1.4; margin-bottom: 6px;">
+						${desc}
+					</div>
+					${config.horario ? `<small style="display: block; color: var(--muted); margin-bottom: 4px;">🕐 ${config.horario}</small>` : ''}
+					${config.capacidad && config.capacidad !== '—' ? `<small style="display: block; color: var(--muted);">👥 Capacidad: ${config.capacidad}</small>` : ''}
+				`;
+				
+				tooltip.style.display = 'block';
+				
+				// Posicionamiento dinámico relativo al contenedor
+				const rect = event.target.getBoundingClientRect();
+				const containerRect = container.getBoundingClientRect();
+				
+				let top = rect.top - containerRect.top - tooltip.offsetHeight - 12;
+				let left = rect.left - containerRect.left + (rect.width / 2) - (tooltip.offsetWidth / 2);
+				
+				// Ajustes para no salirse del viewport
+				if (top < 10) top = rect.bottom - containerRect.top + 12;
+				if (left < 10) left = 10;
+				if (left + tooltip.offsetWidth > containerRect.width - 10) {
+					left = containerRect.width - tooltip.offsetWidth - 10;
+				}
+				
+				tooltip.style.top = top + 'px';
+				tooltip.style.left = left + 'px';
+				
+				// Efectos visuales en el elemento
+				event.target.style.filter = 'brightness(1.25) drop-shadow(0 0 10px rgba(0,229,160,0.6))';
+				
+				// Registrar estadísticas
+				estadoMapa.zonaActiva = nombre;
+				if (!estadoMapa.historialZonas.includes(nombre)) {
+					estadoMapa.historialZonas.push(nombre);
+					estadoMapa.estadisticas.zonasVisitadas++;
+				}
+				estadoMapa.estadisticas.clicksZonas++;
+			}
+			
+			/**
+			 * FUNCIÓN: ocultarTooltipZona
+			 * Oculta el tooltip activo y restaura estilos visuales de los elementos
+			 * Se ejecuta cuando el ratón sale de una zona
+			 */
+			function ocultarTooltipZona() {
+				const tooltip = document.getElementById('tooltip-zona-mapa');
+				if (tooltip) {
+					tooltip.style.display = 'none';
+				}
+				
+				// Restaurar estilos de todas las zonas interactivas
+				document.querySelectorAll('.zona-interactiva').forEach(zona => {
+					zona.style.filter = '';
+				});
+				
+				document.querySelectorAll('.pista-zona').forEach(pista => {
+					pista.style.filter = '';
+					pista.style.strokeWidth = '';
+				});
+			}
+			
+			/**
+			 * FUNCIÓN: activarZonaPista
+			 * Activa efectos visuales avanzados para una pista específica
+			 * Aumenta brillo, agrega sombra, muestra información detallada
+			 * @param {Element} element - Elemento SVG de la pista a activar
+			 */
+			function activarZonaPista(element) {
+				const nombrePista = element.getAttribute('data-pista');
+				if (!nombrePista) return;
+				
+				const config = configuracionPistas[nombrePista] || {};
+				
+				// Aplicar efectos visuales intensos
+				element.style.filter = 'brightness(1.35) drop-shadow(0 0 15px rgba(0,229,160,0.7))';
+				element.style.strokeWidth = '3';
+				element.style.stroke = 'var(--accent)';
+				
+				// Actualizar estado global
+				estadoMapa.pistaActiva = nombrePista;
+				estadoMapa.modo = 'seleccion-pista';
+				estadoMapa.estadisticas.clicksPistas++;
+				
+				// Registrar en histórico
+				if (!estadoMapa.historicoPistas.includes(nombrePista)) {
+					estadoMapa.historicoPistas.push(nombrePista);
+				}
+				
+				// Mostrar información mejorada en tooltip
+				const tooltip = document.getElementById('tooltip-zona-mapa');
+				const container = document.getElementById('mapa-svg-container-principal');
+				
+				if (tooltip && container) {
+					const rect = element.getBoundingClientRect();
+					const containerRect = container.getBoundingClientRect();
+					
+					// Contenido detallado para pistas
+					tooltip.innerHTML = `
+						<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+							<span style="font-size: 18px;">${config.icono || '🏐'}</span>
+							<div>
+								<strong style="font-size: 13px; color: var(--text); display: block;">${nombrePista}</strong>
+								<small style="color: var(--muted); font-size: 10px;">${config.tipo ? config.tipo.charAt(0).toUpperCase() + config.tipo.slice(1) : 'Pista'}</small>
+							</div>
+						</div>
+						<div style="font-size: 11px; color: var(--muted); line-height: 1.4; margin-bottom: 6px; border-bottom: 1px solid rgba(0,229,160,0.25); padding-bottom: 6px;">
+							${config.descripcion || 'Pista profesional'}
+						</div>
+						<small style="display: block; color: var(--muted); margin-bottom: 4px;">🕐 ${config.horario || '08:00 - 22:00'}</small>
+						<small style="display: block; color: var(--muted); margin-bottom: 6px;">👥 Capacidad: ${config.capacidad || '2-4'} personas</small>
+						<div style="border-top: 1px solid rgba(0,229,160,0.25); padding-top: 6px; margin-top: 6px;">
+							<small style="color: var(--accent); font-weight: 600; cursor: pointer;">➜ Click para ir a reservar</small>
+						</div>
+					`;
+					
+					tooltip.style.display = 'block';
+					tooltip._lastElement = element;
+					
+					// Posicionamiento dinámico
+					let top = rect.top - containerRect.top - tooltip.offsetHeight - 12;
+					let left = rect.left - containerRect.left + (rect.width / 2) - (tooltip.offsetWidth / 2);
+					
+					if (top < 10) top = rect.bottom - containerRect.top + 12;
+					if (left < 10) left = 10;
+					if (left + tooltip.offsetWidth > containerRect.width - 10) {
+						left = containerRect.width - tooltip.offsetWidth - 10;
+					}
+					
+					tooltip.style.top = top + 'px';
+					tooltip.style.left = left + 'px';
+				}
+			}
+			
+			/**
+			 * FUNCIÓN: desactivarZonaPista
+			 * Desactiva los efectos visuales de una pista
+			 * Se ejecuta cuando el ratón sale de la zona
 			 * @param {Element} element - Elemento SVG de la pista
 			 */
+			function desactivarZonaPista(element) {
+				element.style.filter = '';
+				element.style.strokeWidth = '';
+				element.style.stroke = '';
+				
+				// Ocultar tooltip con pequeño delay
+				setTimeout(() => {
+					const tooltip = document.getElementById('tooltip-zona-mapa');
+					if (tooltip && element === tooltip._lastElement) {
+						tooltip.style.display = 'none';
+					}
+				}, 100);
+			}
+			
+			/**
+			 * FUNCIÓN: irAReservaPista
+			 * Navega a la sección de reservas con la pista preseleccionada
+			 * Cambia de tab y filtra automáticamente la pista en el selector
+			 * Incluye manejo de errores y feedback visual
+			 * @param {string} nombrePista - Nombre exacto de la pista a reservar
+			 */
+			function irAReservaPista(nombrePista) {
+				// Validar que sea pista válida
+				const config = configuracionPistas[nombrePista];
+				if (!config) {
+					console.warn(`${nombrePista} no es una pista válida`);
+					toast(`⚠ No se encontró la pista: ${nombrePista}`, 'err');
+					return;
+				}
+				
+				// Actualizar estado global
+				estadoMapa.modo = 'reserva';
+				estadoMapa.pistaActiva = nombrePista;
+				
+				// Agregar al histórico si no está
+				if (!estadoMapa.historicoPistas.includes(nombrePista)) {
+					estadoMapa.historicoPistas.push(nombrePista);
+				}
+				
+				// Cambiar a tab de "Reservar"
+				const btnReservar = document.querySelector('[onclick="switchTab(\'pistas\',this)"]');
+				if (!btnReservar) {
+					console.warn('Botón de Reservar no encontrado');
+					toast('Error: No se pudo cambiar a la pestaña de reservas', 'err');
+					return;
+				}
+				
+				// Cambiar tab con feedback visual
+				switchTab('pistas', btnReservar);
+				toast(`📍 Navegando a reserva: ${nombrePista}...`, 'ok');
+				
+				// Esperar a que se cargue el tab y filtrar la pista
+				setTimeout(() => {
+					try {
+						// Buscar select de pistas
+						const selectPista = document.getElementById('select-pista-tarifa');
+						if (!selectPista) {
+							console.warn('Select de pistas no encontrado');
+							toast('⚠ No se pudo cargar el selector de pistas', 'warn');
+							return;
+						}
+						
+						// Obtener todas las opciones disponibles
+						const options = Array.from(selectPista.querySelectorAll('option'));
+						
+						// Buscar opción coincidente (búsqueda flexible)
+						const opcionCoincidente = options.find(opt => {
+							const texto = opt.textContent.toLowerCase().trim();
+							const busqueda = nombrePista.toLowerCase().trim();
+							const primeraPalabra = texto.split(' ')[0];
+							const primeraPalabraBusqueda = busqueda.split(' ')[0];
+							
+							return texto.includes(busqueda) || 
+								   busqueda.includes(primeraPalabra) ||
+								   primeraPalabra === primeraPalabraBusqueda;
+						});
+						
+						if (opcionCoincidente) {
+							// Seleccionar la opción
+							selectPista.value = opcionCoincidente.value;
+							
+							// Disparar evento de cambio
+							const event = new Event('change', { bubbles: true });
+							selectPista.dispatchEvent(event);
+							
+							// Cargar tarifas directamente si existe la función
+							if (typeof cargarTarifasPorPista === 'function') {
+								cargarTarifasPorPista(opcionCoincidente.value);
+							}
+							
+							// Feedback final
+							toast(`✓ Cargadas tarifas de: ${nombrePista}`, 'ok');
+						} else {
+							console.warn(`No se encontró opción para: ${nombrePista}`);
+							toast(`No se encontró la pista en el sistema: ${nombrePista}`, 'err');
+						}
+					} catch (err) {
+						console.error('Error al filtrar pista:', err);
+						toast('Error al cargar la pista seleccionada', 'err');
+					}
+				}, 250);
+				
+				// Scroll suave a la parte superior
+				setTimeout(() => {
+					window.scrollTo({ top: 0, behavior: 'smooth' });
+				}, 350);
+			}
+			
+			/**
+			 * FUNCIÓN: obtenerInfoPista
+			 * Obtiene información completa de una pista
+			 * Utilizado para tooltips y panel de información
+			 * @param {string} nombrePista - Nombre de la pista
+			 * @returns {Object} Objeto con toda la información de la pista
+			 */
+			function obtenerInfoPista(nombrePista) {
+				const config = configuracionPistas[nombrePista] || {};
+				return {
+					nombre: nombrePista,
+					tipo: config.tipo || 'desconocido',
+					zona: config.zona || 'general',
+					capacidad: config.capacidad || 'N/A',
+					horario: config.horario || '08:00 - 22:00',
+					color: config.color || '#888888',
+					icono: config.icono || '🏐',
+					descripcion: config.descripcion || 'Pista profesional',
+					disponible: true
+				};
+			}
+			
+			/**
+			 * FUNCIÓN: obtenerEstadisticasMapa
+			 * Retorna estadísticas de uso del mapa
+			 * Útil para debugging y analytics
+			 * @returns {Object} Objeto con estadísticas completas
+			 */
+			function obtenerEstadisticasMapa() {
+				return {
+					clicksZonas: estadoMapa.estadisticas.clicksZonas,
+					clicksPistas: estadoMapa.estadisticas.clicksPistas,
+					zonasVisitadas: estadoMapa.estadisticas.zonasVisitadas,
+					pistasVisitadas: estadoMapa.historicoPistas.length,
+					zonaActual: estadoMapa.zonaActiva || 'ninguna',
+					pistaActual: estadoMapa.pistaActiva || 'ninguna',
+					modo: estadoMapa.modo
+				};
+			}
+			
+			/**
+			 * FUNCIÓN: inicializarMapaClub
+			 * Inicializa completamente el sistema de mapa del club
+			 * Configura event listeners, validaciones, y estado inicial
+			 * Se ejecuta al cargar el documento
+			 */
+			function inicializarMapaClub() {
+				const mapaSvg = document.getElementById('mapa-svg-principal');
+				if (!mapaSvg) {
+					console.warn('SVG del mapa del club no encontrado');
+					return;
+				}
+				
+				// Configurar eventos para zonas interactivas
+				document.querySelectorAll('.zona-interactiva').forEach(zona => {
+					zona.addEventListener('mouseenter', function() {
+						this.style.cursor = 'pointer';
+					});
+					
+					zona.addEventListener('mouseleave', function() {
+						this.style.cursor = 'default';
+					});
+					
+					zona.addEventListener('click', function() {
+						const nombreZona = this.getAttribute('data-zona');
+						if (nombreZona) {
+							console.log(`Zona seleccionada: ${nombreZona}`);
+						}
+					});
+				});
+				
+				// Configurar eventos para zonas de pistas
+				document.querySelectorAll('.pista-zona').forEach(pista => {
+					pista.addEventListener('mouseenter', function() {
+						this.style.cursor = 'pointer';
+					});
+					
+					pista.addEventListener('mouseleave', function() {
+						this.style.cursor = 'default';
+					});
+					
+					pista.addEventListener('click', function(e) {
+						const nombrePista = this.getAttribute('data-pista');
+						if (nombrePista) {
+							console.log(`Pista seleccionada para reserva: ${nombrePista}`);
+							e.stopPropagation();
+						}
+					});
+				});
+				
+				// Configurar tooltip para que se oculte al hacer click fuera
+				document.addEventListener('click', function(e) {
+					const tooltip = document.getElementById('tooltip-zona-mapa');
+					const mapaSvg = document.getElementById('mapa-svg-principal');
+					
+					if (tooltip && !mapaSvg.contains(e.target)) {
+						tooltip.style.display = 'none';
+					}
+				});
+				
+				console.log('✓ Sistema de Mapa del Club inicializado correctamente');
+				console.log(`✓ Pistas cargadas: ${Object.keys(configuracionPistas).length}`);
+				console.log('✓ Zonas interactivas: 6 (Entrada, Estacionamiento, Pabellón, Bar, Público, Deportiva)');
+			}
+			
+			/**
+			 * FUNCIÓN: reiniciarMapaClub
+			 * Reinicia completamente el estado del mapa del club
+			 * Útil cuando se cambia de tab o se necesita limpiar
+			 */
+			function reiniciarMapaClub() {
+				estadoMapa.zonaActiva = null;
+				estadoMapa.pistaActiva = null;
+				estadoMapa.modo = 'vista';
+				
+				const tooltip = document.getElementById('tooltip-zona-mapa');
+				if (tooltip) {
+					tooltip.style.display = 'none';
+				}
+				
+				// Restaurar estilos de todos los elementos
+				document.querySelectorAll('.zona-interactiva, .pista-zona').forEach(zona => {
+					zona.style.filter = '';
+					zona.style.strokeWidth = '';
+					zona.style.stroke = '';
+				});
+				
+				console.log('✓ Mapa del club reiniciado');
+			}
+			
+			// Ejecutar inicialización al cargar el documento
+			if (document.readyState === 'loading') {
+				document.addEventListener('DOMContentLoaded', inicializarMapaClub);
+			} else {
+				inicializarMapaClub();
+			}
+			
+			/**
+			 * FUNCIÓN: mostrarTooltipMapaMejorado (Legacy - compatibilidad)
+			 * Mantiene compatibilidad con código anterior
+			 * Redirige a las nuevas funciones
+			 */
+			function mostrarTooltipMapaMejorado(element, nombre, tipo, config) {
+				// Redirigir a nueva función de tooltip
+				mostrarTooltipZona(nombre, config.descripcion || tipo, { target: element });
+			}
+			
+			/**
+			 * FUNCIÓN: activarPista (Legacy - compatibilidad)
+			 * Mantiene compatibilidad con código anterior
+			 * Redirige a las nuevas funciones
+			 */
 			function activarPista(element) {
+				// Redirigir a nueva función
+				activarZonaPista(element);
+			}
+			
+			/**
+			 * FUNCIÓN: desactivarPista (Legacy - compatibilidad)
+			 * Mantiene compatibilidad con código anterior
+			 * Redirige a las nuevas funciones
+			 */
+			function desactivarPista(element) {
+				// Redirigir a nueva función
+				desactivarZonaPista(element);
+			}
 				// Cambios visuales
 				element.style.filter = 'brightness(1.35) drop-shadow(0 0 8px rgba(0,229,160,0.5))';
 				element.style.strokeWidth = '4';
@@ -2743,203 +3242,12 @@
 			}
 			
 			/**
-			 * Desactiva visual de una pista
-			 * @param {Element} element - Elemento SVG de la pista
+			 * FUNCIÓN: desactivarPista (Legacy - compatibilidad)
+			 * Mantiene compatibilidad con código anterior
+			 * Redirige a las nuevas funciones
 			 */
 			function desactivarPista(element) {
-				element.style.filter = '';
-				element.style.strokeWidth = '';
-				element.style.stroke = '';
-				
-				// Mantener tooltip visible un poco más
-				setTimeout(() => {
-					const tooltip = document.getElementById('pista-tooltip');
-					if (tooltip && element === tooltip._lastElement) {
-						tooltip.style.display = 'none';
-					}
-				}, 100);
-			}
-			
-			/**
-			 * Muestra tooltip mejorado con información detallada
-			 * @param {Element} element - Elemento SVG
-			 * @param {string} nombre - Nombre de la pista
-			 * @param {string} tipo - Tipo de pista
-			 * @param {Object} config - Configuración de la pista
-			 */
-			function mostrarTooltipMapaMejorado(element, nombre, tipo, config) {
-				const tooltip = document.getElementById('pista-tooltip');
-				const wrapper = document.getElementById('mapa-svg-wrapper');
-				
-				// Guardar referencia para desactivar después
-				tooltip._lastElement = element;
-				
-				// Contenido del tooltip con información detallada
-				const iconoTipo = tipo === 'Pádel' ? '🏐' : tipo === 'Tenis' ? '🎾' : '⚽';
-				const infoCapacidad = config.capacidad || 'N/A';
-				
-				tooltip.innerHTML = `
-					<div style="padding: 8px 0;">
-						<div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-							<span style="font-size: 16px;">${iconoTipo}</span>
-							<strong style="font-size: 13px; color: var(--text);">${nombre}</strong>
-						</div>
-						<div style="font-size: 10px; color: var(--muted); margin-bottom: 6px; line-height: 1.3;">
-							<div>Tipo: <strong>${tipo}</strong></div>
-							<div>Capacidad: <strong>${infoCapacidad} jugadores</strong></div>
-						</div>
-						<div style="border-top: 1px solid rgba(125,133,144,0.25); padding-top: 6px; margin-top: 6px;">
-							<span style="font-size: 9px; color: var(--accent); font-weight: 600;">➜ Click para reservar</span>
-						</div>
-					</div>
-				`;
-				
-				tooltip.style.display = 'block';
-				
-				// Posicionamiento dinámico y responsivo
-				const rect = element.getBoundingClientRect();
-				const wrapperRect = wrapper.getBoundingClientRect();
-				
-				let top = rect.top - wrapperRect.top - tooltip.offsetHeight - 12;
-				let left = rect.left - wrapperRect.left + (rect.width / 2) - (tooltip.offsetWidth / 2);
-				
-				// Ajustes para no salirse del viewport
-				if (top < 10) {
-					top = rect.bottom - wrapperRect.top + 12;
-				}
-				
-				if (left < 10) {
-					left = 10;
-				} else if (left + tooltip.offsetWidth > wrapperRect.width - 10) {
-					left = wrapperRect.width - tooltip.offsetWidth - 10;
-				}
-				
-				tooltip.style.top = top + 'px';
-				tooltip.style.left = left + 'px';
-			}
-			
-			/**
-			 * Navega a la sección de reserva para una pista específica
-			 * @param {string} nombrePista - Nombre de la pista a reservar
-			 */
-			function irAReservaPista(nombrePista) {
-				// Cambiar vista y estado
-				estadoMapa.modo = 'reserva';
-				estadoMapa.pistaActiva = nombrePista;
-				
-				// Registrar acción en histórico
-				if (!estadoMapa.historicoPistas.includes(nombrePista)) {
-					estadoMapa.historicoPistas.push(nombrePista);
-				}
-				
-				// Cambiar a tab de Reservar con transición suave
-				const btnReservar = document.querySelector('[onclick="switchTab(\'pistas\',this)"]');
-				if (btnReservar) {
-					switchTab('pistas', btnReservar);
-				}
-				
-				// Esperar a que el tab se cargue y luego filtrar
-				setTimeout(() => {
-					try {
-						// Buscar select de pistas
-						const selectPista = document.getElementById('select-pista-tarifa');
-						if (!selectPista) return;
-						
-						// Buscar opción coincidente
-						const options = Array.from(selectPista.querySelectorAll('option'));
-						const opcionCoincidente = options.find(opt => {
-							const texto = opt.textContent.toLowerCase();
-							const busqueda = nombrePista.toLowerCase();
-							return texto.includes(busqueda) || busqueda.includes(texto.split(' ')[0]);
-						});
-						
-						if (opcionCoincidente) {
-							selectPista.value = opcionCoincidente.value;
-							
-							// Trigger change event para cargar tarifas
-							const event = new Event('change', { bubbles: true });
-							selectPista.dispatchEvent(event);
-							
-							// Cargar tarifas de forma directa también
-							if (typeof cargarTarifasPorPista === 'function') {
-								cargarTarifasPorPista(opcionCoincidente.value);
-							}
-							
-							// Visual feedback
-							toast(`📍 Reservando en: ${nombrePista}`, 'ok');
-						} else {
-							console.warn(`No se encontró opción para: ${nombrePista}`);
-							toast(`No se encontró la pista: ${nombrePista}`, 'err');
-						}
-					} catch (err) {
-						console.error('Error al filtrar pista:', err);
-						toast('Error al cargar la pista', 'err');
-					}
-				}, 200);
-				
-				// Scroll suave a la parte superior
-				setTimeout(() => {
-					window.scrollTo({ top: 0, behavior: 'smooth' });
-				}, 300);
-			}
-			
-			/**
-			 * Obtiene información de resumen de una pista
-			 * @param {string} nombrePista - Nombre de la pista
-			 * @returns {Object} Información detallada
-			 */
-			function obtenerInfoPista(nombrePista) {
-				const config = configuracionPistas[nombrePista] || {};
-				return {
-					nombre: nombrePista,
-					tipo: config.tipo || 'desconocido',
-					zona: config.zona || 'general',
-					capacidad: config.capacidad || 'N/A',
-					color: config.color || '#888888',
-					disponible: true
-				};
-			}
-			
-			/**
-			 * Inicializa el sistema de mapa al cargar la página
-			 */
-			function inicializarMapa() {
-				const mapaSvg = document.getElementById('mapa-svg');
-				if (!mapaSvg) {
-					console.warn('SVG del mapa no encontrado');
-					return;
-				}
-				
-				// Aplicar eventos adicionales a pistas dinámicamente
-				document.querySelectorAll('.pista-rect').forEach(pista => {
-					pista.addEventListener('mouseenter', (e) => {
-						pista.style.cursor = 'pointer';
-					});
-					
-					pista.addEventListener('mouseleave', () => {
-						pista.style.cursor = 'default';
-					});
-				});
-				
-				console.log('✓ Sistema de mapa interactivo inicializado');
-				console.log('✓ Pistas disponibles:', Object.keys(configuracionPistas).length);
-			}
-			
-			/**
-			 * Reinicia el estado del mapa
-			 */
-			function reiniciarMapa() {
-				estadoMapa.pistaActiva = null;
-				estadoMapa.modo = 'vista';
-				const tooltip = document.getElementById('pista-tooltip');
-				if (tooltip) tooltip.style.display = 'none';
-				document.querySelectorAll('.pista-rect').forEach(p => desactivarPista(p));
-			}
-			
-			// Inicializar cuando el DOM esté listo
-			if (document.readyState === 'loading') {
-				document.addEventListener('DOMContentLoaded', inicializarMapa);
-			} else {
-				inicializarMapa();
+				// Redirigir a nueva función
+				desactivarZonaPista(element);
 			}
 			</script>
