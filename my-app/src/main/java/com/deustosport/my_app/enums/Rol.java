@@ -4,5 +4,6 @@ public enum Rol {
     CLIENTE,
     SECRETARIA,
     COORDINADOR,
+    MANTENIMIENTO,
     AYUNTAMIENTO,
 }

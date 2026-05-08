@@ -1,7 +1,12 @@
 package com.deustosport.my_app.config;
 
+import com.deustosport.my_app.entity.Credencial;
+import com.deustosport.my_app.entity.Usuario;
 import com.deustosport.my_app.entity.Tarifa;
+import com.deustosport.my_app.enums.Rol;
 import com.deustosport.my_app.enums.TipoDeporte;
+import com.deustosport.my_app.repository.CredencialRepository;
+import com.deustosport.my_app.repository.UsuarioRepository;
 import com.deustosport.my_app.repository.TarifaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -25,6 +30,12 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private TarifaRepository tarifaRepository;
 
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private CredencialRepository credencialRepository;
+
     @Override
     public void run(String... args) throws Exception {
 
@@ -33,6 +44,7 @@ public class DataInitializer implements CommandLineRunner {
 
         if (count != null && count > 0) {
             log.info("Datos de prueba ya existen, saltando inicialización");
+            asegurarCuentaMantenimiento();
             return;
         }
 
@@ -40,6 +52,7 @@ public class DataInitializer implements CommandLineRunner {
 
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         String hash = encoder.encode("password123");
+        String hashMantenimiento = encoder.encode("mantenimiento");
         String hashBilbao = encoder.encode("bilbao");
 
         // ── Instalación ──────────────────────────────────────────────
@@ -86,6 +99,10 @@ public class DataInitializer implements CommandLineRunner {
             "Nerea Sánchez", "nerea@deustosport.com", "66666666F", "666123789", true, false, 5.00, "CLIENTE");
         jdbcTemplate.update(
             "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol) VALUES (?,?,?,?,?,?,?,?)",
+            "Iker Martín", "iker.mantenimiento@gmail.com",
+            "88888888H", "944204250", true, false, 0.00, "MANTENIMIENTO");
+        jdbcTemplate.update(
+            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol) VALUES (?,?,?,?,?,?,?,?)",
             "Ayuntamiento de Bilbao", "ayuntamiento.bilbao@deustosport.com",
             "77777777G", "944204200", true, false, 0.00, "AYUNTAMIENTO");
 
@@ -98,7 +115,10 @@ public class DataInitializer implements CommandLineRunner {
         }
         jdbcTemplate.update(
             "INSERT INTO credenciales (usuario_id, password_hash, activo, fecha_creacion) VALUES (?,?,?,?)",
-            7, hashBilbao, true, ahora);
+            7, hashMantenimiento, true, ahora);
+        jdbcTemplate.update(
+            "INSERT INTO credenciales (usuario_id, password_hash, activo, fecha_creacion) VALUES (?,?,?,?)",
+            8, hashBilbao, true, ahora);
 
         // ── Tarifas ──────────────────────────────────────────────────
         TipoDeporte[] deportes  = {TipoDeporte.PADEL, TipoDeporte.TENIS, TipoDeporte.FUTBOL};
@@ -148,5 +168,41 @@ public class DataInitializer implements CommandLineRunner {
 
         log.info("Datos de prueba inicializados correctamente");
         log.info("Usuarios: juan@deustosport.com / password123 | Pistas: 5 | Tarifas: {}", tarifaRepository.count());
+    }
+
+    private void asegurarCuentaMantenimiento() {
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        String email = "iker.mantenimiento@gmail.com";
+
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseGet(() -> {
+                    Usuario nuevo = new Usuario();
+                    nuevo.setNombreCompleto("Iker Martín");
+                    nuevo.setEmail(email);
+                    nuevo.setDni("88888888H");
+                    nuevo.setTelefono("944204250");
+                    nuevo.setActivo(true);
+                    nuevo.setEsSocio(false);
+                    nuevo.setBilletera(BigDecimal.ZERO);
+                    nuevo.setRol(Rol.MANTENIMIENTO);
+                    return usuarioRepository.save(nuevo);
+                });
+
+        usuario.setNombreCompleto("Iker Martín");
+        usuario.setDni("88888888H");
+        usuario.setTelefono("944204250");
+        usuario.setActivo(true);
+        usuario.setEsSocio(false);
+        usuario.setBilletera(BigDecimal.ZERO);
+        usuario.setRol(Rol.MANTENIMIENTO);
+        usuario = usuarioRepository.save(usuario);
+
+        Credencial credencial = credencialRepository.findByUsuarioId(usuario.getId())
+                .orElseGet(Credencial::new);
+        credencial.setUsuario(usuario);
+        credencial.setPasswordHash(encoder.encode("mantenimiento"));
+        credencial.setActivo(true);
+        credencial.setFechaCreacion(credencial.getFechaCreacion() != null ? credencial.getFechaCreacion() : LocalDateTime.now());
+        credencialRepository.save(credencial);
     }
 }

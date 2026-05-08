@@ -1,6 +1,7 @@
 package com.deustosport.my_app.service;
 
 import com.deustosport.my_app.dto.NotificacionResponse;
+import com.deustosport.my_app.entity.Incidencia;
 import com.deustosport.my_app.entity.Notificacion;
 import com.deustosport.my_app.entity.Reserva;
 import com.deustosport.my_app.entity.Usuario;
@@ -226,6 +227,44 @@ public class NotificacionService {
 
         // Opcional: enviar email también
         emailService.enviarEmailNotificacion(usuario.getEmail(), titulo, mensaje);
+    }
+
+    @Transactional
+    public int alertarCoordinacionSobreIncidencia(Incidencia incidencia) {
+        List<Usuario> coordinadores = usuarioRepository.findByRolAndActivoTrue(Rol.COORDINADOR);
+        if (coordinadores.isEmpty()) {
+            return 0;
+        }
+
+        String titulo = "Nueva incidencia de mantenimiento";
+        StringBuilder mensaje = new StringBuilder();
+        mensaje.append("Se ha registrado una incidencia en ")
+                .append(incidencia.getInstalacion().getNombre());
+
+        if (incidencia.getPista() != null) {
+            mensaje.append(" - ").append(incidencia.getPista().getNombre());
+        }
+
+        mensaje.append(".\n\nTítulo: ").append(incidencia.getTitulo());
+        mensaje.append("\nDescripción: ").append(incidencia.getDescripcion());
+        mensaje.append("\nReportada por: ").append(incidencia.getReportadaPor().getNombreCompleto());
+
+        List<Notificacion> lote = new ArrayList<>();
+        for (Usuario coordinador : coordinadores) {
+            Notificacion notificacion = new Notificacion();
+            notificacion.setUsuario(coordinador);
+            notificacion.setTitulo(titulo);
+            notificacion.setMensaje(mensaje.toString());
+            notificacion.setTipo(TipoNotificacion.INCIDENCIA);
+            notificacion.setLeida(false);
+            notificacion.setFechaCreacion(LocalDateTime.now());
+            lote.add(notificacion);
+
+            emailService.enviarEmailNotificacion(coordinador.getEmail(), titulo, mensaje.toString());
+        }
+
+        notificacionRepository.saveAll(lote);
+        return lote.size();
     }
 
     private Notificacion crearNotificacion(Usuario usuario,

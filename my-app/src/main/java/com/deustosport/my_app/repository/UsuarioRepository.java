@@ -1,6 +1,7 @@
 package com.deustosport.my_app.repository;
 
 import com.deustosport.my_app.entity.Usuario;
+import com.deustosport.my_app.enums.Rol;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.query.Param;
@@ -19,6 +20,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     boolean existsByDni(String dni);
 
     List<Usuario> findByActivoTrue();
+
+    List<Usuario> findByRolAndActivoTrue(Rol rol);
 
     long countByActivoTrue();
 

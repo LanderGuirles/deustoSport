@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeustoSport - Mantenimiento</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface2: #1e242e;
+      --border: #30363d;
+      --accent: #00e5a0;
+      --accent2: #00b37e;
+      --accent-dim: rgba(0,229,160,0.12);
+      --warn: #f0a500;
+      --danger: #f85149;
+      --success: #3fb950;
+      --text: #e6edf3;
+      --muted: #7d8590;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,229,160,0.08) 0%, transparent 70%), var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .layout { max-width: 1200px; margin: 0 auto; padding: 32px; }
+    .header {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+      margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);
+    }
+    h1 { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; letter-spacing: -.4px; }
+    .subtitle { margin-top: 8px; color: var(--muted); }
+    .session-user { color: var(--muted); font-size: 14px; }
+    .session-user strong { color: var(--text); }
+    .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01)), var(--surface);
+      border: 1px solid var(--border); border-radius: 18px; padding: 24px; margin-bottom: 24px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.18);
+    }
+    h2 { font-family: 'Syne', sans-serif; font-size: 20px; margin-bottom: 16px; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+    .form-grid.single-col { grid-template-columns: 1fr; }
+    .field label { display: block; color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+    .field input, .field select, .field textarea {
+      width: 100%; border: 1px solid var(--border); border-radius: 10px; padding: 11px 12px;
+      background: var(--bg); color: var(--text); font: inherit;
+    }
+    .field textarea { min-height: 120px; resize: vertical; }
+    .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--accent); }
+    .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+    button {
+      border: none; border-radius: 10px; padding: 10px 18px; cursor: pointer; font-weight: 700; font-size: 14px;
+      transition: all .2s; font-family: 'DM Sans', sans-serif;
+    }
+    .btn-primary { background: var(--accent); color: #0d1117; }
+    .btn-primary:hover { background: var(--accent2); }
+    .btn-secondary { background: transparent; color: var(--accent); border: 1px solid rgba(0,229,160,.35); }
+    .btn-secondary:hover { background: rgba(0,229,160,.1); }
+    .btn-logout { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-logout:hover { border-color: var(--accent); color: var(--accent); }
+    .status { margin-top: 12px; font-size: 14px; color: var(--muted); min-height: 20px; padding: 10px; border-radius: 8px; display: none; }
+    .status.error { display: block; background: rgba(248,81,73,.12); color: var(--danger); border: 1px solid rgba(248,81,73,.35); }
+    .status.success { display: block; background: rgba(63,185,80,.12); color: var(--success); border: 1px solid rgba(63,185,80,.35); }
+    .status.loading { display: block; background: rgba(125,133,144,.1); color: var(--muted); border: 1px solid var(--border); }
+    .incidencias-list { display: grid; gap: 14px; }
+    .incidencia-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+    .incidencia-top { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; margin-bottom: 10px; }
+    .incidencia-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 17px; margin-bottom: 4px; }
+    .incidencia-meta { color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .incidencia-body { margin-top: 12px; color: var(--text); font-size: 14px; line-height: 1.5; }
+    .badge { display: inline-flex; align-items: center; justify-content: center; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .4px; }
+    .badge-open { background: rgba(240,165,0,.15); color: var(--warn); }
+    .badge-review { background: rgba(56,139,253,.15); color: #58a6ff; }
+    .badge-resolved { background: rgba(63,185,80,.15); color: var(--success); }
+    .empty { text-align: center; padding: 40px 20px; color: var(--muted); }
+    @media (max-width: 768px) {
+      .layout { padding: 20px 16px; }
+      .header { flex-direction: column; }
+      .form-actions { justify-content: stretch; }
+      .form-actions button { width: 100%; }
+      h1 { font-size: 26px; }
+    }
+  </style>
+</head>
+<body>
+<script>
+  const currentUserId = localStorage.getItem('usuarioId');
+  const currentUserRol = (localStorage.getItem('usuarioRol') || '').trim().toUpperCase();
+  if (!currentUserId || currentUserRol !== 'MANTENIMIENTO') {
+    window.location.replace('login.html');
+  }
+</script>
+
+<div class="layout">
+  <div class="header">
+    <div>
+      <h1>Panel de Mantenimiento</h1>
+      <p class="subtitle">Registra incidencias de instalaciones y avisa a coordinación al instante.</p>
+    </div>
+    <div class="header-actions">
+      <span class="session-user">Empleado: <strong id="sessionUser">-</strong></span>
+      <button class="btn-logout" id="cerrarSesionBtn">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <section class="card">
+    <h2>Registrar nueva incidencia</h2>
+    <form id="incidenciaForm">
+      <div class="form-grid">
+        <div class="field">
+          <label>Instalación</label>
+          <select id="instalacionId" required>
+            <option value="">Cargando instalaciones...</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Pista afectada (opcional)</label>
+          <select id="pistaId">
+            <option value="">Sin pista concreta</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Zona concreta (opcional)</label>
+          <input id="ubicacionEspecifica" type="text" maxlength="120" placeholder="Ej: Vestuarios, gradas, foco norte">
+        </div>
+      </div>
+      <div class="form-grid single-col" style="margin-top:16px;">
+        <div class="field">
+          <label>Título de la incidencia</label>
+          <input id="titulo" type="text" maxlength="120" placeholder="Ej: Suelo resbaladizo en vestuario" required>
+        </div>
+        <div class="field">
+          <label>Descripción</label>
+          <textarea id="descripcion" maxlength="2000" placeholder="Describe el daño o deterioro observado" required></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="reset" class="btn-secondary">Limpiar</button>
+        <button type="submit" class="btn-primary" id="btnGuardarIncidencia">Registrar incidencia</button>
+      </div>
+    </form>
+    <div class="status" id="formStatus"></div>
+  </section>
+
+  <section class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+      <h2 style="margin-bottom:0;">Últimas incidencias registradas</h2>
+      <button class="btn-secondary" id="btnActualizar">Actualizar</button>
+    </div>
+    <div class="status loading" id="listStatus">Cargando incidencias...</div>
+    <div class="incidencias-list" id="incidenciasList"></div>
+  </section>
+</div>
+
+<script>
+  const API_BASE = 'http://localhost:8080/api';
+  const sessionUserEl = document.getElementById('sessionUser');
+  const cerrarSesionBtn = document.getElementById('cerrarSesionBtn');
+  const incidenciaForm = document.getElementById('incidenciaForm');
+  const instalacionIdEl = document.getElementById('instalacionId');
+  const pistaIdEl = document.getElementById('pistaId');
+  const formStatusEl = document.getElementById('formStatus');
+  const listStatusEl = document.getElementById('listStatus');
+  const incidenciasListEl = document.getElementById('incidenciasList');
+  const btnActualizar = document.getElementById('btnActualizar');
+
+  sessionUserEl.textContent = localStorage.getItem('usuarioNombre') || 'Mantenimiento';
+
+  cerrarSesionBtn.addEventListener('click', () => {
+    localStorage.clear();
+    window.location.href = 'login.html';
+  });
+
+  function showStatus(element, text, type) {
+    element.textContent = text;
+    element.className = `status ${type}`;
+    element.style.display = text ? 'block' : 'none';
+  }
+
+  function formatDate(fechaIso) {
+    if (!fechaIso) return '';
+    return new Intl.DateTimeFormat('es-ES', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(fechaIso));
+  }
+
+  function estadoClass(estado) {
+    if (estado === 'RESUELTA') return 'badge-resolved';
+    if (estado === 'EN_REVISION') return 'badge-review';
+    return 'badge-open';
+  }
+
+  async function loadInstalaciones() {
+    try {
+      const response = await fetch(`${API_BASE}/instalaciones`);
+      if (!response.ok) throw new Error('No se pudieron cargar las instalaciones');
+
+      const instalaciones = await response.json();
+      instalacionIdEl.innerHTML = instalaciones.length
+        ? instalaciones.map(inst => `<option value="${inst.id}">${inst.nombre}</option>`).join('')
+        : '<option value="">No hay instalaciones</option>';
+
+      if (instalaciones.length) {
+        await loadPistas(instalacionIdEl.value);
+      }
+    } catch (error) {
+      instalacionIdEl.innerHTML = '<option value="">Error al cargar</option>';
+      showStatus(formStatusEl, error.message, 'error');
+    }
+  }
+
+  async function loadPistas(instalacionId) {
+    pistaIdEl.innerHTML = '<option value="">Sin pista concreta</option>';
+    if (!instalacionId) return;
+
+    try {
+      const response = await fetch(`${API_BASE}/instalaciones/${instalacionId}/pistas`);
+      if (!response.ok) return;
+
+      const pistas = await response.json();
+      if (!Array.isArray(pistas) || pistas.length === 0) return;
+
+      pistaIdEl.innerHTML += pistas
+        .map(pista => `<option value="${pista.id}">${pista.nombre}</option>`)
+        .join('');
+    } catch (_) {
+      pistaIdEl.innerHTML = '<option value="">Sin pista concreta</option>';
+    }
+  }
+
+  instalacionIdEl.addEventListener('change', () => loadPistas(instalacionIdEl.value));
+
+  incidenciaForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    showStatus(formStatusEl, 'Registrando incidencia...', 'loading');
+    const btn = document.getElementById('btnGuardarIncidencia');
+    btn.disabled = true;
+
+    const payload = {
+      usuarioId: Number(currentUserId),
+      instalacionId: Number(instalacionIdEl.value),
+      pistaId: pistaIdEl.value ? Number(pistaIdEl.value) : null,
+      ubicacionEspecifica: document.getElementById('ubicacionEspecifica').value.trim(),
+      titulo: document.getElementById('titulo').value.trim(),
+      descripcion: document.getElementById('descripcion').value.trim()
+    };
+
+    try {
+      const response = await fetch(`${API_BASE}/incidencias`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const bodyText = await response.text();
+      let body = {};
+      try { body = bodyText ? JSON.parse(bodyText) : {}; } catch (_) {}
+
+      if (!response.ok) {
+        throw new Error(body.error || 'No se pudo registrar la incidencia');
+      }
+
+      showStatus(formStatusEl, 'Incidencia registrada y coordinación alertada.', 'success');
+      incidenciaForm.reset();
+      await loadPistas(instalacionIdEl.value);
+      await loadIncidencias();
+    } catch (error) {
+      showStatus(formStatusEl, error.message, 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  function renderIncidencias(incidencias) {
+    if (!Array.isArray(incidencias) || incidencias.length === 0) {
+      incidenciasListEl.innerHTML = '<div class="empty">No hay incidencias registradas todavía.</div>';
+      showStatus(listStatusEl, '', '');
+      return;
+    }
+
+    incidenciasListEl.innerHTML = incidencias.map(incidencia => `
+      <article class="incidencia-item">
+        <div class="incidencia-top">
+          <div>
+            <div class="incidencia-title">${incidencia.titulo}</div>
+            <div class="incidencia-meta">${incidencia.instalacionNombre}${incidencia.pistaNombre ? ` · ${incidencia.pistaNombre}` : ''}</div>
+            <div class="incidencia-meta">Reportada por ${incidencia.reportadaPorNombre || '-'} · ${formatDate(incidencia.fechaCreacion)}</div>
+          </div>
+          <span class="badge ${estadoClass(incidencia.estado)}">${incidencia.estado || 'ABIERTA'}</span>
+        </div>
+        <div class="incidencia-meta">${incidencia.ubicacionEspecifica ? `Zona: <strong>${incidencia.ubicacionEspecifica}</strong>` : 'Sin zona específica'}</div>
+        <div class="incidencia-body">${incidencia.descripcion}</div>
+      </article>
+    `).join('');
+    showStatus(listStatusEl, '', '');
+  }
+
+  async function loadIncidencias() {
+    showStatus(listStatusEl, 'Cargando incidencias...', 'loading');
+    try {
+      const response = await fetch(`${API_BASE}/incidencias`);
+      if (!response.ok) throw new Error('No se pudieron cargar las incidencias');
+
+      const incidencias = await response.json();
+      renderIncidencias(incidencias);
+    } catch (error) {
+      incidenciasListEl.innerHTML = '';
+      showStatus(listStatusEl, error.message, 'error');
+    }
+  }
+
+  btnActualizar.addEventListener('click', loadIncidencias);
+
+  loadInstalaciones();
+  loadIncidencias();
+</script>
+</body>
+</html>

@@ -120,6 +120,18 @@
         th { background: var(--surface2); color: var(--muted); font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: .4px; }
         tr:last-child td { border-bottom: none; }
         tr:hover td { background-color: rgba(0,229,160,.05); }
+        .incidencias-grid { display: grid; gap: 14px; }
+        .incidencia-card { border: 1px solid var(--border); border-radius: 14px; padding: 18px; background: var(--surface2); }
+        .incidencia-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+        .incidencia-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+        .incidencia-meta { font-size: 12px; color: var(--muted); line-height: 1.5; }
+        .incidencia-desc { margin-top: 12px; font-size: 14px; color: var(--text); line-height: 1.5; }
+        .incidencia-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+        .estado-pill { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; padding: 4px 10px; border-radius: 999px; }
+        .estado-ABIERTA { background: rgba(240,165,0,.15); color: var(--warn); }
+        .estado-EN_REVISION { background: rgba(56,139,253,.15); color: #58a6ff; }
+        .estado-RESUELTA { background: rgba(63,185,80,.15); color: var(--success); }
+        .incidencia-empty { padding: 22px; text-align: center; color: var(--muted); }
 
         .action-cell { display: flex; gap: 8px; flex-wrap: wrap; }
         .badge { font-weight: 600; font-size: 12px; padding: 4px 10px; border-radius: 16px; display: inline-block; }
@@ -265,6 +277,15 @@
             </table>
         </div>
     </section>
+
+    <section class="card">
+        <h2>Incidencias de mantenimiento</h2>
+        <div class="form-actions" style="justify-content:flex-start; margin-top:0; margin-bottom:16px;">
+            <button type="button" class="btn-secondary" id="btnRefrescarIncidencias">Actualizar incidencias</button>
+        </div>
+        <div class="status loading" id="incidenciasStatus">Cargando incidencias...</div>
+        <div class="incidencias-grid" id="incidenciasContainer"></div>
+    </section>
 </div>
 
 <div id="modalEdicion" class="modal-overlay">
@@ -331,6 +352,9 @@
     const horaCierreEl = document.getElementById("horaCierre");
     const comunicadoForm = document.getElementById("comunicadoForm");
     const comunicadoStatusEl = document.getElementById("comunicadoStatus");
+    const incidenciasStatusEl = document.getElementById("incidenciasStatus");
+    const incidenciasContainerEl = document.getElementById("incidenciasContainer");
+    const btnRefrescarIncidencias = document.getElementById("btnRefrescarIncidencias");
 
     async function cargarInstalacionesParaHorario() {
         showStatus(horarioStatusEl, "Cargando instalaciones...", "loading");
@@ -456,6 +480,64 @@
         element.className = `status ${type}`;
         element.style.display = text ? "block" : "none";
     }
+
+    function formatearFecha(fechaIso) {
+        if (!fechaIso) return "";
+        const fecha = new Date(fechaIso);
+        return new Intl.DateTimeFormat("es-ES", {
+            dateStyle: "medium",
+            timeStyle: "short"
+        }).format(fecha);
+    }
+
+    function renderIncidencias(incidencias) {
+        if (!Array.isArray(incidencias) || incidencias.length === 0) {
+            incidenciasContainerEl.innerHTML = '<div class="incidencia-empty">No hay incidencias registradas.</div>';
+            showStatus(incidenciasStatusEl, "", "");
+            return;
+        }
+
+        incidenciasContainerEl.innerHTML = incidencias.map(incidencia => `
+            <article class="incidencia-card">
+                <div class="incidencia-top">
+                    <div>
+                        <div class="incidencia-title">${incidencia.titulo}</div>
+                        <div class="incidencia-meta">
+                            Reportada por ${incidencia.reportadaPorNombre || "-"} · ${formatearFecha(incidencia.fechaCreacion)}
+                        </div>
+                    </div>
+                    <div class="incidencia-badges">
+                        <span class="estado-pill estado-${incidencia.estado || 'ABIERTA'}">${incidencia.estado || 'ABIERTA'}</span>
+                    </div>
+                </div>
+                <div class="incidencia-meta">
+                    Instalación: <strong>${incidencia.instalacionNombre || '-'}</strong>
+                    ${incidencia.pistaNombre ? ` · Pista: <strong>${incidencia.pistaNombre}</strong>` : ''}
+                    ${incidencia.ubicacionEspecifica ? ` · Zona: <strong>${incidencia.ubicacionEspecifica}</strong>` : ''}
+                </div>
+                <div class="incidencia-desc">${incidencia.descripcion || ''}</div>
+            </article>
+        `).join("");
+        showStatus(incidenciasStatusEl, "", "");
+    }
+
+    async function cargarIncidencias() {
+        showStatus(incidenciasStatusEl, "Cargando incidencias...", "loading");
+        try {
+            const response = await fetch("http://localhost:8080/api/incidencias");
+            if (!response.ok) {
+                throw new Error("No se pudieron cargar las incidencias.");
+            }
+
+            const incidencias = await response.json();
+            renderIncidencias(incidencias);
+        } catch (error) {
+            incidenciasContainerEl.innerHTML = '';
+            showStatus(incidenciasStatusEl, error.message, "error");
+        }
+    }
+
+    btnRefrescarIncidencias.addEventListener("click", cargarIncidencias);
 
     // ==========================================
     // 1. CARGAR PISTAS (GET)
@@ -683,6 +765,7 @@
     cargarInstalacionesParaHorario();
     cargarInstalacionesParaCrearPista();
     cargarPistas();
+    cargarIncidencias();
 </script>
 </body>
 </html>
