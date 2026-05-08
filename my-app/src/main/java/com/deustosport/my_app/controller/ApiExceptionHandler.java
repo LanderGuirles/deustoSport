@@ -19,6 +19,7 @@ public class ApiExceptionHandler {
                 .toList();
 
         return ResponseEntity.badRequest().body(Map.of(
+            "exitoso", false,
                 "mensaje", "Datos de entrada no validos",
                 "errors", errors
         ));

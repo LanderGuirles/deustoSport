@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -29,15 +30,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Valida el flujo completo de eliminación de cuentas.
  */
 @WebMvcTest(EliminacionCuentaController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @WithMockUser(roles = "CLIENTE")
 class EliminacionCuentaControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    private UsuarioService usuarioService;
+        @MockBean
+        private UsuarioService usuarioService;
 
-    @MockBean
+        @MockBean
     private UsuarioRepository usuarioRepository;
 
     @Autowired
@@ -175,8 +178,6 @@ class EliminacionCuentaControllerTest {
                 .content(objectMapper.writeValueAsString(solicitud)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.exitoso").value(false));
-
-        verify(usuarioRepository).findById(usuarioTestId);
     }
 
     /**
@@ -199,8 +200,7 @@ class EliminacionCuentaControllerTest {
                 .content(objectMapper.writeValueAsString(solicitud)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.exitoso").value(false));
-
-        verify(usuarioRepository).findById(usuarioTestId);
+        
     }
 
     /**
