@@ -46,6 +46,7 @@ public class ReservaService {
     private final NotificacionService notificacionService;
     private final AbonoUsuarioService abonoUsuarioService; // NUEVA INYECCIÓN
     private final QRCodeService      qrCodeService;
+    private final FestivoService     festivoService;
 
     public ReservaService(ReservaRepository reservaRepository,
                           PistaRepository pistaRepository,
@@ -55,7 +56,8 @@ public class ReservaService {
                           @Lazy PagoService pagoService,
                           NotificacionService notificacionService,
                           AbonoUsuarioService abonoUsuarioService,
-                          QRCodeService qrCodeService) {
+                          QRCodeService qrCodeService,
+                          @Lazy FestivoService festivoService) {
         this.reservaRepository = reservaRepository;
         this.pistaRepository   = pistaRepository;
         this.usuarioRepository = usuarioRepository;
@@ -65,6 +67,7 @@ public class ReservaService {
         this.notificacionService = notificacionService;
         this.abonoUsuarioService = abonoUsuarioService; // INICIALIZACIÓN
         this.qrCodeService = qrCodeService;
+        this.festivoService = festivoService;
     }
 
     // ─── Crear reserva ────────────────────────────────────────────────────────
@@ -74,6 +77,10 @@ public class ReservaService {
                                 Integer duracionMinutos) {
         Objects.requireNonNull(usuarioId, "usuarioId no puede ser null");
         Objects.requireNonNull(pistaId,   "pistaId no puede ser null");
+
+        if (festivoService.esFechaFestiva(fecha)) {
+            throw new IllegalStateException("El centro deportivo está cerrado por festividad/cierre programado el día " + fecha);
+        }
 
         if (fecha.isBefore(LocalDate.now()) ||
                 (fecha.isEqual(LocalDate.now()) && horaInicio.isBefore(LocalTime.now()))) {
