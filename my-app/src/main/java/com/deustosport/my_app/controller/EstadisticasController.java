@@ -1,6 +1,8 @@
 package com.deustosport.my_app.controller;
 
 import com.deustosport.my_app.dto.EstadisticasDTO;
+import com.deustosport.my_app.dto.ReporteUsoPistaDTO;
+import com.deustosport.my_app.dto.ReporteUsoPistasDTO;
 import com.deustosport.my_app.service.EstadisticasService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -211,5 +213,65 @@ public class EstadisticasController {
         );
 
         return ResponseEntity.ok(finStats);
+    }
+
+    /**
+     * Reporte de uso y rentabilidad de una pista
+     */
+    @GetMapping("/reportes/pista/{pistaId}")
+    @PreAuthorize("hasRole('COORDINADOR') or hasRole('ADMIN')")
+    @Operation(summary = "Reporte de uso y rentabilidad de una pista")
+    public ResponseEntity<ReporteUsoPistaDTO> obtenerReporteUsoPista(
+            @PathVariable Long pistaId,
+            @RequestParam LocalDate fechaInicio,
+            @RequestParam LocalDate fechaFin) {
+        ReporteUsoPistaDTO reporte = estadisticasService.generarReporteUsoPista(pistaId, fechaInicio, fechaFin);
+        if (reporte == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(reporte);
+    }
+
+    /**
+     * Reporte consolidado de uso y rentabilidad de todas las pistas
+     */
+    @GetMapping("/reportes/uso-pistas")
+    @PreAuthorize("hasRole('COORDINADOR') or hasRole('ADMIN')")
+    @Operation(summary = "Reporte consolidado de uso y rentabilidad de todas las pistas")
+    public ResponseEntity<ReporteUsoPistasDTO> obtenerReporteUsoPistas(
+            @RequestParam LocalDate fechaInicio,
+            @RequestParam LocalDate fechaFin) {
+        ReporteUsoPistasDTO reporte = estadisticasService.generarReporteUsoPistas(fechaInicio, fechaFin);
+        return ResponseEntity.ok(reporte);
+    }
+
+    /**
+     * Reporte de uso y rentabilidad para la semana actual
+     */
+    @GetMapping("/reportes/uso-pistas/semana-actual")
+    @PreAuthorize("hasRole('COORDINADOR') or hasRole('ADMIN')")
+    @Operation(summary = "Reporte de uso y rentabilidad para la semana actual")
+    public ResponseEntity<ReporteUsoPistasDTO> obtenerReporteSemanaActual() {
+        LocalDate hoy = LocalDate.now();
+        LocalDate inicioSemana = hoy.minusDays(hoy.getDayOfWeek().getValue() - 1); // Lunes
+        LocalDate finSemana = inicioSemana.plusDays(6); // Domingo
+        
+        ReporteUsoPistasDTO reporte = estadisticasService.generarReporteUsoPistas(inicioSemana, finSemana);
+        return ResponseEntity.ok(reporte);
+    }
+
+    /**
+     * Reporte de uso y rentabilidad para el mes actual
+     */
+    @GetMapping("/reportes/uso-pistas/mes-actual")
+    @PreAuthorize("hasRole('COORDINADOR') or hasRole('ADMIN')")
+    @Operation(summary = "Reporte de uso y rentabilidad para el mes actual")
+    public ResponseEntity<ReporteUsoPistasDTO> obtenerReporteMesActual() {
+        LocalDate hoy = LocalDate.now();
+        LocalDate inicioMes = hoy.withDayOfMonth(1);
+        LocalDate finMes = hoy.plusMonths(1).withDayOfMonth(1).minusDays(1);
+        
+        ReporteUsoPistasDTO reporte = estadisticasService.generarReporteUsoPistas(inicioMes, finMes);
+        return ResponseEntity.ok(reporte);
     }
 }

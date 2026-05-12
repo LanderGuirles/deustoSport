@@ -330,6 +330,78 @@
         <div class="status loading" id="incidenciasStatus">Cargando incidencias...</div>
         <div class="incidencias-grid" id="incidenciasContainer"></div>
     </section>
+
+    <section class="card">
+        <h2>Reportes de Uso y Rentabilidad</h2>
+        <div class="form-grid">
+            <div class="field">
+                <label>Período de reporte</label>
+                <select id="reportePeriodo">
+                    <option value="semana-actual">Semana actual</option>
+                    <option value="mes-actual">Mes actual</option>
+                    <option value="personalizado">Personalizado (rango de fechas)</option>
+                </select>
+            </div>
+            <div class="field" id="reporteFechaInicioContainer" style="display:none;">
+                <label>Fecha inicio</label>
+                <input id="reporteFechaInicio" type="date">
+            </div>
+            <div class="field" id="reporteFechaFinContainer" style="display:none;">
+                <label>Fecha fin</label>
+                <input id="reporteFechaFin" type="date">
+            </div>
+        </div>
+        <div class="form-actions">
+            <button type="button" class="btn-primary" id="btnGenerarReporte">Generar Reporte</button>
+        </div>
+        <div class="status" id="reporteStatus"></div>
+
+        <div id="reporteContainer" style="margin-top: 24px; display:none;">
+            <div id="reporteResumen" style="background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                <h3 style="margin-bottom: 16px; color: var(--accent);">Resumen del Período</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                    <div style="padding: 12px; background: var(--bg); border-radius: 8px; border-left: 3px solid var(--accent);">
+                        <div style="font-size: 12px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px;">Total Reservas</div>
+                        <div style="font-size: 24px; font-weight: 700; color: var(--text);" id="reporteTotalReservas">-</div>
+                    </div>
+                    <div style="padding: 12px; background: var(--bg); border-radius: 8px; border-left: 3px solid var(--success);">
+                        <div style="font-size: 12px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px;">Reservas Confirmadas</div>
+                        <div style="font-size: 24px; font-weight: 700; color: var(--success);" id="reporteConfirmadas">-</div>
+                    </div>
+                    <div style="padding: 12px; background: var(--bg); border-radius: 8px; border-left: 3px solid var(--warn);">
+                        <div style="font-size: 12px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px;">Ingresos Totales</div>
+                        <div style="font-size: 24px; font-weight: 700; color: var(--warn);" id="reporteIngresoTotal">-</div>
+                    </div>
+                    <div style="padding: 12px; background: var(--bg); border-radius: 8px; border-left: 3px solid #58a6ff;">
+                        <div style="font-size: 12px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px;">Ocupación Promedio</div>
+                        <div style="font-size: 24px; font-weight: 700; color: #58a6ff;" id="reporteOcupacion">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
+                <h3 style="margin-bottom: 16px; color: var(--accent);">Detalle por Pista</h3>
+                <div class="grid-container">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Pista</th>
+                            <th>Deporte</th>
+                            <th>Reservas</th>
+                            <th>Horas</th>
+                            <th>Ocupación</th>
+                            <th>Ingresos</th>
+                            <th>Ingresos/H</th>
+                        </tr>
+                        </thead>
+                        <tbody id="reporteDetallePistas">
+                            <tr><td colspan="7" style="text-align:center; color:var(--muted);">Genera un reporte para ver los detalles</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
 </div>
 
 <div id="modalEdicion" class="modal-overlay">
@@ -894,6 +966,120 @@
     window.alternarBloqueoPista = alternarBloqueoPista;
     window.confirmarEliminarPista = confirmarEliminarPista;
     window.abrirModalEdicion = abrirModalEdicion;
+
+    // ==========================================
+    // REPORTES DE USO Y RENTABILIDAD
+    // ==========================================
+    const reportePeriodoEl = document.getElementById("reportePeriodo");
+    const reporteFechaInicioEl = document.getElementById("reporteFechaInicio");
+    const reporteFechaFinEl = document.getElementById("reporteFechaFin");
+    const reporteFechaInicioContainerEl = document.getElementById("reporteFechaInicioContainer");
+    const reporteFechaFinContainerEl = document.getElementById("reporteFechaFinContainer");
+    const btnGenerarReporteEl = document.getElementById("btnGenerarReporte");
+    const reporteStatusEl = document.getElementById("reporteStatus");
+    const reporteContainerEl = document.getElementById("reporteContainer");
+    const reporteResumenEl = document.getElementById("reporteResumen");
+    const reporteDetalleEl = document.getElementById("reporteDetallePistas");
+
+    // Mostrar/ocultar campos de fecha personalizada
+    reportePeriodoEl.addEventListener("change", (e) => {
+        if (e.target.value === "personalizado") {
+            reporteFechaInicioContainerEl.style.display = "block";
+            reporteFechaFinContainerEl.style.display = "block";
+        } else {
+            reporteFechaInicioContainerEl.style.display = "none";
+            reporteFechaFinContainerEl.style.display = "none";
+        }
+    });
+
+    function formatearFechaParaAPI(fecha) {
+        if (typeof fecha === "string") return fecha;
+        const year = fecha.getFullYear();
+        const month = String(fecha.getMonth() + 1).padStart(2, "0");
+        const day = String(fecha.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    }
+
+    function formatearCurrencia(valor) {
+        if (!valor) return "€0.00";
+        return "€" + parseFloat(valor).toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    async function generarReporte() {
+        const periodo = reportePeriodoEl.value;
+        let url = "http://localhost:8080/api/estadisticas/reportes/uso-pistas";
+        let fechaInicio, fechaFin;
+
+        try {
+            if (periodo === "semana-actual") {
+                url += "/semana-actual";
+            } else if (periodo === "mes-actual") {
+                url += "/mes-actual";
+            } else if (periodo === "personalizado") {
+                fechaInicio = reporteFechaInicioEl.value;
+                fechaFin = reporteFechaFinEl.value;
+
+                if (!fechaInicio || !fechaFin) {
+                    showStatus(reporteStatusEl, "Debes especificar fecha de inicio y fin.", "error");
+                    return;
+                }
+
+                if (fechaFin < fechaInicio) {
+                    showStatus(reporteStatusEl, "La fecha de fin no puede ser anterior a la de inicio.", "error");
+                    return;
+                }
+
+                url += `?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+            }
+
+            showStatus(reporteStatusEl, "Generando reporte...", "loading");
+            btnGenerarReporteEl.disabled = true;
+
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error("Error al generar el reporte");
+            }
+
+            const reporte = await response.json();
+            mostrarReporte(reporte);
+            showStatus(reporteStatusEl, "Reporte generado correctamente.", "success");
+        } catch (error) {
+            showStatus(reporteStatusEl, error.message, "error");
+        } finally {
+            btnGenerarReporteEl.disabled = false;
+        }
+    }
+
+    function mostrarReporte(reporte) {
+        // Actualizar resumen
+        document.getElementById("reporteTotalReservas").textContent = reporte.totalReservas || 0;
+        document.getElementById("reporteConfirmadas").textContent = `${reporte.totalReservasConfirmadas || 0} + ${reporte.totalReservasCompletadas || 0}`;
+        document.getElementById("reporteIngresoTotal").textContent = formatearCurrencia(reporte.ingresoTotalConsolidado);
+        document.getElementById("reporteOcupacion").textContent = `${reporte.tasaOcupacionPromedio || 0}%`;
+
+        // Construir tabla de detalle
+        const pistasHtml = (reporte.reportesPorPista || []).map(pista => `
+            <tr>
+                <td><strong>${pista.pistaNombre}</strong></td>
+                <td>${pista.tipoDeporte}</td>
+                <td><strong>${pista.totalReservas}</strong><br><span style="font-size:12px; color:var(--muted);">${pista.reservasConfirmadas} conf. / ${pista.reservasCanceladas} canc.</span></td>
+                <td>${pista.horasReservadas} / ${pista.horasDisponibles} h</td>
+                <td>${pista.tasaOcupacion}%</td>
+                <td>${formatearCurrencia(pista.ingresoTotal)}</td>
+                <td>${formatearCurrencia(pista.ingresoPromedioPorHora)}</td>
+            </tr>
+        `).join("");
+
+        if (pistasHtml) {
+            reporteDetalleEl.innerHTML = pistasHtml;
+        } else {
+            reporteDetalleEl.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--muted);">No hay datos para mostrar</td></tr>';
+        }
+
+        reporteContainerEl.style.display = "block";
+    }
+
+    btnGenerarReporteEl.addEventListener("click", generarReporte);
 
     cargarInstalacionesParaHorario();
     cargarFestivos();

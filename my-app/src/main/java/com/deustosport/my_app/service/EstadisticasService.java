@@ -2,26 +2,40 @@ package com.deustosport.my_app.service;
 
 import com.deustosport.my_app.repository.ReservaRepository;
 import com.deustosport.my_app.repository.UsuarioRepository;
+import com.deustosport.my_app.repository.PistaRepository;
+import com.deustosport.my_app.dto.ReporteUsoPistaDTO;
+import com.deustosport.my_app.dto.ReporteUsoPistasDTO;
+import com.deustosport.my_app.entity.Reserva;
+import com.deustosport.my_app.entity.Pista;
 import com.deustosport.my_app.enums.EstadoReserva;
 import com.deustosport.my_app.enums.MetodoPago;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class EstadisticasService {
 
     private final ReservaRepository reservaRepository;
     private final UsuarioRepository usuarioRepository;
+    private final PistaRepository pistaRepository;
 
     public EstadisticasService(ReservaRepository reservaRepository,
-                               UsuarioRepository usuarioRepository) {
+                               UsuarioRepository usuarioRepository,
+                               PistaRepository pistaRepository) {
         this.reservaRepository = reservaRepository;
         this.usuarioRepository = usuarioRepository;
+        this.pistaRepository = pistaRepository;
     }
 
     /**
@@ -247,5 +261,178 @@ public class EstadisticasService {
         }
 
         return reporte;
+    }
+
+    /**
+     * Genera un reporte de uso y rentabilidad para una pista en un rango de fechas
+     */
+    public ReporteUsoPistaDTO generarReporteUsoPista(Long pistaId, LocalDate fechaInicio, LocalDate fechaFin) {
+        Pista pista = pistaRepository.findById(pistaId).orElse(null);
+        if (pista == null) {
+            return null;
+        }
+
+        // Obtener todas las reservas para esta pista en el rango de fechas
+        List<Reserva> reservas = reservaRepository.findActivasByPistaAndRango(pistaId, fechaInicio, fechaFin);
+
+        ReporteUsoPistaDTO reporte = new ReporteUsoPistaDTO();
+        reporte.setPistaId(pistaId);
+        reporte.setPistaNombre(pista.getNombre());
+        reporte.setTipoDeporte(pista.getTipoDeporte().name());
+        reporte.setFechaInicio(fechaInicio);
+        reporte.setFechaFin(fechaFin);
+        reporte.setMaxJugadores(pista.getMaxJugadores());
+        reporte.setEstado(pista.isActiva() ? "Disponible" : "Bloqueada");
+
+        // Contar reservas por estado
+        long totalReservas = reservas.size();
+        long confirmadas = reservas.stream().filter(r -> r.getEstado() == EstadoReserva.CONFIRMADA).count();
+        long completadas = reservas.stream().filter(r -> r.getEstado() == EstadoReserva.COMPLETADA).count();
+        long canceladas = reservas.stream().filter(r -> r.getEstado() == EstadoReserva.CANCELADA).count();
+        long pendientes = reservas.stream().filter(r -> r.getEstado() == EstadoReserva.PENDIENTE).count();
+
+        reporte.setTotalReservas(totalReservas);
+        reporte.setReservasConfirmadas(confirmadas);
+        reporte.setReservasCompletadas(completadas);
+        reporte.setReservasCanceladas(canceladas);
+        reporte.setReservasPendientes(pendientes);
+
+        // Calcular horas
+        long diasEnRango = ChronoUnit.DAYS.between(fechaInicio, fechaFin) + 1;
+        long horasDisponiblesEstimadas = diasEnRango * 12; // Asumir 12 horas de operación diaria (8am-8pm)
+        
+        long horasReservadas = 0;
+        for (Reserva reserva : reservas) {
+            if (reserva.getEstado() != EstadoReserva.CANCELADA) {
+                long minutos = ChronoUnit.MINUTES.between(reserva.getHoraInicio(), reserva.getHoraFin());
+                horasReservadas += minutos / 60;
+            }
+        }
+
+        reporte.setHorasDisponibles(horasDisponiblesEstimadas);
+        reporte.setHorasReservadas(horasReservadas);
+
+        // Calcular tasa de ocupación
+        if (horasDisponiblesEstimadas > 0) {
+            double tasaOcupacion = (double) horasReservadas / horasDisponiblesEstimadas * 100;
+            reporte.setTasaOcupacion(Math.round(tasaOcupacion * 100.0) / 100.0); // 2 decimales
+        } else {
+            reporte.setTasaOcupacion(0.0);
+        }
+
+        // Calcular ingresos
+        BigDecimal ingresoTotal = reservas.stream()
+                .filter(r -> r.getEstado() != EstadoReserva.CANCELADA)
+                .map(Reserva::getPrecioTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        reporte.setIngresoTotal(ingresoTotal);
+
+        // Ingresos promedio
+        long reservasConfirmadasYCompletadas = confirmadas + completadas;
+        if (reservasConfirmadasYCompletadas > 0) {
+            BigDecimal promedioPorReserva = ingresoTotal.divide(
+                    BigDecimal.valueOf(reservasConfirmadasYCompletadas),
+                    2,
+                    RoundingMode.HALF_UP
+            );
+            reporte.setIngresoPromedioPorReserva(promedioPorReserva);
+        } else {
+            reporte.setIngresoPromedioPorReserva(BigDecimal.ZERO);
+        }
+
+        // Ingresos por hora
+        if (horasReservadas > 0) {
+            BigDecimal promedioPorHora = ingresoTotal.divide(
+                    BigDecimal.valueOf(horasReservadas),
+                    2,
+                    RoundingMode.HALF_UP
+            );
+            reporte.setIngresoPromedioPorHora(promedioPorHora);
+        } else {
+            reporte.setIngresoPromedioPorHora(BigDecimal.ZERO);
+        }
+
+        // Calcular tasas
+        if (totalReservas > 0) {
+            double tasaCancelacion = (double) canceladas / totalReservas * 100;
+            reporte.setTasaCancelacion(Math.round(tasaCancelacion * 100.0) / 100.0);
+            
+            double tasaCompletacion = (double) (confirmadas + completadas) / totalReservas * 100;
+            reporte.setTasaCompletacion(Math.round(tasaCompletacion * 100.0) / 100.0);
+        } else {
+            reporte.setTasaCancelacion(0.0);
+            reporte.setTasaCompletacion(0.0);
+        }
+
+        return reporte;
+    }
+
+    /**
+     * Genera un reporte consolidado de uso y rentabilidad para todas las pistas
+     */
+    public ReporteUsoPistasDTO generarReporteUsoPistas(LocalDate fechaInicio, LocalDate fechaFin) {
+        List<Pista> pistas = pistaRepository.findAll();
+        List<ReporteUsoPistaDTO> reportesPorPista = new ArrayList<>();
+
+        for (Pista pista : pistas) {
+            ReporteUsoPistaDTO reportePista = generarReporteUsoPista(pista.getId(), fechaInicio, fechaFin);
+            if (reportePista != null) {
+                reportesPorPista.add(reportePista);
+            }
+        }
+
+        ReporteUsoPistasDTO reporteConsolidado = new ReporteUsoPistasDTO();
+        reporteConsolidado.setFechaInicio(fechaInicio);
+        reporteConsolidado.setFechaFin(fechaFin);
+        reporteConsolidado.setReportesPorPista(reportesPorPista);
+        reporteConsolidado.setFechaGeneracion(LocalDate.now());
+        reporteConsolidado.setGeneradoPor("Sistema automático");
+
+        // Calcular descripción del período
+        long dias = ChronoUnit.DAYS.between(fechaInicio, fechaFin) + 1;
+        if (dias == 7) {
+            String semana = "Semana del " + fechaInicio + " al " + fechaFin;
+            reporteConsolidado.setPeriodDescription(semana);
+        } else if (fechaInicio.getDayOfMonth() == 1 && fechaFin.getMonthValue() != fechaInicio.getMonthValue()) {
+            String mes = "Mes de " + fechaInicio.getMonth().toString();
+            reporteConsolidado.setPeriodDescription(mes);
+        } else {
+            reporteConsolidado.setPeriodDescription("Período del " + fechaInicio + " al " + fechaFin);
+        }
+
+        // Sumar totales consolidados
+        long totalReservas = reportesPorPista.stream().mapToLong(ReporteUsoPistaDTO::getTotalReservas).sum();
+        long totalConfirmadas = reportesPorPista.stream().mapToLong(ReporteUsoPistaDTO::getReservasConfirmadas).sum();
+        long totalCompletadas = reportesPorPista.stream().mapToLong(ReporteUsoPistaDTO::getReservasCompletadas).sum();
+        long totalCanceladas = reportesPorPista.stream().mapToLong(ReporteUsoPistaDTO::getReservasCanceladas).sum();
+
+        reporteConsolidado.setTotalReservas(totalReservas);
+        reporteConsolidado.setTotalReservasConfirmadas(totalConfirmadas);
+        reporteConsolidado.setTotalReservasCompletadas(totalCompletadas);
+        reporteConsolidado.setTotalReservasCanceladas(totalCanceladas);
+
+        // Ingresos consolidados
+        BigDecimal ingresoTotal = reportesPorPista.stream()
+                .map(ReporteUsoPistaDTO::getIngresoTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        reporteConsolidado.setIngresoTotalConsolidado(ingresoTotal);
+
+        // Promedios
+        if (!reportesPorPista.isEmpty()) {
+            double tasaOcupacionPromedio = reportesPorPista.stream()
+                    .mapToDouble(ReporteUsoPistaDTO::getTasaOcupacion)
+                    .average()
+                    .orElse(0.0);
+            reporteConsolidado.setTasaOcupacionPromedio(Math.round(tasaOcupacionPromedio * 100.0) / 100.0);
+
+            double tasaCancelacionPromedio = reportesPorPista.stream()
+                    .mapToDouble(ReporteUsoPistaDTO::getTasaCancelacion)
+                    .average()
+                    .orElse(0.0);
+            reporteConsolidado.setTasaCancelacionPromedio(Math.round(tasaCancelacionPromedio * 100.0) / 100.0);
+        }
+
+        return reporteConsolidado;
     }
 }
