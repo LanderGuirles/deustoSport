@@ -414,11 +414,17 @@
 	.tooltip-zona-mapa { position: absolute; background: linear-gradient(135deg, rgba(22,31,39,0.95) 0%, rgba(30,36,48,0.95) 100%); border: 1px solid rgba(0,229,160,0.4); border-radius: 10px; padding: 12px 16px; font-size: 13px; color: var(--accent); font-weight: 600; pointer-events: none; z-index: 1100; box-shadow: 0 8px 24px rgba(0,0,0,0.5); backdrop-filter: blur(4px); max-width: 250px; }
 	.tooltip-zona-mapa strong { color: var(--accent); display: block; margin-bottom: 4px; font-size: 14px; }
 	.tooltip-zona-mapa small { display: block; color: var(--muted); margin-top: 4px; font-size: 11px; }
+	.mapa-detalle-activo { margin-top: 18px; display: grid; grid-template-columns: 56px 1fr auto; gap: 14px; align-items: center; background: linear-gradient(135deg, rgba(22,31,39,0.96) 0%, rgba(30,36,48,0.96) 100%); border: 1px solid rgba(0,229,160,0.16); border-radius: 14px; padding: 16px 18px; box-shadow: 0 10px 24px rgba(0,0,0,0.16); }
+	.mapa-detalle-icono { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; background: rgba(0,229,160,0.12); color: var(--accent); font-size: 24px; }
+	.mapa-detalle-kicker { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); margin-bottom: 4px; }
+	.mapa-detalle-titulo { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+	.mapa-detalle-texto { font-size: 13px; color: var(--muted); line-height: 1.5; }
+	.mapa-detalle-chip { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 7px 10px; border-radius: 999px; background: rgba(0,229,160,0.12); color: var(--accent); white-space: nowrap; }
 	.info-zonas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-top: 20px; }
 	.info-card-zona { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; transition: all 0.2s; }
 	.info-card-zona:hover { border-color: rgba(0,229,160,0.35); background: rgba(0,229,160,0.05); }
 	
-	@media (max-width: 900px) { .misreservas-wrapper { grid-template-columns: 1fr; } }
+	@media (max-width: 900px) { .misreservas-wrapper { grid-template-columns: 1fr; } .mapa-detalle-activo { grid-template-columns: 1fr; justify-items: start; } }
   </style>
 </head>
 <body>
@@ -581,7 +587,7 @@
             <!-- ZONA ENTRADA/ACCESO (Arriba Centro) -->
             <g id="zona-entrada">
               <text x="800" y="35" fill="rgba(39,174,96,0.8)" font-size="16" font-weight="700" text-anchor="middle">⭐ ENTRADA PRINCIPAL DEL CLUB</text>
-              <rect class="zona-interactiva" data-zona="Entrada" x="650" y="70" width="300" height="100" fill="url(#grad-entrada)" rx="8" stroke="rgba(39,174,96,0.6)" stroke-width="2" filter="url(#shadow-ppal)" onmouseover="mostrarTooltipZona('Entrada Principal', 'Acceso · Información', event)" onmouseout="ocultarTooltipZona()"/>
+			  <rect class="zona-interactiva" data-zona="Entrada" x="650" y="70" width="300" height="100" fill="url(#grad-entrada)" rx="8" stroke="rgba(39,174,96,0.6)" stroke-width="2" filter="url(#shadow-ppal)" onmouseover="mostrarTooltipZona('Entrada Principal', 'Acceso · Información', event)" onmouseout="ocultarTooltipZona()" onclick="seleccionarZonaMapa('Entrada', 'Acceso principal y recepción', event)"/>
               <text x="800" y="115" fill="white" font-size="14" font-weight="700" text-anchor="middle">ENTRADA</text>
               <text x="800" y="135" fill="rgba(255,255,255,0.8)" font-size="11" text-anchor="middle">Recepción · Taquillas</text>
             </g>
@@ -589,7 +595,7 @@
             <!-- ESTACIONAMIENTO (Izquierda Superior) -->
             <g id="zona-estacionamiento">
               <text x="150" y="100" fill="rgba(159,168,176,0.8)" font-size="13" font-weight="600" text-anchor="middle">ESTACIONAMIENTO</text>
-              <rect class="zona-interactiva" data-zona="Estacionamiento" x="70" y="120" width="160" height="200" fill="url(#grad-estacionamiento)" rx="8" stroke="rgba(127,140,141,0.5)" stroke-width="2" onmouseover="mostrarTooltipZona('Estacionamiento', 'Parking · 50+ lugares', event)" onmouseout="ocultarTooltipZona()"/>
+			  <rect class="zona-interactiva" data-zona="Estacionamiento" x="70" y="120" width="160" height="200" fill="url(#grad-estacionamiento)" rx="8" stroke="rgba(127,140,141,0.5)" stroke-width="2" onmouseover="mostrarTooltipZona('Estacionamiento', 'Parking · 50+ lugares', event)" onmouseout="ocultarTooltipZona()" onclick="seleccionarZonaMapa('Estacionamiento', 'Parking · 50+ lugares', event)"/>
               <g id="plazas-estacionamiento">
                 <line x1="90" y1="140" x2="210" y2="140" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
                 <line x1="90" y1="165" x2="210" y2="165" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
@@ -605,7 +611,7 @@
             <!-- PABELLÓN PRINCIPAL VESTUARIOS (Izquierda Centro) -->
             <g id="zona-pabellon">
               <text x="130" y="410" fill="rgba(155,89,182,0.8)" font-size="13" font-weight="600" text-anchor="middle">PABELLÓN</text>
-              <rect class="zona-interactiva" data-zona="Pabellón" x="60" y="430" width="140" height="280" fill="url(#grad-pabellon)" rx="10" stroke="rgba(155,89,182,0.6)" stroke-width="2" filter="url(#shadow-ppal)" onmouseover="mostrarTooltipZona('Pabellón Principal', 'Vestuarios · Duchas · Taquillas', event)" onmouseout="ocultarTooltipZona()"/>
+			  <rect class="zona-interactiva" data-zona="Pabellón" x="60" y="430" width="140" height="280" fill="url(#grad-pabellon)" rx="10" stroke="rgba(155,89,182,0.6)" stroke-width="2" filter="url(#shadow-ppal)" onmouseover="mostrarTooltipZona('Pabellón Principal', 'Vestuarios · Duchas · Taquillas', event)" onmouseout="ocultarTooltipZona()" onclick="seleccionarZonaMapa('Pabellón', 'Vestuarios · Duchas · Taquillas', event)"/>
               <text x="130" y="540" fill="white" font-size="12" font-weight="700" text-anchor="middle">VESTUARIOS</text>
               <text x="130" y="560" fill="rgba(255,255,255,0.8)" font-size="10" text-anchor="middle">M/H</text>
               <line x1="70" y1="580" x2="190" y2="580" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
@@ -615,7 +621,7 @@
             <!-- BAR/CAFETERÍA (Derecha Centro-Superior) -->
             <g id="zona-bar">
               <text x="1420" y="370" fill="rgba(255,140,66,0.8)" font-size="13" font-weight="600" text-anchor="middle">BAR</text>
-              <rect class="zona-interactiva" data-zona="Bar" x="1320" y="390" width="200" height="180" fill="url(#grad-bar)" rx="10" stroke="rgba(255,140,66,0.6)" stroke-width="2" filter="url(#shadow-ppal)" onmouseover="mostrarTooltipZona('Bar/Cafetería', 'Bebidas · Snacks · Comida', event)" onmouseout="ocultarTooltipZona()"/>
+			  <rect class="zona-interactiva" data-zona="Bar" x="1320" y="390" width="200" height="180" fill="url(#grad-bar)" rx="10" stroke="rgba(255,140,66,0.6)" stroke-width="2" filter="url(#shadow-ppal)" onmouseover="mostrarTooltipZona('Bar/Cafetería', 'Bebidas · Snacks · Comida', event)" onmouseout="ocultarTooltipZona()" onclick="seleccionarZonaMapa('Bar', 'Bebidas · Snacks · Comida', event)"/>
               <text x="1420" y="460" fill="white" font-size="13" font-weight="700" text-anchor="middle">BAR</text>
               <line x1="1330" y1="480" x2="1510" y2="480" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
               <text x="1420" y="510" fill="rgba(255,255,255,0.8)" font-size="9" text-anchor="middle">Bebidas · Snacks</text>
@@ -625,7 +631,7 @@
             <!-- ZONA PÚBLICO/SILLAS (Centro Derecha) -->
             <g id="zona-publico">
               <text x="1400" y="720" fill="rgba(244,208,63,0.8)" font-size="12" font-weight="600" text-anchor="middle">GRADAS</text>
-              <rect class="zona-interactiva" data-zona="Zonas de Público" x="1300" y="740" width="240" height="140" fill="rgba(244,208,63,0.2)" rx="8" stroke="rgba(244,208,63,0.5)" stroke-width="2" stroke-dasharray="5,5" onmouseover="mostrarTooltipZona('Zonas de Público', 'Sillas · Gradas · Zona de Espectadores', event)" onmouseout="ocultarTooltipZona()"/>
+			  <rect class="zona-interactiva" data-zona="Zonas de Público" x="1300" y="740" width="240" height="140" fill="rgba(244,208,63,0.2)" rx="8" stroke="rgba(244,208,63,0.5)" stroke-width="2" stroke-dasharray="5,5" onmouseover="mostrarTooltipZona('Zonas de Público', 'Sillas · Gradas · Zona de Espectadores', event)" onmouseout="ocultarTooltipZona()" onclick="seleccionarZonaMapa('Zonas de Público', 'Sillas · Gradas · Zona de Espectadores', event)"/>
               <g id="sillas-publico">
                 <circle cx="1320" cy="760" r="3" fill="rgba(244,208,63,0.7)"/>
                 <circle cx="1340" cy="760" r="3" fill="rgba(244,208,63,0.7)"/>
@@ -650,27 +656,27 @@
             <!-- ZONA DEPORTIVA PRINCIPAL (Centro) -->
             <g id="zona-deportiva-ppal">
               <!-- Pádel Superior Izquierda -->
-              <rect class="pista-zona" data-pista="Pádel 1" x="300" y="180" width="160" height="140" fill="url(#grad-padel-ppal)" rx="8" stroke="rgba(0,229,160,0.6)" stroke-width="2" filter="url(#shadow-ppal)" onmouseover="activarZonaPista(this)" onmouseout="desactivarZonaPista(this)" onclick="irAReservaPista('Pádel 1')"/>
+			  <rect class="pista-zona" data-pista="Pista Pádel 1" x="300" y="180" width="160" height="140" fill="url(#grad-padel-ppal)" rx="8" stroke="rgba(0,229,160,0.6)" stroke-width="2" filter="url(#shadow-ppal)" onmouseover="activarZonaPista(this)" onmouseout="desactivarZonaPista(this)" onclick="seleccionarPistaMapa('Pista Pádel 1', event)"/>
               <text x="380" y="255" fill="#0d1117" font-size="13" font-weight="700" text-anchor="middle">PÁDEL 1</text>
               <text x="380" y="275" fill="#0d1117" font-size="9" text-anchor="middle">2-4 jugadores</text>
               
               <!-- Pádel Superior Centro -->
-              <rect class="pista-zona" data-pista="Pádel 2" x="520" y="180" width="160" height="140" fill="url(#grad-padel-ppal)" rx="8" stroke="rgba(0,229,160,0.6)" stroke-width="2" filter="url(#shadow-ppal)" onmouseover="activarZonaPista(this)" onmouseout="desactivarZonaPista(this)" onclick="irAReservaPista('Pádel 2')"/>
+			  <rect class="pista-zona" data-pista="Pista Pádel 2" x="520" y="180" width="160" height="140" fill="url(#grad-padel-ppal)" rx="8" stroke="rgba(0,229,160,0.6)" stroke-width="2" filter="url(#shadow-ppal)" onmouseover="activarZonaPista(this)" onmouseout="desactivarZonaPista(this)" onclick="seleccionarPistaMapa('Pista Pádel 2', event)"/>
               <text x="600" y="255" fill="#0d1117" font-size="13" font-weight="700" text-anchor="middle">PÁDEL 2</text>
               <text x="600" y="275" fill="#0d1117" font-size="9" text-anchor="middle">2-4 jugadores</text>
               
               <!-- Tenis Superior Derecha -->
-              <rect class="pista-zona" data-pista="Tenis 1" x="740" y="180" width="160" height="140" fill="url(#grad-tenis-ppal)" rx="8" stroke="rgba(240,165,0,0.6)" stroke-width="2" filter="url(#shadow-ppal)" onmouseover="activarZonaPista(this)" onmouseout="desactivarZonaPista(this)" onclick="irAReservaPista('Tenis 1')"/>
+			  <rect class="pista-zona" data-pista="Pista Tenis 1" x="740" y="180" width="160" height="140" fill="url(#grad-tenis-ppal)" rx="8" stroke="rgba(240,165,0,0.6)" stroke-width="2" filter="url(#shadow-ppal)" onmouseover="activarZonaPista(this)" onmouseout="desactivarZonaPista(this)" onclick="seleccionarPistaMapa('Pista Tenis 1', event)"/>
               <text x="820" y="255" fill="#0d1117" font-size="13" font-weight="700" text-anchor="middle">TENIS 1</text>
               <text x="820" y="275" fill="#0d1117" font-size="9" text-anchor="middle">2-4 jugadores</text>
               
               <!-- Tenis Superior Centro-Derecha -->
-              <rect class="pista-zona" data-pista="Tenis 2" x="960" y="180" width="120" height="140" fill="url(#grad-tenis-ppal)" rx="8" stroke="rgba(240,165,0,0.6)" stroke-width="2" filter="url(#shadow-ppal)" onmouseover="activarZonaPista(this)" onmouseout="desactivarZonaPista(this)" onclick="irAReservaPista('Tenis 2')"/>
+			  <rect class="pista-zona" data-pista="Pista Tenis 2" x="960" y="180" width="120" height="140" fill="url(#grad-tenis-ppal)" rx="8" stroke="rgba(240,165,0,0.6)" stroke-width="2" filter="url(#shadow-ppal)" onmouseover="activarZonaPista(this)" onmouseout="desactivarZonaPista(this)" onclick="seleccionarPistaMapa('Pista Tenis 2', event)"/>
               <text x="1020" y="250" fill="#0d1117" font-size="12" font-weight="700" text-anchor="middle">TENIS</text>
               <text x="1020" y="270" fill="#0d1117" font-size="9" text-anchor="middle">2</text>
               
-              <!-- CANCHA DE FÚTBOL CENTRAL (Grande) -->
-              <rect class="pista-zona" data-pista="Cancha de Fútbol" x="280" y="380" width="820" height="480" fill="url(#grad-futbol-ppal)" rx="12" stroke="rgba(56,139,253,0.6)" stroke-width="3" filter="url(#shadow-ppal)" onmouseover="activarZonaPista(this)" onmouseout="desactivarZonaPista(this)" onclick="irAReservaPista('Cancha de Fútbol')"/>
+              <!-- PISTA DE FÚTBOL CENTRAL (Grande) -->
+			  <rect class="pista-zona" data-pista="Pista Fútbol 1" x="280" y="380" width="820" height="480" fill="url(#grad-futbol-ppal)" rx="12" stroke="rgba(56,139,253,0.6)" stroke-width="3" filter="url(#shadow-ppal)" onmouseover="activarZonaPista(this)" onmouseout="desactivarZonaPista(this)" onclick="seleccionarPistaMapa('Pista Fútbol 1', event)"/>
               
               <!-- Líneas del campo de fútbol -->
               <line x1="690" y1="380" x2="690" y2="860" stroke="rgba(255,255,255,0.35)" stroke-width="2"/>
@@ -723,58 +729,6 @@
           
           <!-- TOOLTIP FLOTANTE -->
           <div id="tooltip-zona-mapa" class="tooltip-zona-mapa" style="display: none;"></div>
-        </div>
-        
-        <!-- CARDS DE INFORMACIÓN POR TIPO DE ZONA -->
-        <div class="info-zonas-grid">
-          <div class="info-card-zona" style="border-left: 4px solid #00e5a0;">
-            <div style="color: #00e5a0; font-weight: 700; margin-bottom: 6px; font-size: 13px;">🏐 Pádel</div>
-            <div style="font-size: 12px; color: var(--muted); line-height: 1.4;">
-              2 pistas profesionales<br>
-              Capacidad: 2-4 jugadores<br>
-              Horarios: 08:00 - 22:00
-            </div>
-          </div>
-          <div class="info-card-zona" style="border-left: 4px solid #f0a500;">
-            <div style="color: #f0a500; font-weight: 700; margin-bottom: 6px; font-size: 13px;">🎾 Tenis</div>
-            <div style="font-size: 12px; color: var(--muted); line-height: 1.4;">
-              2 pistas con iluminación<br>
-              Capacidad: 2-4 jugadores<br>
-              Horarios: 08:00 - 22:00
-            </div>
-          </div>
-          <div class="info-card-zona" style="border-left: 4px solid #388bfd;">
-            <div style="color: #388bfd; font-weight: 700; margin-bottom: 6px; font-size: 13px;">⚽ Fútbol</div>
-            <div style="font-size: 12px; color: var(--muted); line-height: 1.4;">
-              1 cancha profesional<br>
-              Capacidad: 8-22 jugadores<br>
-              Horarios: 08:00 - 22:00
-            </div>
-          </div>
-          <div class="info-card-zona" style="border-left: 4px solid #ff8c42;">
-            <div style="color: #ff8c42; font-weight: 700; margin-bottom: 6px; font-size: 13px;">🍴 Bar/Cafetería</div>
-            <div style="font-size: 12px; color: var(--muted); line-height: 1.4;">
-              Bebidas y snacks<br>
-              Comida rápida disponible<br>
-              Horarios: 08:00 - 23:00
-            </div>
-          </div>
-          <div class="info-card-zona" style="border-left: 4px solid #9b59b6;">
-            <div style="color: #9b59b6; font-weight: 700; margin-bottom: 6px; font-size: 13px;">🚿 Pabellón</div>
-            <div style="font-size: 12px; color: var(--muted); line-height: 1.4;">
-              Vestuarios completos<br>
-              Duchas y taquillas<br>
-              M/H · Disponible siempre
-            </div>
-          </div>
-          <div class="info-card-zona" style="border-left: 4px solid #27ae60;">
-            <div style="color: #27ae60; font-weight: 700; margin-bottom: 6px; font-size: 13px;">📍 Entrada</div>
-            <div style="font-size: 12px; color: var(--muted); line-height: 1.4;">
-              Recepción principal<br>
-              Taquillas de información<br>
-              Punto de encuentro
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -2748,6 +2702,7 @@
 				ultimaVisualizacion: null,
 				modo: 'vista',
 				zonaActiva: null,
+				detalleActual: null,
 				estadisticas: {
 					clicksZonas: 0,
 					clicksPistas: 0,
@@ -2762,7 +2717,7 @@
 			 * Define nombre, tipo, ubicación, capacidad, horario e iconos
 			 */
 			const configuracionPistas = {
-				'Pádel 1': { 
+				'Pista Pádel 1': { 
 					tipo: 'padel', 
 					zona: 'superior', 
 					capacidad: '2-4', 
@@ -2771,7 +2726,7 @@
 					icono: '🏐',
 					descripcion: 'Pista profesional de pádel'
 				},
-				'Pádel 2': { 
+				'Pista Pádel 2': { 
 					tipo: 'padel', 
 					zona: 'superior', 
 					capacidad: '2-4', 
@@ -2780,7 +2735,7 @@
 					icono: '🏐',
 					descripcion: 'Pista profesional de pádel'
 				},
-				'Tenis 1': { 
+				'Pista Tenis 1': { 
 					tipo: 'tenis', 
 					zona: 'superior', 
 					capacidad: '2-4', 
@@ -2789,7 +2744,7 @@
 					icono: '🎾',
 					descripcion: 'Pista con iluminación profesional'
 				},
-				'Tenis 2': { 
+				'Pista Tenis 2': { 
 					tipo: 'tenis', 
 					zona: 'superior', 
 					capacidad: '2-4', 
@@ -2798,7 +2753,7 @@
 					icono: '🎾',
 					descripcion: 'Pista con iluminación profesional'
 				},
-				'Cancha de Fútbol': { 
+				'Pista Fútbol 1': { 
 					tipo: 'futbol', 
 					zona: 'inferior', 
 					capacidad: '8-22', 
@@ -2808,6 +2763,179 @@
 					descripcion: 'Campo profesional de fútbol'
 				}
 			};
+
+			const configuracionZonasMapa = {
+				'Entrada': {
+					icono: '🚪',
+					titulo: 'Entrada principal',
+					descripcion: 'Acceso principal del club con recepción, control de acceso y taquillas de información.',
+					horario: '08:00 - 23:00',
+					accion: 'Ir a recepción'
+				},
+				'Estacionamiento': {
+					icono: '🅿️',
+					titulo: 'Estacionamiento',
+					descripcion: 'Parking con más de 50 plazas junto a la entrada principal del complejo.',
+					horario: '24 horas',
+					accion: 'Ver aparcamiento'
+				},
+				'Pabellón': {
+					icono: '🚿',
+					titulo: 'Pabellón y vestuarios',
+					descripcion: 'Zona de vestuarios con duchas, taquillas y acceso a servicios comunes.',
+					horario: '08:00 - 23:00',
+					accion: 'Ver vestuarios'
+				},
+				'Bar': {
+					icono: '🍴',
+					titulo: 'Bar / cafetería',
+					descripcion: 'Espacio para bebidas, snacks y comida rápida con vistas a las pistas.',
+					horario: '08:00 - 23:00',
+					accion: 'Abrir bar'
+				},
+				'Zonas de Público': {
+					icono: '👥',
+					titulo: 'Zonas de público',
+					descripcion: 'Gradas y sillas para espectadores con visibilidad directa de la pista principal.',
+					horario: 'Durante eventos',
+					accion: 'Ver gradas'
+				}
+			};
+
+			function obtenerConfiguracionMapa(nombre) {
+				return configuracionPistas[nombre] || configuracionZonasMapa[nombre] || {};
+			}
+
+			function actualizarDetalleMapa({ icono, kicker, titulo, texto, chip }) {
+				const iconoEl = document.getElementById('mapa-detalle-icono');
+				const kickerEl = document.getElementById('mapa-detalle-kicker');
+				const tituloEl = document.getElementById('mapa-detalle-titulo');
+				const textoEl = document.getElementById('mapa-detalle-texto');
+				const chipEl = document.getElementById('mapa-detalle-chip');
+
+				if (!iconoEl || !kickerEl || !tituloEl || !textoEl || !chipEl) {
+					return;
+				}
+
+				iconoEl.textContent = icono || '🗺️';
+				kickerEl.textContent = kicker || 'Explora el mapa';
+				tituloEl.textContent = titulo || 'Pulsa sobre una zona o pista';
+				textoEl.textContent = texto || 'Verás aquí la información ampliada y la acción disponible para cada espacio.';
+				chipEl.textContent = chip || 'Interactivo';
+			}
+
+			function restablecerDetalleMapa() {
+				estadoMapa.detalleActual = null;
+				actualizarDetalleMapa({
+					icono: '🗺️',
+					kicker: 'Explora el mapa',
+					titulo: 'Pulsa sobre una zona o pista',
+					texto: 'Verás aquí la información ampliada y la acción disponible para cada espacio.',
+					chip: 'Interactivo'
+				});
+			}
+
+			function seleccionarZonaMapa(nombreZona, descripcion, event) {
+				const config = configuracionZonasMapa[nombreZona] || {};
+				estadoMapa.zonaActiva = nombreZona;
+				estadoMapa.pistaActiva = null;
+				estadoMapa.modo = 'exploracion-zona';
+				estadoMapa.detalleActual = nombreZona;
+
+				actualizarDetalleMapa({
+					icono: config.icono || '📍',
+					kicker: config.titulo || nombreZona,
+					titulo: config.titulo || nombreZona,
+					texto: descripcion || config.descripcion || 'Zona del club',
+					chip: config.accion || 'Ver zona'
+				});
+
+				if (event) {
+					mostrarTooltipZona(config.titulo || nombreZona, descripcion || config.descripcion || 'Zona del club', event);
+				}
+
+				toast(`${config.titulo || nombreZona} seleccionada`, 'ok');
+			}
+
+			function seleccionarPistaMapa(nombrePista, event) {
+				const config = configuracionPistas[nombrePista];
+				if (!config) {
+					toast(`⚠ No se encontró la pista: ${nombrePista}`, 'err');
+					return;
+				}
+
+				estadoMapa.detalleActual = nombrePista;
+				estadoMapa.pistaActiva = nombrePista;
+				estadoMapa.modo = 'seleccion-pista';
+
+				actualizarDetalleMapa({
+					icono: config.icono || '🏐',
+					kicker: config.tipo ? config.tipo.toUpperCase() : 'PISTA',
+					titulo: nombrePista,
+					texto: config.descripcion || 'Pista profesional',
+					chip: 'Ir a reservar'
+				});
+
+				if (event) {
+					activarZonaPista(event.target);
+				}
+
+				toast(`📅 Abriendo horario de ${nombrePista}...`, 'ok');
+				abrirHorarioDesdeMapa(nombrePista);
+			}
+
+			function normalizarTextoMapa(texto) {
+				return (texto || '')
+					.toString()
+					.toLowerCase()
+					.normalize('NFD')
+					.replace(/[\u0300-\u036f]/g, '')
+					.replace(/[^a-z0-9]+/g, ' ')
+					.trim();
+			}
+
+			function buscarPistaGlobalDesdeMapa(nombrePista) {
+				const objetivo = normalizarTextoMapa(nombrePista);
+				if (!objetivo) return null;
+
+				const lista = Array.isArray(pistasGlobal) ? pistasGlobal : [];
+				const aliasMapa = {
+					'pista de futbol': ['cancha de futbol', 'pista de futbol']
+				};
+				const candidatos = [objetivo, ...(aliasMapa[objetivo] || [])];
+
+				for (const candidato of candidatos) {
+					const coincidencia = lista.find(p => normalizarTextoMapa(p.nombre) === candidato);
+					if (coincidencia) return coincidencia;
+				}
+
+				return null;
+			}
+
+			async function abrirHorarioDesdeMapa(nombrePista) {
+				let pista = buscarPistaGlobalDesdeMapa(nombrePista);
+				if (!pista && typeof loadPistas === 'function') {
+					try {
+						await loadPistas();
+						pista = buscarPistaGlobalDesdeMapa(nombrePista);
+					} catch (err) {
+						console.warn('No se pudo recargar la lista de pistas para el mapa:', err);
+					}
+				}
+
+				if (!pista) {
+					toast(`No se pudo localizar el horario de ${nombrePista}`, 'err');
+					return;
+				}
+
+				estadoMapa.modo = 'horario';
+				if (typeof abrirCalendario === 'function') {
+					await abrirCalendario(pista.id);
+					return;
+				}
+
+				toast('No se pudo abrir el calendario de reservas', 'err');
+			}
 			
 			/**
 			 * FUNCIÓN: mostrarTooltipZona
@@ -2828,8 +2956,9 @@
 				
 				// Buscar configuración de la zona
 				let config = null;
-				if (configuracionPistas[nombre]) {
-					config = configuracionPistas[nombre];
+				const configMapa = obtenerConfiguracionMapa(nombre);
+				if (Object.keys(configMapa).length > 0) {
+					config = configMapa;
 				} else {
 					config = {
 						icono: nombre.includes('Entrada') ? '🚪' : 
@@ -3146,6 +3275,8 @@
 					return;
 				}
 				
+				restablecerDetalleMapa();
+				
 				// Configurar eventos para zonas interactivas
 				document.querySelectorAll('.zona-interactiva').forEach(zona => {
 					zona.addEventListener('mouseenter', function() {
@@ -3154,13 +3285,6 @@
 					
 					zona.addEventListener('mouseleave', function() {
 						this.style.cursor = 'default';
-					});
-					
-					zona.addEventListener('click', function() {
-						const nombreZona = this.getAttribute('data-zona');
-						if (nombreZona) {
-							console.log(`Zona seleccionada: ${nombreZona}`);
-						}
 					});
 				});
 				
@@ -3172,14 +3296,6 @@
 					
 					pista.addEventListener('mouseleave', function() {
 						this.style.cursor = 'default';
-					});
-					
-					pista.addEventListener('click', function(e) {
-						const nombrePista = this.getAttribute('data-pista');
-						if (nombrePista) {
-							console.log(`Pista seleccionada para reserva: ${nombrePista}`);
-							e.stopPropagation();
-						}
 					});
 				});
 				
@@ -3207,6 +3323,7 @@
 				estadoMapa.zonaActiva = null;
 				estadoMapa.pistaActiva = null;
 				estadoMapa.modo = 'vista';
+				restablecerDetalleMapa();
 				
 				const tooltip = document.getElementById('tooltip-zona-mapa');
 				if (tooltip) {
@@ -3248,33 +3365,6 @@
 			function activarPista(element) {
 				// Redirigir a nueva función
 				activarZonaPista(element);
-			}
-			
-			/**
-			 * FUNCIÓN: desactivarPista (Legacy - compatibilidad)
-			 * Mantiene compatibilidad con código anterior
-			 * Redirige a las nuevas funciones
-			 */
-			function desactivarPista(element) {
-				// Redirigir a nueva función
-				desactivarZonaPista(element);
-			}
-				// Cambios visuales
-				element.style.filter = 'brightness(1.35) drop-shadow(0 0 8px rgba(0,229,160,0.5))';
-				element.style.strokeWidth = '4';
-				element.style.stroke = 'var(--accent)';
-				
-				// Obtener información
-				const nombrePista = element.getAttribute('data-pista');
-				const tipoPista = element.getAttribute('data-tipo');
-				const config = configuracionPistas[nombrePista] || {};
-				
-				// Registrar en histórico
-				estadoMapa.pistaActiva = nombrePista;
-				estadoMapa.ultimaVisualizacion = new Date().getTime();
-				
-				// Mostrar tooltip mejorado
-				mostrarTooltipMapaMejorado(element, nombrePista, tipoPista, config);
 			}
 			
 			/**
