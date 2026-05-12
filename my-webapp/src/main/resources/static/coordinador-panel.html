@@ -222,6 +222,50 @@
     </section>
 
     <section class="card">
+        <h2>Cierre por Festivos</h2>
+        <form id="festivoForm">
+            <div class="form-grid">
+                <div class="field">
+                    <label>Nombre del festivo</label>
+                    <input id="festivoNombre" type="text" maxlength="120" placeholder="Ej: Semana Santa, Navidad..." required>
+                </div>
+                <div class="field">
+                    <label>Fecha de inicio</label>
+                    <input id="festivoInicio" type="date" required>
+                </div>
+                <div class="field">
+                    <label>Fecha de fin</label>
+                    <input id="festivoFin" type="date" required>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="reset" class="btn-secondary">Limpiar</button>
+                <button type="submit" class="btn-primary" id="btnGuardarFestivo">Programar cierre</button>
+            </div>
+        </form>
+        <div class="status" id="festivoStatus"></div>
+
+        <div style="margin-top: 24px;">
+            <div class="grid-container">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Fecha inicio</th>
+                        <th>Fecha fin</th>
+                        <th>Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody id="festivosBody">
+                        <tr><td colspan="5" style="text-align:center; color:var(--muted);">Cargando festivos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section class="card">
         <h2>Añadir Nueva Pista</h2>
         <form id="crearPistaForm">
             <div class="form-grid">
@@ -333,6 +377,7 @@
 <script>
     const API_URL = "http://localhost:8080/api/pistas";
     const INSTALACIONES_API_URL = "http://localhost:8080/api/instalaciones";
+    const FESTIVOS_API_URL = "http://localhost:8080/api/festivos";
     
     // Configuración inicial de usuario
     document.getElementById("sessionUser").textContent = localStorage.getItem("usuarioNombre") || "Coordinador";
@@ -738,6 +783,94 @@
     modalEl.addEventListener("click", (e) => {
         if (e.target === modalEl) cerrarModal();
     });
+
+    // ==========================================
+    // FESTIVOS
+    // ==========================================
+    const festivoForm = document.getElementById("festivoForm");
+    const festivoStatusEl = document.getElementById("festivoStatus");
+    const festivosBodyEl = document.getElementById("festivosBody");
+
+    function formatearFechaCorta(fechaStr) {
+        if (!fechaStr) return "-";
+        const [y, m, d] = fechaStr.split("-");
+        return `${d}/${m}/${y}`;
+    }
+
+    async function cargarFestivos() {
+        try {
+            const response = await fetch(FESTIVOS_API_URL);
+            if (!response.ok) throw new Error("No se pudieron cargar los festivos.");
+            const festivos = await response.json();
+            if (!festivos.length) {
+                festivosBodyEl.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--muted);">No hay festivos programados.</td></tr>';
+                return;
+            }
+            festivosBodyEl.innerHTML = festivos.map(f => `
+                <tr>
+                    <td><strong>${f.id}</strong></td>
+                    <td>${f.nombre}</td>
+                    <td>${formatearFechaCorta(f.fechaInicio)}</td>
+                    <td>${formatearFechaCorta(f.fechaFin)}</td>
+                    <td>
+                        <button class="btn-danger" onclick="eliminarFestivo(${f.id}, '${f.nombre.replace(/'/g, "\\'")}')">Eliminar</button>
+                    </td>
+                </tr>
+            `).join("");
+        } catch (error) {
+            festivosBodyEl.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--danger);">${error.message}</td></tr>`;
+        }
+    }
+
+    festivoForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById("btnGuardarFestivo");
+        btn.disabled = true;
+        showStatus(festivoStatusEl, "Programando cierre...", "loading");
+
+        const nombre = document.getElementById("festivoNombre").value.trim();
+        const fechaInicio = document.getElementById("festivoInicio").value;
+        const fechaFin = document.getElementById("festivoFin").value;
+
+        if (fechaFin < fechaInicio) {
+            showStatus(festivoStatusEl, "La fecha de fin no puede ser anterior a la de inicio.", "error");
+            btn.disabled = false;
+            return;
+        }
+
+        try {
+            const response = await fetch(FESTIVOS_API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nombre, fechaInicio, fechaFin })
+            });
+            const bodyText = await response.text();
+            let body = null;
+            try { body = bodyText ? JSON.parse(bodyText) : null; } catch (_) {}
+            if (!response.ok) throw new Error(body?.error || "Error al programar el festivo.");
+            showStatus(festivoStatusEl, `Festivo "${nombre}" programado. Las reservas en ese periodo han sido canceladas automáticamente.`, "success");
+            festivoForm.reset();
+            await cargarFestivos();
+        } catch (error) {
+            showStatus(festivoStatusEl, error.message, "error");
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
+    async function eliminarFestivo(id, nombre) {
+        if (!confirm(`¿Eliminar el festivo "${nombre}" (ID: ${id})?\nSe reactivará la disponibilidad de reservas en ese periodo.`)) return;
+        try {
+            const response = await fetch(`${FESTIVOS_API_URL}/${id}`, { method: "DELETE" });
+            if (!response.ok) throw new Error("No se pudo eliminar el festivo.");
+            showStatus(festivoStatusEl, `Festivo "${nombre}" eliminado correctamente.`, "success");
+            await cargarFestivos();
+        } catch (error) {
+            showStatus(festivoStatusEl, error.message, "error");
+        }
+    }
+
+    window.eliminarFestivo = eliminarFestivo;
 
     async function cargarInstalacionesParaCrearPista() {
         const selectEl = document.getElementById("instalacionId");

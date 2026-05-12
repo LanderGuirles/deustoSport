@@ -165,12 +165,15 @@
                       cursor:not-allowed;font-size:9px;}
     .cal-slot.pasado{background:rgba(125,133,144,.04);cursor:default;}
     .cal-slot.seleccionado{background:rgba(0,229,160,.4) !important;}
+    .cal-slot.festivo{background:rgba(248,81,73,.18);cursor:not-allowed;font-size:9px;color:rgba(248,81,73,.9);}
+    .cal-header-cell.festivo{color:var(--danger);background:rgba(248,81,73,.12);}
     .cal-leyenda{display:flex;gap:16px;margin-top:10px;font-size:12px;color:var(--muted);}
     .cal-leyenda span{display:flex;align-items:center;gap:5px;}
     .cal-leyenda span::before{content:'';width:12px;height:12px;border-radius:3px;display:inline-block;}
     .cal-leyenda .leg-libre::before{background:rgba(0,229,160,.3);}
     .cal-leyenda .leg-ocup::before{background:rgba(248,81,73,.3);}
     .cal-leyenda .leg-pas::before{background:rgba(125,133,144,.15);}
+    .cal-leyenda .leg-fest::before{background:rgba(248,81,73,.4);}
 
     /* ── MODALS ── */
     .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);
@@ -816,6 +819,7 @@
           <span class="leg-libre">Libre</span>
           <span class="leg-ocup">Ocupado</span>
           <span class="leg-pas">No disponible</span>
+          <span class="leg-fest">Festivo</span>
         </div>
       </div>
     </div>
@@ -1651,8 +1655,11 @@
 			  openModal('modal-calendario');
 
 			  try {
-			    const ocupados = await cargarOcupadosSemana(pistaId);
-			    renderCalendario(ocupados);
+			    const [ocupados, festivoSet] = await Promise.all([
+			      cargarOcupadosSemana(pistaId),
+			      cargarFestivosSemana()
+			    ]);
+			    renderCalendario(ocupados, festivoSet);
 			  } catch (e) {
 			    document.getElementById('cal-loading').textContent = 'Error al cargar disponibilidad.';
 			  }
@@ -1690,8 +1697,11 @@
 			  openModal('modal-calendario');
 
 			  try {
-			    const ocupados = await cargarOcupadosSemana(reserva.pistaId);
-			    renderCalendario(ocupados);
+			    const [ocupados, festivoSet] = await Promise.all([
+			      cargarOcupadosSemana(reserva.pistaId),
+			      cargarFestivosSemana()
+			    ]);
+			    renderCalendario(ocupados, festivoSet);
 			  } catch (e) {
 			    document.getElementById('cal-loading').textContent = 'Error al cargar disponibilidad.';
 			  }
@@ -1707,7 +1717,28 @@
 			  return await res.json();
 			}
 
-			function renderCalendario(ocupados) {
+			async function cargarFestivosSemana() {
+			  try {
+			    const res = await fetch(API + '/api/festivos');
+			    if (!res.ok) return new Set();
+			    const festivos = await res.json();
+			    const dias = getHoy7();
+			    const festSet = new Set();
+			    dias.forEach(fecha => {
+			      const f = new Date(fecha + 'T12:00:00');
+			      for (const fest of festivos) {
+			        const ini = new Date(fest.fechaInicio + 'T00:00:00');
+			        const fin = new Date(fest.fechaFin   + 'T23:59:59');
+			        if (f >= ini && f <= fin) { festSet.add(fecha); break; }
+			      }
+			    });
+			    return festSet;
+			  } catch {
+			    return new Set();
+			  }
+			}
+
+			function renderCalendario(ocupados, festivoSet = new Set()) {
 			  const dias   = getHoy7();
 			  const ahora  = new Date();
 
@@ -1734,8 +1765,9 @@
 			  dias.forEach((fecha, i) => {
 			    const d   = new Date(fecha + 'T12:00:00');
 			    const hdr = document.createElement('div');
-			    hdr.className = 'cal-header-cell' + (i === 0 ? ' hoy' : '');
-			    hdr.innerHTML = `<div>${diasNombres[d.getDay()]}</div><div style="font-size:15px;font-weight:700">${d.getDate()}</div>`;
+			    const esFestivo = festivoSet.has(fecha);
+			    hdr.className = 'cal-header-cell' + (i === 0 ? ' hoy' : '') + (esFestivo ? ' festivo' : '');
+			    hdr.innerHTML = `<div>${diasNombres[d.getDay()]}</div><div style="font-size:15px;font-weight:700">${d.getDate()}</div>${esFestivo ? '<div style="font-size:9px;margin-top:2px;">festivo</div>' : ''}`;
 			    grid.appendChild(hdr);
 			  });
 
@@ -1754,8 +1786,12 @@
 			      const slotDate = new Date(fecha + 'T' + hora + ':00');
 			      const pasado   = slotDate < ahora;
 			      const ocupado  = ocupSet.has(key);
+			      const festivo  = festivoSet.has(fecha);
 
-			      if (pasado) {
+			      if (festivo) {
+			        slot.className = 'cal-slot festivo';
+			        slot.textContent = 'festivo';
+			      } else if (pasado) {
 			        slot.className = 'cal-slot pasado';
 			      } else if (ocupado) {
 			        slot.className = 'cal-slot ocupado';
