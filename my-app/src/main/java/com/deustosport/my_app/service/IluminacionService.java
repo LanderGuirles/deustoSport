@@ -104,13 +104,13 @@ public class IluminacionService {
             }
 
             // Comprobación adicional: si estamos en la gracia post-reserva,
-            // verificar si hay reserva consecutiva
+            // verificar si hay reserva consecutiva (incluye el momento exacto del borde)
             if (!debeEstarEncendida) {
                 for (Reserva r : confirmadas) {
                     LocalTime finGracia = r.getHoraFin().plusMinutes(MINUTOS_GRACIA_APAGADO);
 
-                    // Estamos en los 5 min de gracia post-reserva
-                    if (!horaActual.isBefore(r.getHoraFin()) && horaActual.isBefore(finGracia)) {
+                    // Estamos en los 5 min de gracia post-reserva (inclusive el borde)
+                    if (!horaActual.isBefore(r.getHoraFin()) && !horaActual.isAfter(finGracia)) {
                         // Verificar si hay reserva consecutiva
                         boolean consecutiva = tieneReservaConsecutiva(pista.getId(), hoy, r.getHoraFin(), confirmadas);
                         if (consecutiva) {
@@ -119,19 +119,6 @@ public class IluminacionService {
                                     + " tras finalizar a las " + r.getHoraFin();
                             break;
                         }
-                    }
-                }
-            }
-
-            // También encender si una reserva comienza pronto (dentro de 5 min)
-            if (!debeEstarEncendida) {
-                for (Reserva r : confirmadas) {
-                    LocalTime encenderDesde = r.getHoraInicio().minusMinutes(MINUTOS_ANTICIPACION_ENCENDIDO);
-                    if (!horaActual.isBefore(encenderDesde) && horaActual.isBefore(r.getHoraInicio())) {
-                        debeEstarEncendida = true;
-                        motivoEncendido = "Encendido anticipado para reserva en " + pista.getNombre()
-                                + " que comienza a las " + r.getHoraInicio();
-                        break;
                     }
                 }
             }
@@ -200,7 +187,7 @@ public class IluminacionService {
     /**
      * Obtiene el estado de iluminación de una pista concreta.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public EstadoIluminacion obtenerEstado(Long pistaId) {
         Pista pista = pistaRepository.findById(pistaId)
                 .orElseThrow(() -> new IllegalArgumentException("Pista no encontrada"));
@@ -210,7 +197,7 @@ public class IluminacionService {
     /**
      * Lista el estado de iluminación de todas las pistas activas.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public List<Map<String, Object>> obtenerTodosLosEstados() {
         List<Pista> pistasActivas = pistaRepository.findByActivaTrue();
 
