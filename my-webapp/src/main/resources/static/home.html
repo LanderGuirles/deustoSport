@@ -175,6 +175,87 @@
     .cal-leyenda .leg-pas::before{background:rgba(125,133,144,.15);}
     .cal-leyenda .leg-fest::before{background:rgba(248,81,73,.4);}
 
+    /* ── BANNER AVISO DEL DÍA ── */
+    #aviso-banner-wrapper {
+      display: none;
+      padding: 0 0 0 0;
+      animation: avisoBannerIn 0.4s ease;
+    }
+    @keyframes avisoBannerIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .aviso-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 14px 18px;
+      border-radius: 12px;
+      border-left: 4px solid;
+      position: relative;
+      margin: 16px 24px 0;
+    }
+    .aviso-banner.tipo-INFO {
+      background: rgba(88,166,255,0.10);
+      border-color: #58a6ff;
+      color: #c9d1d9;
+    }
+    .aviso-banner.tipo-AVISO {
+      background: rgba(240,165,0,0.10);
+      border-color: #f0a500;
+      color: #c9d1d9;
+    }
+    .aviso-banner.tipo-URGENTE {
+      background: rgba(248,81,73,0.12);
+      border-color: #f85149;
+      color: #c9d1d9;
+    }
+    .aviso-banner-icono {
+      font-size: 22px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .aviso-banner-body {
+      flex: 1;
+      min-width: 0;
+    }
+    .aviso-banner-titulo {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .aviso-banner-mensaje {
+      font-size: 13px;
+      line-height: 1.55;
+      color: rgba(230,237,243,0.85);
+    }
+    .aviso-banner-meta {
+      font-size: 11px;
+      color: rgba(125,133,144,0.9);
+      margin-top: 6px;
+    }
+    .aviso-banner-cerrar {
+      background: transparent;
+      border: none;
+      color: rgba(125,133,144,0.7);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 0 2px;
+      line-height: 1;
+      flex-shrink: 0;
+      align-self: flex-start;
+      transition: color 0.2s;
+    }
+    .aviso-banner-cerrar:hover {
+      color: #e6edf3;
+    }
+    @media (max-width: 600px) {
+      .aviso-banner { margin: 12px 12px 0; gap: 10px; }
+      .aviso-banner-titulo { font-size: 13px; }
+      .aviso-banner-mensaje { font-size: 12px; }
+    }
+
     /* ── MODALS ── */
     .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);
                    z-index:200;align-items:center;justify-content:center;padding:20px;}
@@ -451,6 +532,21 @@
 </nav>
 
 <div id="page-app">
+
+  <!-- ── Banner aviso del día (secretaría) ── -->
+  <div id="aviso-banner-wrapper">
+    <div class="aviso-banner" id="aviso-banner">
+      <div class="aviso-banner-icono" id="aviso-banner-icono">⚠️</div>
+      <div class="aviso-banner-body">
+        <div class="aviso-banner-titulo"  id="aviso-banner-titulo">Aviso</div>
+        <div class="aviso-banner-mensaje" id="aviso-banner-mensaje"></div>
+        <div class="aviso-banner-meta"    id="aviso-banner-meta"></div>
+      </div>
+      <button class="aviso-banner-cerrar" id="aviso-banner-cerrar"
+              title="Cerrar aviso" aria-label="Cerrar aviso">✕</button>
+    </div>
+  </div>
+
   <div class="hero">
     <div class="hero-inner">
       <h2>Bienvenido a <em>DeustoSport</em></h2>
@@ -1167,7 +1263,83 @@
 			  loadPlanesAbono();
 			  loadNotificaciones();
 			  notificationsRefreshTimer = setInterval(loadNotificaciones, 60000);
+			  // Cargar aviso del día (publicado por secretaría)
+			  cargarAvisoDelDia();
 			});
+
+			// ═══════════════════════════════════════════
+			//  AVISO DEL DÍA
+			// ═══════════════════════════════════════════
+
+			/**
+			 * Consulta al backend el aviso activo de mayor prioridad.
+			 * Si existe, muestra el banner informativo en la parte superior
+			 * de la pantalla de inicio. El usuario puede cerrarlo pulsando ✕,
+			 * pero no se vuelve a ocultar automáticamente hasta que recargue
+			 * la página (el cierre es solo visual, no persiste en sesión).
+			 *
+			 * Si el backend responde 204 (sin aviso activo) o hay un error
+			 * de red, el banner permanece oculto silenciosamente.
+			 */
+			async function cargarAvisoDelDia() {
+			  try {
+			    const res = await fetch(API + '/api/avisos/activos/principal');
+
+			    // 204 = no hay aviso activo → no mostrar nada
+			    if (res.status === 204) return;
+			    if (!res.ok) return;
+
+			    const aviso = await res.json();
+			    mostrarBannerAviso(aviso);
+			  } catch {
+			    // Error de red: no mostramos nada, no interrumpimos la carga
+			  }
+			}
+
+			/**
+			 * Rellena y muestra el banner con los datos del aviso recibido.
+			 * Aplica la clase CSS correspondiente al tipo (INFO / AVISO / URGENTE)
+			 * para determinar el color del borde y el fondo del banner.
+			 *
+			 * @param {Object} aviso - DTO de respuesta del servidor.
+			 */
+			function mostrarBannerAviso(aviso) {
+			  if (!aviso || !aviso.titulo || !aviso.mensaje) return;
+
+			  const iconos = { INFO: 'ℹ️', AVISO: '⚠️', URGENTE: '🚨' };
+			  const icono  = iconos[aviso.tipo] || '⚠️';
+
+			  // Construir texto de meta (publicado por, expiración)
+			  let meta = '';
+			  if (aviso.creadoPorNombre) {
+			    meta += `Publicado por secretaría · `;
+			  }
+			  if (aviso.fechaExpiracion) {
+			    const partes = aviso.fechaExpiracion.split('-');
+			    meta += `Válido hasta el ${partes[2]}/${partes[1]}/${partes[0]}`;
+			  }
+
+			  // Rellenar elementos del banner
+			  document.getElementById('aviso-banner-icono').textContent   = icono;
+			  document.getElementById('aviso-banner-titulo').textContent  = aviso.titulo;
+			  document.getElementById('aviso-banner-mensaje').textContent = aviso.mensaje;
+			  document.getElementById('aviso-banner-meta').textContent    = meta;
+
+			  // Aplicar clase de color según tipo (INFO / AVISO / URGENTE)
+			  const bannerEl = document.getElementById('aviso-banner');
+			  bannerEl.className = `aviso-banner tipo-${aviso.tipo}`;
+
+			  // Mostrar el wrapper con animación
+			  document.getElementById('aviso-banner-wrapper').style.display = 'block';
+
+			  // Botón de cerrar: oculta el banner (solo visual, sin llamada a API)
+			  document.getElementById('aviso-banner-cerrar').onclick = () => {
+			    const wrapper = document.getElementById('aviso-banner-wrapper');
+			    wrapper.style.opacity    = '0';
+			    wrapper.style.transition = 'opacity 0.3s ease';
+			    setTimeout(() => { wrapper.style.display = 'none'; }, 300);
+			  };
+			}
 
 			function actualizarSaldoNav() {
 			  const saldo = parseFloat(localStorage.getItem('billetera') || '0');
