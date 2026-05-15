@@ -262,14 +262,28 @@ public class ReservaService {
             throw new IllegalStateException("Solo se puede cancelar una reserva con mas de 24 horas de antelacion.");
         }
 
-        // Reembolsar solo si se pago originalmente con billetera.
+        // Reembolsar si la reserva estaba confirmada (pagada)
         if (reserva.getEstado() == EstadoReserva.CONFIRMADA &&
             reserva.getPrecioTotal() != null &&
-            reserva.getMetodoPago() == MetodoPago.BILLETERA) {
-            Usuario usuario = reserva.getUsuario();
-            BigDecimal nuevoSaldo = usuario.getBilletera().add(reserva.getPrecioTotal());
-            usuario.setBilletera(nuevoSaldo);
-            usuarioRepository.save(usuario);
+            reserva.getMetodoPago() != null) {
+
+            if (reserva.getMetodoPago() == MetodoPago.BILLETERA) {
+                // Reembolso directo a billetera
+                Usuario usuario = reserva.getUsuario();
+                BigDecimal nuevoSaldo = usuario.getBilletera().add(reserva.getPrecioTotal());
+                usuario.setBilletera(nuevoSaldo);
+                usuarioRepository.save(usuario);
+            } else {
+                // Reembolso externo (TARJETA, BIZUM, TRANSFERENCIA)
+                // Se notifica al usuario que el reembolso se procesará por el mismo método
+                String metodoTexto = reserva.getMetodoPago().name().toLowerCase();
+                String titulo = "Reembolso en proceso";
+                String mensaje = "Se ha iniciado la devolución de " + reserva.getPrecioTotal().toPlainString()
+                        + "€ por " + metodoTexto + " de tu reserva en " + reserva.getPista().getNombre()
+                        + " del " + reserva.getFechaReserva() + " a las " + reserva.getHoraInicio()
+                        + ". El reembolso se completará en 3-5 días hábiles.";
+                notificacionService.notificarIncidenciaReserva(reservaId, titulo, mensaje, true);
+            }
         }
 
         reserva.setEstado(EstadoReserva.CANCELADA);
@@ -292,14 +306,18 @@ public class ReservaService {
             return;
         }
 
-        // Reembolsar siempre si se pago con billetera, ignorando la regla de las 24h
+        // Reembolsar siempre si la reserva estaba pagada, ignorando la regla de las 24h
         if (reserva.getEstado() == EstadoReserva.CONFIRMADA &&
                 reserva.getPrecioTotal() != null &&
-                reserva.getMetodoPago() == MetodoPago.BILLETERA) {
-            Usuario usuario = reserva.getUsuario();
-            BigDecimal nuevoSaldo = usuario.getBilletera().add(reserva.getPrecioTotal());
-            usuario.setBilletera(nuevoSaldo);
-            usuarioRepository.save(usuario);
+                reserva.getMetodoPago() != null) {
+
+            if (reserva.getMetodoPago() == MetodoPago.BILLETERA) {
+                Usuario usuario = reserva.getUsuario();
+                BigDecimal nuevoSaldo = usuario.getBilletera().add(reserva.getPrecioTotal());
+                usuario.setBilletera(nuevoSaldo);
+                usuarioRepository.save(usuario);
+            }
+            // Para métodos externos, el reembolso se notifica en el mensaje
         }
 
         reserva.setEstado(EstadoReserva.CANCELADA);
@@ -307,10 +325,17 @@ public class ReservaService {
 
         // Notificar al usuario
         String titulo = "Reserva cancelada por mantenimiento";
+        String reembolsoTexto = "";
+        if (reserva.getMetodoPago() == MetodoPago.BILLETERA) {
+            reembolsoTexto = "Se ha reembolsado el importe en tu billetera.";
+        } else if (reserva.getMetodoPago() != null) {
+            reembolsoTexto = "Se procesará la devolución de " + reserva.getPrecioTotal().toPlainString()
+                    + "€ por " + reserva.getMetodoPago().name().toLowerCase() + " en 3-5 días hábiles.";
+        }
         String mensaje = "Tu reserva en " + reserva.getPista().getNombre() + " para el "
                 + reserva.getFechaReserva() + " a las " + reserva.getHoraInicio()
                 + " ha sido cancelada debido a que la pista ha sido bloqueada por el coordinador. "
-                + (reserva.getMetodoPago() == MetodoPago.BILLETERA ? "Se ha reembolsado el importe en tu billetera." : "");
+                + reembolsoTexto;
 
         notificacionService.notificarIncidenciaReserva(reservaId, titulo, mensaje, true);
     }

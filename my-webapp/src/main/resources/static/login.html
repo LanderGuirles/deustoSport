@@ -131,7 +131,7 @@
           localStorage.setItem('usuarioEmail', data.email);
           localStorage.setItem('usuarioRol', data.rol);
           localStorage.setItem('esSocio', 'false');
-          localStorage.setItem('billetera', data.billetera != null ? data.billetera : '0');
+          // NO SOCIO: no se guarda billetera
 
           window.location.href = 'home.html';
         } else {

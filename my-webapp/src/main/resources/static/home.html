@@ -445,7 +445,7 @@
 </span>
       <span id="nav-billetera-badge" class="badge-billetera">💰 <span id="nav-saldo">0.00</span>€</span>
     </span>
-		<button class="btn-ghost" onclick="openProfileModal()">Mi perfil</button>
+		<button class="btn-ghost" id="btn-mi-perfil" onclick="openProfileModal()">Mi perfil</button>
     <button class="btn-ghost" onclick="logout()">Cerrar sesión</button>
   </div>
 </nav>
@@ -462,7 +462,7 @@
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('tarifas',this)">Tarifas</button>
       <button class="tab-btn" onclick="switchTab('pistas',this)">Reservar</button>
-	  <button class="tab-btn" onclick="switchTab('abonos',this)">Abonos</button>
+	  <button class="tab-btn" id="tab-abonos-btn" onclick="switchTab('abonos',this)">Abonos</button>
       <button class="tab-btn" id="tab-misreservas-btn"
 			  onclick="switchTab('misreservas',this)">Mis reservas</button>
 	  <button class="tab-btn" onclick="switchTab('mapa',this)">🗺️ Mapa del Club</button>
@@ -1160,16 +1160,31 @@
 			  if (esSocio) {
 			    document.getElementById('nav-socio-badge').style.display = 'inline-block';
 			  }
-			  // Mostrar saldo
+
+			  // === NO SOCIO: Ocultar billetera, perfil y abonos ===
+			  if (!esSocio) {
+			    document.getElementById('nav-billetera-badge').style.display = 'none';
+			    document.getElementById('btn-mi-perfil').style.display = 'none';
+			    document.getElementById('tab-abonos-btn').style.display = 'none';
+			  }
+
+			  // Mostrar saldo (solo si socio)
 			  actualizarSaldoNav();
 			  loadPistas();
-			  checkAbonoActivo();
-			  loadPlanesAbono();
+			  if (esSocio) {
+			    checkAbonoActivo();
+			    loadPlanesAbono();
+			  }
 			  loadNotificaciones();
 			  notificationsRefreshTimer = setInterval(loadNotificaciones, 60000);
 			});
 
 			function actualizarSaldoNav() {
+			  const esSocio = localStorage.getItem('esSocio') === 'true';
+			  if (!esSocio) {
+			    document.getElementById('nav-billetera-badge').style.display = 'none';
+			    return;
+			  }
 			  const saldo = parseFloat(localStorage.getItem('billetera') || '0');
 			  document.getElementById('nav-saldo').textContent = saldo.toFixed(2);
 			}
@@ -2138,8 +2153,9 @@
 			    );
 			    if (res.ok) {
 			      const data = await res.json();
-			      const saldoPrevio = parseFloat(localStorage.getItem('billetera') || 0);
-			      if (data.saldoRestante != null) {
+			      // Reembolso a billetera (socios)
+			      if (data.reembolsoMetodo === 'BILLETERA' && data.saldoRestante != null) {
+			        const saldoPrevio = parseFloat(localStorage.getItem('billetera') || 0);
 			        localStorage.setItem('billetera', data.saldoRestante);
 			        actualizarSaldoNav();
 			        const reembolso = parseFloat(data.saldoRestante) - saldoPrevio;
@@ -2147,7 +2163,14 @@
 			          ? `Cancelada · +${fmtEur(reembolso)} devueltos a tu billetera`
 			          : 'Reserva cancelada correctamente.';
 			        toast(msg, 'ok');
-			      } else {
+			      }
+			      // Reembolso externo (tarjeta, Bizum, transferencia)
+			      else if (data.reembolsoMetodo && data.reembolsoImporte) {
+			        const metodo = data.reembolsoMetodo.toLowerCase();
+			        toast(`Cancelada · Se procesará la devolución de ${fmtEur(data.reembolsoImporte)} por ${metodo} en 3-5 días hábiles.`, 'ok');
+			      }
+			      // Sin reembolso (reserva no pagada)
+			      else {
 			        toast('Reserva cancelada correctamente.', 'ok');
 			      }
 			      loadMisReservas();
@@ -2284,6 +2307,13 @@
 			let metodoAbonoSeleccionado = null;
 
 			function abrirSuscripcionAbono(planId) {
+				// Bloquear para NO SOCIOS
+				const esSocioAbono = localStorage.getItem('esSocio') === 'true';
+				if (!esSocioAbono) {
+					toast('Los usuarios NO SOCIOS no pueden comprar planes de abono. Debes ser socio del club.', 'err');
+					return;
+				}
+
 				planAbonoSeleccionado = planesAbonoGlobal.find(p => (p.planAbonoId || p.id) === planId);
 				if (!planAbonoSeleccionado) return;
 

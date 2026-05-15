@@ -71,6 +71,11 @@ public class AbonoUsuarioService {
         Usuario titular = usuarioRepository.findById(titularId)
                 .orElseThrow(() -> new RuntimeException("Titular no encontrado"));
 
+        // Validar que el usuario sea socio antes de cualquier otra comprobación
+        if (!titular.isEsSocio()) {
+            throw new RuntimeException("Los usuarios NO SOCIOS no pueden comprar planes de abono. Debes ser socio del club para suscribirte.");
+        }
+
         if (obtenerAbonoActivo(titularId).isPresent()) {
             throw new RuntimeException("Ya tienes un abono activo en tu cuenta.");
         }

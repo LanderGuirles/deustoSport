@@ -32,4 +32,9 @@ public class ReservaResponse {
     private boolean puedeCancelarConReembolso;
     private String qrCode;
     private String qrUrl;
+
+    // Campos de reembolso para cancelaciones
+    private BigDecimal reembolsoImporte;
+    private String reembolsoMetodo;
+    private boolean reembolsoProcesado;
 }

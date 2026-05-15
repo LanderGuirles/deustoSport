@@ -126,6 +126,14 @@ public class ReservaController {
             resp.setSaldoRestante(r.getUsuario().getBilletera());
             resp.setPuedeModificar(false);
             resp.setPuedeCancelarConReembolso(false);
+
+            // Info de reembolso
+            if (r.getMetodoPago() != null && r.getPrecioTotal() != null) {
+                resp.setReembolsoImporte(r.getPrecioTotal());
+                resp.setReembolsoMetodo(r.getMetodoPago().name());
+                resp.setReembolsoProcesado(r.getMetodoPago() == com.deustosport.my_app.enums.MetodoPago.BILLETERA);
+            }
+
             return ResponseEntity.ok(resp);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
