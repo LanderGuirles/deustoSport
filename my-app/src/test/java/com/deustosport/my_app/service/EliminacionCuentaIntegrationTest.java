@@ -42,10 +42,6 @@ class EliminacionCuentaIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        // Limpiar datos anteriores
-        usuarioRepository.deleteAll();
-        credencialRepository.deleteAll();
-
         // Crear usuario de prueba
         contrasenaOriginal = "TestPassword123!";
         usuarioTest = new Usuario();

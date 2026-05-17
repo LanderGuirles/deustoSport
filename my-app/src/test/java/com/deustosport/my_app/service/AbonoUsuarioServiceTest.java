@@ -48,6 +48,7 @@ class AbonoUsuarioServiceTest {
         titular.setEmail("titular@deustosport.com");
         titular.setFechaNacimiento(LocalDate.of(1990, 1, 1)); // 36 años
         titular.setBilletera(new BigDecimal("100.00"));
+        titular.setEsSocio(true);
 
         planMensual = new PlanAbono();
         planMensual.setId(10L);

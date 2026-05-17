@@ -31,6 +31,8 @@ class ReservaServiceTest {
         @Mock private PagoService pagoService;
         @Mock private NotificacionService notificacionService;
         @Mock private AbonoUsuarioService abonoUsuarioService;
+        @Mock private QRCodeService qrCodeService;
+        @Mock private FestivoService festivoService;
 
     @InjectMocks
     private ReservaService reservaService;
