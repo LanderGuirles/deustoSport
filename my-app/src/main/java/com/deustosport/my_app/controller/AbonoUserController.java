@@ -49,7 +49,15 @@ public class AbonoUserController {
             @PathVariable("usuarioId") Long usuarioId,
             @RequestBody AbonoUsuarioRequest request) {
         try {
-            AbonoUsuario abono = abonoService.comprarAbono(usuarioId, request.getPlanAbonoId(), request.getEmailsBeneficiarios(), request.getMetodoPago());
+            AbonoUsuario abono = abonoService.comprarAbono(
+                    usuarioId, 
+                    request.getPlanAbonoId(), 
+                    request.getEmailsBeneficiarios(), 
+                    request.getMetodoPago(),
+                    request.getAmbito(),
+                    request.getPolideportivoId(),
+                    request.getAyuntamientoId()
+            );
             return ResponseEntity.ok(mapearResponse(abono));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Collections.singletonMap("error", e.getMessage()));

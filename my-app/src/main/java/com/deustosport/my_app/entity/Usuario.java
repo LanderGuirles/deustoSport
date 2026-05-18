@@ -87,6 +87,7 @@ public class Usuario {
                 throw new IllegalStateException("Los usuarios de tipo AYUNTAMIENTO deben estar asociados a un ayuntamiento");
             }
         }
+        // Los CLIENTEs pueden no tener polideportivo ni ayuntamiento inicialmente
     }
 
     // Compatibility helpers for tests that used separate nombre/apellidos
