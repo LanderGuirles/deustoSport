@@ -4,7 +4,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.deustosport.my_app.dto.PistaRequest;
 import com.deustosport.my_app.dto.PistaResponse;
-import com.deustosport.my_app.entity.Instalacion;
+import com.deustosport.my_app.entity.Polideportivo;
 import com.deustosport.my_app.entity.Pista;
 import com.deustosport.my_app.service.PistaService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -48,10 +48,10 @@ public class PistaController {
             nuevaPista.setTipoDeporte(pistaDto.getTipoDeporte());
             nuevaPista.setMaxJugadores(pistaDto.getMaxJugadores());
             
-            // Creamos un objeto Instalacion solo con el ID
-            Instalacion inst = new Instalacion();
-            inst.setId(pistaDto.getInstalacionId()); 
-            nuevaPista.setInstalacion(inst);
+            // Creamos un objeto Polideportivo solo con el ID
+            Polideportivo poli = new Polideportivo();
+            poli.setId(pistaDto.getPolideportivoId()); 
+            nuevaPista.setPolideportivo(poli);
 
             // Llamamos al service
             Pista pistaGuardada = pistaService.registrarNuevaPista(nuevaPista);

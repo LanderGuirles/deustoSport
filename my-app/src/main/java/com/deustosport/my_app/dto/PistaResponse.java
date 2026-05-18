@@ -11,6 +11,6 @@ public class PistaResponse {
     private TipoDeporte tipoDeporte;
     private Integer maxJugadores;
     private boolean activa;
-    private Long instalacionId;
-    private String instalacionNombre;
+    private Long polideportivoId;
+    private String polideportivoNombre;
 }

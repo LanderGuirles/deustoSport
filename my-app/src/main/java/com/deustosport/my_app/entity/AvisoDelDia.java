@@ -77,7 +77,7 @@ public class AvisoDelDia {
      * o novedad comunicada a los usuarios.
      * Longitud máxima: 1000 caracteres.
      * Ejemplo: "Las duchas de la planta baja estarán fuera de servicio
-     *            hasta las 16:00 h. de hoy por una avería en la instalación."
+     *            hasta las 16:00 h. de hoy por una avería en el polideportivo."
      */
     @Column(nullable = false, length = 1000)
     private String mensaje;

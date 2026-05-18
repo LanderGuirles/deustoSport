@@ -32,11 +32,11 @@ public class EstadisticasController {
         return ResponseEntity.ok(estadisticasService.obtenerEstadisticas());
     }
 
-    @GetMapping("/reservas-por-instalacion")
+    @GetMapping("/reservas-por-polideportivo")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Reservas agrupadas por instalación")
-    public ResponseEntity<Map<String, Long>> obtenerEstadisticasReservasPorInstalacion() {
-        return ResponseEntity.ok(estadisticasService.obtenerEstadisticasReservasPorInstalacion());
+    @Operation(summary = "Reservas agrupadas por polideportivo")
+    public ResponseEntity<Map<String, Long>> obtenerEstadisticasReservasPorPolideportivo() {
+        return ResponseEntity.ok(estadisticasService.obtenerEstadisticasReservasPorPolideportivo());
     }
 
     @GetMapping("/reservas-por-dia")
@@ -47,9 +47,6 @@ public class EstadisticasController {
         return ResponseEntity.ok(estadisticasService.obtenerEstadisticasReservasPorDia(dias));
     }
 
-    /**
-     * Obtener estadísticas generales
-     */
     @GetMapping("/generales")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Estadísticas generales del sistema")
@@ -58,9 +55,6 @@ public class EstadisticasController {
         return ResponseEntity.ok(stats);
     }
 
-    /**
-     * Estadísticas de reservas por mes
-     */
     @GetMapping("/reservas/mes/{year}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Estadísticas de reservas por mes")
@@ -69,9 +63,6 @@ public class EstadisticasController {
         return ResponseEntity.ok(stats);
     }
 
-    /**
-     * Estadísticas de uso de pistas
-     */
     @GetMapping("/pistas/uso")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Estadísticas de uso de pistas")
@@ -80,9 +71,6 @@ public class EstadisticasController {
         return ResponseEntity.ok(stats);
     }
 
-    /**
-     * Top usuarios por reservas
-     */
     @GetMapping("/usuarios/top")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Top usuarios por número de reservas")
@@ -92,9 +80,6 @@ public class EstadisticasController {
         return ResponseEntity.ok(stats);
     }
 
-    /**
-     * Estadísticas de pagos
-     */
     @GetMapping("/pagos")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Estadísticas de métodos de pago")
@@ -103,9 +88,6 @@ public class EstadisticasController {
         return ResponseEntity.ok(stats);
     }
 
-    /**
-     * Estadísticas de ocupación semanal
-     */
     @GetMapping("/ocupacion/semanal")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Estadísticas de ocupación por día de la semana")
@@ -114,9 +96,6 @@ public class EstadisticasController {
         return ResponseEntity.ok(stats);
     }
 
-    /**
-     * Estadísticas por tipo de deporte
-     */
     @GetMapping("/deportes")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Estadísticas por tipo de deporte")
@@ -125,9 +104,6 @@ public class EstadisticasController {
         return ResponseEntity.ok(stats);
     }
 
-    /**
-     * Reporte de ingresos por rango de fechas
-     */
     @GetMapping("/ingresos")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Reporte de ingresos por rango de fechas")
@@ -138,32 +114,21 @@ public class EstadisticasController {
         return ResponseEntity.ok(reporte);
     }
 
-    /**
-     * Dashboard resumen para admin
-     */
     @GetMapping("/dashboard")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Dashboard con métricas principales")
     public ResponseEntity<Map<String, Object>> obtenerDashboard() {
         Map<String, Object> dashboard = estadisticasService.obtenerEstadisticasGenerales();
-
-        // Añadir algunas métricas adicionales
         dashboard.put("titulo", "Dashboard DeustoSport");
         dashboard.put("fechaGeneracion", LocalDate.now());
-
         return ResponseEntity.ok(dashboard);
     }
 
-    /**
-     * Estadísticas de usuarios
-     */
     @GetMapping("/usuarios")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Estadísticas de usuarios")
     public ResponseEntity<Map<String, Object>> obtenerEstadisticasUsuarios() {
         Map<String, Object> stats = estadisticasService.obtenerEstadisticasGenerales();
-
-        // Filtrar solo estadísticas de usuarios
         Map<String, Object> userStats = Map.of(
                 "totalUsuarios", stats.get("totalUsuarios"),
                 "usuariosActivos", stats.get("usuariosActivos"),
@@ -171,20 +136,14 @@ public class EstadisticasController {
                 "porcentajeSocios", stats.containsKey("totalUsuarios") && (Long)stats.get("totalUsuarios") > 0 ?
                         (Long)stats.get("usuariosSocios") * 100.0 / (Long)stats.get("totalUsuarios") : 0.0
         );
-
         return ResponseEntity.ok(userStats);
     }
 
-    /**
-     * Estadísticas de reservas
-     */
     @GetMapping("/reservas")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Estadísticas de reservas")
     public ResponseEntity<Map<String, Object>> obtenerEstadisticasReservas() {
         Map<String, Object> stats = estadisticasService.obtenerEstadisticasGenerales();
-
-        // Filtrar solo estadísticas de reservas
         Map<String, Object> reservaStats = Map.of(
                 "totalReservas", stats.get("totalReservas"),
                 "reservasConfirmadas", stats.get("reservasConfirmadas"),
@@ -193,31 +152,21 @@ public class EstadisticasController {
                 "tasaConfirmacion", stats.containsKey("totalReservas") && (Long)stats.get("totalReservas") > 0 ?
                         (Long)stats.get("reservasConfirmadas") * 100.0 / (Long)stats.get("totalReservas") : 0.0
         );
-
         return ResponseEntity.ok(reservaStats);
     }
 
-    /**
-     * Estadísticas financieras
-     */
     @GetMapping("/financieras")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Estadísticas financieras")
     public ResponseEntity<Map<String, Object>> obtenerEstadisticasFinancieras() {
         Map<String, Object> stats = estadisticasService.obtenerEstadisticasGenerales();
-
-        // Filtrar solo estadísticas financieras
         Map<String, Object> finStats = Map.of(
                 "ingresosTotales", stats.get("ingresosTotales"),
                 "ingresosMesActual", stats.get("ingresosMesActual")
         );
-
         return ResponseEntity.ok(finStats);
     }
 
-    /**
-     * Reporte de uso y rentabilidad de una pista
-     */
     @GetMapping("/reportes/pista/{pistaId}")
     @PreAuthorize("hasRole('COORDINADOR') or hasRole('ADMIN')")
     @Operation(summary = "Reporte de uso y rentabilidad de una pista")
@@ -232,9 +181,6 @@ public class EstadisticasController {
         return ResponseEntity.ok(reporte);
     }
 
-    /**
-     * Reporte consolidado de uso y rentabilidad de todas las pistas
-     */
     @GetMapping("/reportes/uso-pistas")
     @PreAuthorize("hasRole('COORDINADOR') or hasRole('ADMIN')")
     @Operation(summary = "Reporte consolidado de uso y rentabilidad de todas las pistas")
@@ -245,9 +191,6 @@ public class EstadisticasController {
         return ResponseEntity.ok(reporte);
     }
 
-    /**
-     * Reporte de uso y rentabilidad para la semana actual
-     */
     @GetMapping("/reportes/uso-pistas/semana-actual")
     @PreAuthorize("hasRole('COORDINADOR') or hasRole('ADMIN')")
     @Operation(summary = "Reporte de uso y rentabilidad para la semana actual")
@@ -260,9 +203,6 @@ public class EstadisticasController {
         return ResponseEntity.ok(reporte);
     }
 
-    /**
-     * Reporte de uso y rentabilidad para el mes actual
-     */
     @GetMapping("/reportes/uso-pistas/mes-actual")
     @PreAuthorize("hasRole('COORDINADOR') or hasRole('ADMIN')")
     @Operation(summary = "Reporte de uso y rentabilidad para el mes actual")

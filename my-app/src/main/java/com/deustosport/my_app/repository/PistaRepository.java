@@ -14,7 +14,7 @@ public interface PistaRepository extends JpaRepository<Pista, Long> {
 
     List<Pista> findByTipoDeporte(TipoDeporte tipoDeporte);
 
-    List<Pista> findByInstalacionId(Long instalacionId);
+    List<Pista> findByPolideportivoId(Long polideportivoId);
 
     List<Pista> findByActivaTrue();
 }

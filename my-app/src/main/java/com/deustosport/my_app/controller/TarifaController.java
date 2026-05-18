@@ -45,6 +45,12 @@ public class TarifaController {
         }
     }
 
+    @GetMapping("/polideportivo/{polideportivoId}")
+    @Operation(summary = "Tarifas de un polideportivo concreto")
+    public ResponseEntity<List<Tarifa>> listarPorPolideportivo(@PathVariable("polideportivoId") Long polideportivoId) {
+        return ResponseEntity.ok(tarifaService.obtenerPorPolideportivo(polideportivoId));
+    }
+
     @PostMapping
     @Operation(summary = "Crear tarifa")
     public ResponseEntity<?> crearTarifa(@RequestBody Tarifa tarifa) {

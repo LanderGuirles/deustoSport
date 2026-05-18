@@ -202,6 +202,10 @@
           localStorage.setItem('esSocio', data.esSocio === true ? 'true' : 'false');
           localStorage.setItem('billetera', data.billetera != null ? data.billetera : '0');
 
+          // Persistir IDs de contexto para paneles
+          if (data.ayuntamientoId) localStorage.setItem('ayuntamientoId', data.ayuntamientoId);
+          if (data.polideportivoId) localStorage.setItem('polideportivoId', data.polideportivoId);
+
           if (rol === 'SECRETARIA') {
             window.location.href = 'secretaria-panel.html';
           } else if (rol === 'COORDINADOR') {

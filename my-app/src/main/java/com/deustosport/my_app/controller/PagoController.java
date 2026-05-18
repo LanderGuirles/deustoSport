@@ -51,4 +51,16 @@ public class PagoController {
     public ResponseEntity<?> obtenerRecaudacionMesActual() {
         return ResponseEntity.ok(pagoService.obtenerRecaudacionMesActual());
     }
-}
+
+    @GetMapping("/recaudacion/ayuntamiento/{ayuntamientoId}")
+    @Operation(summary = "Obtener recaudación del mes actual para un ayuntamiento")
+    public ResponseEntity<Map<String, Object>> obtenerRecaudacionAyuntamiento(@PathVariable Long ayuntamientoId) {
+        return ResponseEntity.ok(pagoService.obtenerRecaudacionAyuntamiento(ayuntamientoId));
+    }
+
+    @GetMapping("/recaudacion/ayuntamiento/{ayuntamientoId}/desglose")
+    @Operation(summary = "Obtener desglose de recaudación por centro para un ayuntamiento")
+    public ResponseEntity<java.util.List<Map<String, Object>>> obtenerDesglosePorCentro(@PathVariable Long ayuntamientoId) {
+        return ResponseEntity.ok(pagoService.obtenerDesglosePorCentro(ayuntamientoId));
+    }
+    }

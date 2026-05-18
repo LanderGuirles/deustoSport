@@ -3,12 +3,12 @@ package com.deustosport.my_app.service;
 import com.deustosport.my_app.dto.IncidenciaResponse;
 import com.deustosport.my_app.dto.RegistrarIncidenciaRequest;
 import com.deustosport.my_app.entity.Incidencia;
-import com.deustosport.my_app.entity.Instalacion;
+import com.deustosport.my_app.entity.Polideportivo;
 import com.deustosport.my_app.entity.Pista;
 import com.deustosport.my_app.entity.Usuario;
 import com.deustosport.my_app.enums.EstadoIncidencia;
 import com.deustosport.my_app.repository.IncidenciaRepository;
-import com.deustosport.my_app.repository.InstalacionRepository;
+import com.deustosport.my_app.repository.PolideportivoRepository;
 import com.deustosport.my_app.repository.PistaRepository;
 import com.deustosport.my_app.repository.UsuarioRepository;
 import java.util.List;
@@ -22,18 +22,18 @@ public class IncidenciaService {
 
     private final IncidenciaRepository incidenciaRepository;
     private final UsuarioRepository usuarioRepository;
-    private final InstalacionRepository instalacionRepository;
+    private final PolideportivoRepository polideportivoRepository;
     private final PistaRepository pistaRepository;
     private final NotificacionService notificacionService;
 
     public IncidenciaService(IncidenciaRepository incidenciaRepository,
                              UsuarioRepository usuarioRepository,
-                             InstalacionRepository instalacionRepository,
+                             PolideportivoRepository polideportivoRepository,
                              PistaRepository pistaRepository,
                              NotificacionService notificacionService) {
         this.incidenciaRepository = incidenciaRepository;
         this.usuarioRepository = usuarioRepository;
-        this.instalacionRepository = instalacionRepository;
+        this.polideportivoRepository = polideportivoRepository;
         this.pistaRepository = pistaRepository;
         this.notificacionService = notificacionService;
     }
@@ -45,8 +45,8 @@ public class IncidenciaService {
         if (request.getUsuarioId() == null) {
             throw new IllegalArgumentException("El usuario que reporta es obligatorio.");
         }
-        if (request.getInstalacionId() == null) {
-            throw new IllegalArgumentException("La instalación es obligatoria.");
+        if (request.getPolideportivoId() == null) {
+            throw new IllegalArgumentException("El polideportivo es obligatorio.");
         }
         if (request.getTitulo() == null || request.getTitulo().isBlank()) {
             throw new IllegalArgumentException("El título de la incidencia es obligatorio.");
@@ -57,21 +57,21 @@ public class IncidenciaService {
 
         Usuario reportadaPor = usuarioRepository.findById(request.getUsuarioId())
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
-        Instalacion instalacion = instalacionRepository.findById(request.getInstalacionId())
-                .orElseThrow(() -> new IllegalArgumentException("Instalación no encontrada"));
+        Polideportivo polideportivo = polideportivoRepository.findById(request.getPolideportivoId())
+                .orElseThrow(() -> new IllegalArgumentException("Polideportivo no encontrado"));
 
         Pista pista = null;
         if (request.getPistaId() != null) {
             pista = pistaRepository.findById(request.getPistaId())
                     .orElseThrow(() -> new IllegalArgumentException("Pista no encontrada"));
-            if (!pista.getInstalacion().getId().equals(instalacion.getId())) {
-                throw new IllegalArgumentException("La pista no pertenece a la instalación seleccionada.");
+            if (!pista.getPolideportivo().getId().equals(polideportivo.getId())) {
+                throw new IllegalArgumentException("La pista no pertenece al polideportivo seleccionado.");
             }
         }
 
         Incidencia incidencia = new Incidencia();
         incidencia.setReportadaPor(reportadaPor);
-        incidencia.setInstalacion(instalacion);
+        incidencia.setPolideportivo(polideportivo);
         incidencia.setPista(pista);
         incidencia.setTitulo(request.getTitulo().trim());
         incidencia.setDescripcion(request.getDescripcion().trim());
@@ -101,8 +101,8 @@ public class IncidenciaService {
         response.setId(incidencia.getId());
         response.setReportadaPorId(incidencia.getReportadaPor().getId());
         response.setReportadaPorNombre(incidencia.getReportadaPor().getNombreCompleto());
-        response.setInstalacionId(incidencia.getInstalacion().getId());
-        response.setInstalacionNombre(incidencia.getInstalacion().getNombre());
+        response.setPolideportivoId(incidencia.getPolideportivo().getId());
+        response.setPolideportivoNombre(incidencia.getPolideportivo().getNombre());
         response.setPistaId(incidencia.getPista() != null ? incidencia.getPista().getId() : null);
         response.setPistaNombre(incidencia.getPista() != null ? incidencia.getPista().getNombre() : null);
         response.setTitulo(incidencia.getTitulo());

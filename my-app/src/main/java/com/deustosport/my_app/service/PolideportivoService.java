@@ -1,6 +1,7 @@
 package com.deustosport.my_app.service;
 
 import com.deustosport.my_app.entity.Polideportivo;
+import com.deustosport.my_app.entity.Pista;
 import com.deustosport.my_app.repository.PolideportivoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,13 @@ public class PolideportivoService {
         return polideportivoRepository.findByAyuntamientoId(ayuntamientoId);
     }
 
+    @Transactional(readOnly = true)
+    public List<Pista> obtenerPistasByPolideportivo(Long polideportivoId) {
+        Polideportivo polideportivo = polideportivoRepository.findById(polideportivoId)
+                .orElseThrow(() -> new IllegalArgumentException("Polideportivo no encontrado"));
+        return polideportivo.getPistas();
+    }
+
     @Transactional
     public Polideportivo actualizarHorarioGeneral(Long polideportivoId, LocalTime horaApertura, LocalTime horaCierre) {
         Objects.requireNonNull(polideportivoId, "polideportivoId no puede ser null");
@@ -48,6 +56,29 @@ public class PolideportivoService {
 
     @Transactional
     public Polideportivo crearPolideportivo(Polideportivo polideportivo) {
+        if (polideportivoRepository.findAll().stream().anyMatch(p -> 
+            p.getNombre().equalsIgnoreCase(polideportivo.getNombre()) && 
+            p.getDireccion().equalsIgnoreCase(polideportivo.getDireccion()))) {
+            throw new IllegalArgumentException("Ya existe un polideportivo con el mismo nombre y dirección.");
+        }
         return polideportivoRepository.save(polideportivo);
+    }
+
+    @Transactional
+    public Polideportivo actualizarPolideportivo(Long id, String nombre, String direccion) {
+        Polideportivo poli = polideportivoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Polideportivo no encontrado"));
+        
+        // Verificar duplicados excluyendo el actual
+        if (polideportivoRepository.findAll().stream().anyMatch(p -> 
+            !p.getId().equals(id) &&
+            p.getNombre().equalsIgnoreCase(nombre) && 
+            p.getDireccion().equalsIgnoreCase(direccion))) {
+            throw new IllegalArgumentException("Ya existe otro polideportivo con el mismo nombre y dirección.");
+        }
+
+        poli.setNombre(nombre);
+        poli.setDireccion(direccion);
+        return polideportivoRepository.save(poli);
     }
 }

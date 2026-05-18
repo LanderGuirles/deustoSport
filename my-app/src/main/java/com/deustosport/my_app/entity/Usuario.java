@@ -10,9 +10,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -60,9 +63,32 @@ public class Usuario {
     @Column(nullable = false, length = 20)
     private Rol rol;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "polideportivo_id")
+    private Polideportivo polideportivo;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ayuntamiento_id")
+    private Ayuntamiento ayuntamiento;
+
     // ACTUALIZADO: mappedBy apunta al nuevo campo "titular"
     @OneToMany(mappedBy = "titular", cascade = CascadeType.ALL)
     private List<AbonoUsuario> abonos = new ArrayList<>();
+
+    @jakarta.persistence.PrePersist
+    @jakarta.persistence.PreUpdate
+    private void validarRol() {
+        if (rol == Rol.SECRETARIA || rol == Rol.COORDINADOR || rol == Rol.MANTENIMIENTO) {
+            if (polideportivo == null) {
+                throw new IllegalStateException("Los usuarios de tipo " + rol + " deben estar asociados a un polideportivo");
+            }
+        } else if (rol == Rol.AYUNTAMIENTO) {
+            if (ayuntamiento == null) {
+                throw new IllegalStateException("Los usuarios de tipo AYUNTAMIENTO deben estar asociados a un ayuntamiento");
+            }
+        }
+        // Los CLIENTEs pueden no tener polideportivo ni ayuntamiento inicialmente
+    }
 
     // Compatibility helpers for tests that used separate nombre/apellidos
     @jakarta.persistence.Transient

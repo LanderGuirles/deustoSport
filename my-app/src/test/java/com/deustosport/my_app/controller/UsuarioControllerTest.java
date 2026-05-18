@@ -39,7 +39,7 @@ class UsuarioControllerTest {
     private ObjectMapper objectMapper;
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = "AYUNTAMIENTO")
     void registrarUsuario_debeRetornarUsuarioCreado() throws Exception {
         log.info("[TEST] registrarUsuario - debe retornar usuario creado correctamente");
         RegistroUsuarioRequest request = new RegistroUsuarioRequest();
@@ -60,7 +60,7 @@ class UsuarioControllerTest {
         usuario.setBilletera(BigDecimal.ZERO);
         usuario.setActivo(true);
 
-        when(usuarioService.registrarUsuario(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean()))
+        when(usuarioService.registrarUsuario(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean(), any(), any(), any()))
             .thenReturn(usuario);
 
         mockMvc.perform(post("/api/usuarios/registro")

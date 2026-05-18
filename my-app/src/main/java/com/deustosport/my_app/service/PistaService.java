@@ -4,9 +4,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.deustosport.my_app.dto.PistaRequest;
 import com.deustosport.my_app.dto.PistaResponse;
-import com.deustosport.my_app.entity.Instalacion;
+import com.deustosport.my_app.entity.Polideportivo;
 import com.deustosport.my_app.entity.Pista;
-import com.deustosport.my_app.repository.InstalacionRepository;
+import com.deustosport.my_app.repository.PolideportivoRepository;
 import com.deustosport.my_app.repository.PistaRepository;
 import com.deustosport.my_app.repository.ReservaRepository;
 import com.deustosport.my_app.entity.Reserva;
@@ -20,16 +20,16 @@ import java.util.stream.Collectors;
 public class PistaService {
 
     private final PistaRepository pistaRepository;
-    private final InstalacionRepository instalacionRepository;
+    private final PolideportivoRepository polideportivoRepository;
     private final ReservaRepository reservaRepository;
     private final ReservaService reservaService;
 
     public PistaService(PistaRepository pistaRepository, 
-                        InstalacionRepository instalacionRepository,
+                        PolideportivoRepository polideportivoRepository,
                         ReservaRepository reservaRepository,
                         @Lazy ReservaService reservaService) {
         this.pistaRepository = pistaRepository;
-        this.instalacionRepository = instalacionRepository;
+        this.polideportivoRepository = polideportivoRepository;
         this.reservaRepository = reservaRepository;
         this.reservaService = reservaService;
     }
@@ -44,21 +44,21 @@ public class PistaService {
         pistaResponseDto.setMaxJugadores(pista.getMaxJugadores());
         pistaResponseDto.setActiva(pista.isActiva());
 
-        if (pista.getInstalacion() != null) {
-            pistaResponseDto.setInstalacionId(pista.getInstalacion().getId());
-            pistaResponseDto.setInstalacionNombre(pista.getInstalacion().getNombre());
+        if (pista.getPolideportivo() != null) {
+            pistaResponseDto.setPolideportivoId(pista.getPolideportivo().getId());
+            pistaResponseDto.setPolideportivoNombre(pista.getPolideportivo().getNombre());
         }
 
         return pistaResponseDto;
     }
 
     @Transactional
-    public List<Pista> obtenerPistasPorInstalacionId(Long instalacionId){
-        Objects.requireNonNull(instalacionId, "instalacionId no puede ser null");
-        if (!instalacionRepository.existsById(instalacionId)) {
-            throw new RuntimeException("No se puede listar: La instalación con ID " + instalacionId + " no existe.");
+    public List<Pista> obtenerPistasPorPolideportivoId(Long polideportivoId){
+        Objects.requireNonNull(polideportivoId, "polideportivoId no puede ser null");
+        if (!polideportivoRepository.existsById(polideportivoId)) {
+            throw new RuntimeException("No se puede listar: El polideportivo con ID " + polideportivoId + " no existe.");
         }
-        return pistaRepository.findByInstalacionId(instalacionId);
+        return pistaRepository.findByPolideportivoId(polideportivoId);
     }
 
 
@@ -81,18 +81,18 @@ public class PistaService {
             throw new RuntimeException("Ya existe una pista con ese nombre.");
         }
 
-        // Comprobar que venga el ID de la instalación
-        if (nuevaPista.getInstalacion() == null || nuevaPista.getInstalacion().getId() == null) {
-            throw new RuntimeException("Error: La pista debe estar vinculada a una instalación válida.");
+        // Comprobar que venga el ID del polideportivo
+        if (nuevaPista.getPolideportivo() == null || nuevaPista.getPolideportivo().getId() == null) {
+            throw new RuntimeException("Error: La pista debe estar vinculada a un polideportivo válido.");
         }
 
-        Long instalacionId = Objects.requireNonNull(nuevaPista.getInstalacion().getId(), "instalacionId no puede ser null");
+        Long polideportivoId = Objects.requireNonNull(nuevaPista.getPolideportivo().getId(), "polideportivoId no puede ser null");
         
-        // Buscamos la instalación real
-        Instalacion instalacionAsociada = instalacionRepository.findById(instalacionId)
-                .orElseThrow(() -> new RuntimeException("Error: No se encontró la instalación con ID: " + instalacionId));
+        // Buscamos el polideportivo real
+        Polideportivo polideportivoAsociado = polideportivoRepository.findById(polideportivoId)
+                .orElseThrow(() -> new RuntimeException("Error: No se encontró el polideportivo con ID: " + polideportivoId));
 
-        nuevaPista.setInstalacion(instalacionAsociada);
+        nuevaPista.setPolideportivo(polideportivoAsociado);
         nuevaPista.setActiva(true);
 
         return pistaRepository.save(nuevaPista);
@@ -113,11 +113,11 @@ public class PistaService {
         pistaExistente.setMaxJugadores(pistaRequestDTO.getMaxJugadores());
         pistaExistente.setActiva(pistaRequestDTO.isActiva());
 
-        Long nuevaInstalacionId = Objects.requireNonNull(pistaRequestDTO.getInstalacionId(), "instalacionId no puede ser null");
-        if (!pistaExistente.getInstalacion().getId().equals(nuevaInstalacionId)) {
-        Instalacion nuevaInst = instalacionRepository.findById(nuevaInstalacionId)
-            .orElseThrow(() -> new RuntimeException("La nueva instalación con ID " + nuevaInstalacionId + " no existe."));
-        pistaExistente.setInstalacion(nuevaInst);
+        Long nuevoPolideportivoId = Objects.requireNonNull(pistaRequestDTO.getPolideportivoId(), "polideportivoId no puede ser null");
+        if (!pistaExistente.getPolideportivo().getId().equals(nuevoPolideportivoId)) {
+        Polideportivo nuevoPoli = polideportivoRepository.findById(nuevoPolideportivoId)
+            .orElseThrow(() -> new RuntimeException("El nuevo polideportivo con ID " + nuevoPolideportivoId + " no existe."));
+        pistaExistente.setPolideportivo(nuevoPoli);
     }
 
         Pista pistaGuardada =  pistaRepository.save(pistaExistente);

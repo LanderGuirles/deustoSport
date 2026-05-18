@@ -239,7 +239,7 @@ public class NotificacionService {
         String titulo = "Nueva incidencia de mantenimiento";
         StringBuilder mensaje = new StringBuilder();
         mensaje.append("Se ha registrado una incidencia en ")
-                .append(incidencia.getInstalacion().getNombre());
+                .append(incidencia.getPolideportivo().getNombre());
 
         if (incidencia.getPista() != null) {
             mensaje.append(" - ").append(incidencia.getPista().getNombre());

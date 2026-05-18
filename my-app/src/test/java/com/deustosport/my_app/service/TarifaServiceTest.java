@@ -3,11 +3,15 @@ package com.deustosport.my_app.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.deustosport.my_app.entity.Pista;
+import com.deustosport.my_app.entity.Polideportivo;
 import com.deustosport.my_app.entity.Tarifa;
 import com.deustosport.my_app.enums.TipoDeporte;
 import com.deustosport.my_app.repository.PistaRepository;
@@ -52,12 +56,12 @@ class TarifaServiceTest {
 
         Tarifa tarifa = tarifaValida(TipoDeporte.PADEL, 1, LocalTime.of(9, 0), LocalTime.of(12, 0), "12.00", true);
 
-        when(tarifaRepository.findActiveByDeporteDiaAndFecha(TipoDeporte.PADEL, 1, fecha))
+        when(tarifaRepository.findActiveByDeporteDiaAndFecha(eq(TipoDeporte.PADEL), eq(1), eq(fecha), anyLong()))
                 .thenReturn(List.of(tarifa));
         when(configuracionService.obtenerFactorDescuentoSocio())
                 .thenReturn(new BigDecimal("0.20"));
 
-        BigDecimal precio = tarifaService.calcularPrecio(TipoDeporte.PADEL, fecha, horaInicio, horaFin, true);
+        BigDecimal precio = tarifaService.calcularPrecio(TipoDeporte.PADEL, fecha, horaInicio, horaFin, true, 1L);
 
         assertEquals(new BigDecimal("14.40"), precio);
     }
@@ -69,10 +73,10 @@ class TarifaServiceTest {
         LocalTime horaInicio = LocalTime.of(10, 0);
         LocalTime horaFin = LocalTime.of(10, 45);
 
-        when(tarifaRepository.findActiveByDeporteDiaAndFecha(TipoDeporte.TENIS, 2, fecha))
+        when(tarifaRepository.findActiveByDeporteDiaAndFecha(eq(TipoDeporte.TENIS), eq(2), eq(fecha), anyLong()))
                 .thenReturn(List.of());
 
-        BigDecimal precio = tarifaService.calcularPrecio(TipoDeporte.TENIS, fecha, horaInicio, horaFin, false);
+        BigDecimal precio = tarifaService.calcularPrecio(TipoDeporte.TENIS, fecha, horaInicio, horaFin, false, 1L);
 
         assertEquals(0, precio.compareTo(new BigDecimal("7.50")));
         verify(configuracionService, never()).obtenerFactorDescuentoSocio();
@@ -93,15 +97,20 @@ class TarifaServiceTest {
     @Test
     void obtenerPorPistaId_devuelveSoloTarifasActivas() {
         log.info("[TEST] obtenerPorPistaId_devuelveSoloTarifasActivas - pistaId=11, debe filtrar inactivas");
+        
+        Polideportivo poli = new Polideportivo();
+        poli.setId(1L);
+
         Pista pista = new Pista();
         pista.setId(11L);
         pista.setTipoDeporte(TipoDeporte.TENIS);
+        pista.setPolideportivo(poli);
 
         Tarifa activa = tarifaValida(TipoDeporte.TENIS, 4, LocalTime.of(8, 0), LocalTime.of(9, 0), "10.00", true);
-        Tarifa inactiva = tarifaValida(TipoDeporte.TENIS, 4, LocalTime.of(9, 0), LocalTime.of(10, 0), "10.00", false);
 
         when(pistaRepository.findById(11L)).thenReturn(Optional.of(pista));
-        when(tarifaRepository.findByTipoDeporte(TipoDeporte.TENIS)).thenReturn(List.of(activa, inactiva));
+        when(tarifaRepository.findActiveByDeporteDiaAndFecha(any(), any(), any(), anyLong()))
+                .thenReturn(List.of(activa));
 
         List<Tarifa> tarifas = tarifaService.obtenerPorPistaId(11L);
 

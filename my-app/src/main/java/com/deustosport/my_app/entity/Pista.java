@@ -27,7 +27,7 @@ import lombok.Setter;
         name = "pistas",
         indexes = {
                 @Index(name = "idx_pista_tipo_deporte", columnList = "tipoDeporte"),
-                @Index(name = "idx_pista_instalacion", columnList = "instalacion_id")
+                @Index(name = "idx_pista_polideportivo", columnList = "polideportivo_id")
         }
 )
 public class Pista {
@@ -43,9 +43,10 @@ public class Pista {
     @Column(nullable = false, length = 20)
     private TipoDeporte tipoDeporte;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "instalacion_id")
-    private Instalacion instalacion;
+    @JoinColumn(name = "polideportivo_id")
+    private Polideportivo polideportivo;
 
     @Column(nullable = false)
     private Integer maxJugadores;

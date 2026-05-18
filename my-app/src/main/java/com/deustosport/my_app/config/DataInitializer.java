@@ -67,27 +67,21 @@ public class DataInitializer implements CommandLineRunner {
             "Polideportivo Deusto", "Calle Agirre, 1, Bilbao", "08:00:00", "22:00:00", 1
         );
 
-        // ── Instalación (polideportivo_id = 1) ───────────────────────
+        // ── Pistas (polideportivo_id = 1) ──────────────────────────────
         jdbcTemplate.update(
-            "INSERT INTO instalaciones (nombre, polideportivo_id) VALUES (?,?)",
-            "Zona Principal Deusto", 1
-        );
-
-        // ── Pistas (instalacion_id = 1) ───────────────────────────────
-        jdbcTemplate.update(
-            "INSERT INTO pistas (nombre, tipo_deporte, instalacion_id, max_jugadores, activa) VALUES (?,?,?,?,?)",
+            "INSERT INTO pistas (nombre, tipo_deporte, polideportivo_id, max_jugadores, activa) VALUES (?,?,?,?,?)",
             "Pista Pádel 1", "PADEL", 1, 4, true);
         jdbcTemplate.update(
-            "INSERT INTO pistas (nombre, tipo_deporte, instalacion_id, max_jugadores, activa) VALUES (?,?,?,?,?)",
+            "INSERT INTO pistas (nombre, tipo_deporte, polideportivo_id, max_jugadores, activa) VALUES (?,?,?,?,?)",
             "Pista Pádel 2", "PADEL", 1, 4, true);
         jdbcTemplate.update(
-            "INSERT INTO pistas (nombre, tipo_deporte, instalacion_id, max_jugadores, activa) VALUES (?,?,?,?,?)",
+            "INSERT INTO pistas (nombre, tipo_deporte, polideportivo_id, max_jugadores, activa) VALUES (?,?,?,?,?)",
             "Pista Tenis 1", "TENIS", 1, 4, true);
         jdbcTemplate.update(
-            "INSERT INTO pistas (nombre, tipo_deporte, instalacion_id, max_jugadores, activa) VALUES (?,?,?,?,?)",
+            "INSERT INTO pistas (nombre, tipo_deporte, polideportivo_id, max_jugadores, activa) VALUES (?,?,?,?,?)",
             "Pista Tenis 2", "TENIS", 1, 4, true);
         jdbcTemplate.update(
-            "INSERT INTO pistas (nombre, tipo_deporte, instalacion_id, max_jugadores, activa) VALUES (?,?,?,?,?)",
+            "INSERT INTO pistas (nombre, tipo_deporte, polideportivo_id, max_jugadores, activa) VALUES (?,?,?,?,?)",
             "Pista Fútbol 1", "FUTBOL", 1, 22, true);
 
         // ── Usuarios ─────────────────────────────────────────────────
@@ -95,11 +89,11 @@ public class DataInitializer implements CommandLineRunner {
             "INSERT INTO usuarios (nombre_completo, email, dni, fecha_nacimiento, telefono, activo, es_socio, billetera, rol) VALUES (?,?,?,?,?,?,?,?,?)",
             "Juan García", "juan@deustosport.com", "11111111A", LocalDate.of(1995, 10, 17), "666111222", true, false, 50.00, "CLIENTE");
         jdbcTemplate.update(
-            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol) VALUES (?,?,?,?,?,?,?,?)",
-            "María López", "maria@deustosport.com", "22222222B", "666333444", true, true, 100.00, "SECRETARIA");
+            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol, polideportivo_id) VALUES (?,?,?,?,?,?,?,?,?)",
+            "María López", "maria@deustosport.com", "22222222B", "666333444", true, true, 100.00, "SECRETARIA", 1);
         jdbcTemplate.update(
-            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol) VALUES (?,?,?,?,?,?,?,?)",
-            "Carlos Rodríguez", "carlos@deustosport.com", "33333333C", "666555666", true, false, 75.00, "COORDINADOR");
+            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol, polideportivo_id) VALUES (?,?,?,?,?,?,?,?,?)",
+            "Carlos Rodríguez", "carlos@deustosport.com", "33333333C", "666555666", true, false, 75.00, "COORDINADOR", 1);
         jdbcTemplate.update(
             "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol) VALUES (?,?,?,?,?,?,?,?)",
             "Laura Fernández", "laura@deustosport.com", "44444444D", "666777888", true, false, 30.00, "CLIENTE");
@@ -110,13 +104,13 @@ public class DataInitializer implements CommandLineRunner {
             "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol) VALUES (?,?,?,?,?,?,?,?)",
             "Nerea Sánchez", "nerea@deustosport.com", "66666666F", "666123789", true, false, 5.00, "CLIENTE");
         jdbcTemplate.update(
-            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol) VALUES (?,?,?,?,?,?,?,?)",
+            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol, polideportivo_id) VALUES (?,?,?,?,?,?,?,?,?)",
             "Iker Martín", "iker.mantenimiento@gmail.com",
-            "88888888H", "944204250", true, false, 0.00, "MANTENIMIENTO");
+            "88888888H", "944204250", true, false, 0.00, "MANTENIMIENTO", 1);
         jdbcTemplate.update(
-            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol) VALUES (?,?,?,?,?,?,?,?)",
+            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol, ayuntamiento_id) VALUES (?,?,?,?,?,?,?,?,?)",
             "Ayuntamiento de Bilbao", "ayuntamiento.bilbao@deustosport.com",
-            "77777777G", "944204200", true, false, 0.00, "AYUNTAMIENTO");
+            "77777777G", "944204200", true, false, 0.00, "AYUNTAMIENTO", 1);
 
         // ── Credenciales ─────────────────────────────────────────────
         LocalDateTime ahora = LocalDateTime.now();
@@ -132,59 +126,19 @@ public class DataInitializer implements CommandLineRunner {
             "INSERT INTO credenciales (usuario_id, password_hash, activo, fecha_creacion) VALUES (?,?,?,?)",
             8, hashBilbao, true, ahora);
 
-        // ── Tarifas ──────────────────────────────────────────────────
-        TipoDeporte[] deportes  = {TipoDeporte.PADEL, TipoDeporte.TENIS, TipoDeporte.FUTBOL};
-        BigDecimal[]  valle     = {new BigDecimal("8.00"),  new BigDecimal("7.00"),  new BigDecimal("12.00")};
-        BigDecimal[]  punta     = {new BigDecimal("15.00"), new BigDecimal("13.00"), new BigDecimal("20.00")};
-        BigDecimal[]  finde     = {new BigDecimal("18.00"), new BigDecimal("16.00"), new BigDecimal("25.00")};
-        LocalDate     desde     = LocalDate.of(2026, 1, 1);
-
-        for (int i = 0; i < deportes.length; i++) {
-            // Lunes–Viernes hora valle (8-17)
-            for (int dia = 1; dia <= 5; dia++) {
-                Tarifa t = new Tarifa();
-                t.setTipoDeporte(deportes[i]);
-                t.setDiaSemana(dia);
-                t.setHoraInicio(LocalTime.of(8, 0));
-                t.setHoraFin(LocalTime.of(17, 0));
-                t.setPrecioPorHora(valle[i]);
-                t.setVigenteDesde(desde);
-                t.setActiva(true);
-                tarifaRepository.save(t);
-            }
-            // Lunes–Viernes hora punta (17-22)
-            for (int dia = 1; dia <= 5; dia++) {
-                Tarifa t = new Tarifa();
-                t.setTipoDeporte(deportes[i]);
-                t.setDiaSemana(dia);
-                t.setHoraInicio(LocalTime.of(17, 0));
-                t.setHoraFin(LocalTime.of(22, 0));
-                t.setPrecioPorHora(punta[i]);
-                t.setVigenteDesde(desde);
-                t.setActiva(true);
-                tarifaRepository.save(t);
-            }
-            // Sábado y domingo (8-22)
-            for (int dia = 6; dia <= 7; dia++) {
-                Tarifa t = new Tarifa();
-                t.setTipoDeporte(deportes[i]);
-                t.setDiaSemana(dia);
-                t.setHoraInicio(LocalTime.of(8, 0));
-                t.setHoraFin(LocalTime.of(22, 0));
-                t.setPrecioPorHora(finde[i]);
-                t.setVigenteDesde(desde);
-                t.setActiva(true);
-                tarifaRepository.save(t);
-            }
-        }
-
         log.info("Datos de prueba inicializados correctamente");
-        log.info("Usuarios: juan@deustosport.com / password123 | Pistas: 5 | Tarifas: {}", tarifaRepository.count());
+        log.info("Usuarios: juan@deustosport.com / password123 | Pistas: 5");
     }
 
     private void asegurarCuentaMantenimiento() {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         String email = "iker.mantenimiento@gmail.com";
+
+        com.deustosport.my_app.entity.Polideportivo poli = jdbcTemplate.query("SELECT id FROM polideportivos LIMIT 1", (rs, rowNum) -> {
+            com.deustosport.my_app.entity.Polideportivo p = new com.deustosport.my_app.entity.Polideportivo();
+            p.setId(rs.getLong("id"));
+            return p;
+        }).stream().findFirst().orElse(null);
 
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseGet(() -> {
@@ -197,6 +151,7 @@ public class DataInitializer implements CommandLineRunner {
                     nuevo.setEsSocio(false);
                     nuevo.setBilletera(BigDecimal.ZERO);
                     nuevo.setRol(Rol.MANTENIMIENTO);
+                    nuevo.setPolideportivo(poli);
                     return usuarioRepository.save(nuevo);
                 });
 
@@ -207,6 +162,7 @@ public class DataInitializer implements CommandLineRunner {
         usuario.setEsSocio(false);
         usuario.setBilletera(BigDecimal.ZERO);
         usuario.setRol(Rol.MANTENIMIENTO);
+        usuario.setPolideportivo(poli);
         usuario = usuarioRepository.save(usuario);
 
         Credencial credencial = credencialRepository.findByUsuarioId(usuario.getId())

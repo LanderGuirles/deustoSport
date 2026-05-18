@@ -7,7 +7,7 @@ import lombok.Data;
 public class PistaRequest {
     private String nombre;
     private TipoDeporte tipoDeporte;
-    private Long instalacionId;
+    private Long polideportivoId;
     private Integer maxJugadores;
     private boolean activa = true;
 }

@@ -9,8 +9,8 @@ public class IncidenciaResponse {
     private Long id;
     private Long reportadaPorId;
     private String reportadaPorNombre;
-    private Long instalacionId;
-    private String instalacionNombre;
+    private Long polideportivoId;
+    private String polideportivoNombre;
     private Long pistaId;
     private String pistaNombre;
     private String titulo;

@@ -8,7 +8,6 @@ import static org.mockito.Mockito.when;
 
 import com.deustosport.my_app.dto.PagoReservaRequest;
 import com.deustosport.my_app.dto.ReservaRequest;
-import com.deustosport.my_app.entity.Instalacion;
 import com.deustosport.my_app.entity.Polideportivo;
 import com.deustosport.my_app.entity.Pista;
 import com.deustosport.my_app.entity.Reserva;
@@ -119,14 +118,11 @@ class ReservaControllerTest {
         polideportivo.setHoraApertura(LocalTime.of(8, 0));
         polideportivo.setHoraCierre(LocalTime.of(22, 0));
 
-        Instalacion instalacion = new Instalacion();
-        instalacion.setPolideportivo(polideportivo);
-
         Pista pista = new Pista();
         pista.setId(2L);
         pista.setNombre("Pista Test");
         pista.setTipoDeporte(TipoDeporte.PADEL);
-        pista.setInstalacion(instalacion);
+        pista.setPolideportivo(polideportivo);
 
         Reserva reserva = new Reserva();
         reserva.setId(3L);

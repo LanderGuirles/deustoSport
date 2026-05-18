@@ -9,6 +9,8 @@ public class LoginResponse {
     private String rol;
     private boolean esSocio;
     private BigDecimal billetera;
+    private Long ayuntamientoId;
+    private Long polideportivoId;
     private String mensaje;
     private boolean exitoso;
 
@@ -45,6 +47,12 @@ public class LoginResponse {
 
     public BigDecimal getBilletera() { return billetera; }
     public void setBilletera(BigDecimal billetera) { this.billetera = billetera; }
+
+    public Long getAyuntamientoId() { return ayuntamientoId; }
+    public void setAyuntamientoId(Long ayuntamientoId) { this.ayuntamientoId = ayuntamientoId; }
+
+    public Long getPolideportivoId() { return polideportivoId; }
+    public void setPolideportivoId(Long polideportivoId) { this.polideportivoId = polideportivoId; }
 
     public String getMensaje() { return mensaje; }
     public void setMensaje(String mensaje) { this.mensaje = mensaje; }

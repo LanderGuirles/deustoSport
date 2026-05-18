@@ -44,7 +44,7 @@ public class ReservaService {
     private final TarifaService      tarifaService;
     private final PagoService        pagoService;
     private final NotificacionService notificacionService;
-    private final AbonoUsuarioService abonoUsuarioService; // NUEVA INYECCIÓN
+    private final AbonoUsuarioService abonoUsuarioService;
     private final QRCodeService      qrCodeService;
     private final FestivoService     festivoService;
 
@@ -65,7 +65,7 @@ public class ReservaService {
         this.tarifaService     = tarifaService;
         this.pagoService       = pagoService;
         this.notificacionService = notificacionService;
-        this.abonoUsuarioService = abonoUsuarioService; // INICIALIZACIÓN
+        this.abonoUsuarioService = abonoUsuarioService;
         this.qrCodeService = qrCodeService;
         this.festivoService = festivoService;
     }
@@ -102,7 +102,7 @@ public class ReservaService {
         horaInicio = horaInicio.withSecond(0).withNano(0);
         LocalTime horaFin = horaInicio.plusMinutes(duracionMinutos);
 
-        validarHorarioInstalacion(pista, horaInicio, horaFin);
+        validarHorarioPolideportivo(pista, horaInicio, horaFin);
 
         List<Reserva> conflictos = reservaRepository.findConflictingReservations(
                 pistaId, fecha, horaInicio, horaFin);
@@ -111,9 +111,9 @@ public class ReservaService {
         }
 
         BigDecimal precioTotal = tarifaService.calcularPrecio(
-                pista.getTipoDeporte(), fecha, horaInicio, horaFin, usuario.isEsSocio());
+                pista.getTipoDeporte(), fecha, horaInicio, horaFin, usuario.isEsSocio(),
+                pista.getPolideportivo().getId());
 
-        // ---> LÓGICA NUEVA: APLICAR DESCUENTO DE ABONO <---
         precioTotal = aplicarDescuentoAbonoSiExiste(usuarioId, precioTotal);
 
         Reserva r = new Reserva();
@@ -125,7 +125,6 @@ public class ReservaService {
         r.setPrecioTotal(precioTotal);
         Reserva reservaGuardada = reservaRepository.save(r);
 
-        // Enviar email con detalles de la reserva y código QR
         emailService.enviarEmailCreacionReserva(
             reservaGuardada.getUsuario().getEmail(),
             reservaGuardada.getPista().getNombre(),
@@ -200,7 +199,6 @@ public class ReservaService {
 
         Reserva reservaFinal = reservaRepository.save(reserva);
 
-        // Generar QR y setear URL
         try {
             qrCodeService.generateAndSaveReservaQR(reservaFinal.getId(), reservaFinal.getUsuario().getId(),
                     reservaFinal.getPista().getNombre(), reservaFinal.getFechaReserva().toString(), reservaFinal.getHoraInicio().toString());
@@ -208,10 +206,8 @@ public class ReservaService {
             reservaFinal.setQrUrl(qrUrl);
             reservaRepository.save(reservaFinal);
         } catch (Exception e) {
-            // Log but don't fail if QR generation fails
         }
 
-        // Solo se mueve saldo de billetera cuando el metodo de pago es BILLETERA.
         if (metodoPago == MetodoPago.BILLETERA) {
             Usuario usuario = reserva.getUsuario();
             BigDecimal nuevoSaldo = usuario.getBilletera().subtract(reserva.getPrecioTotal());
@@ -219,7 +215,6 @@ public class ReservaService {
             usuarioRepository.save(usuario);
         }
 
-        // Enviar correo de confirmación de reserva
         emailService.enviarEmailConfirmacionReserva(
             reservaFinal.getUsuario().getEmail(),
             reservaFinal.getPista().getNombre(),
@@ -236,14 +231,12 @@ public class ReservaService {
         return reservaFinal;
     }
 
-    // ─── Mis reservas ─────────────────────────────────────────────────────────
     @Transactional(readOnly = true)
     public List<ReservaResponse> obtenerMisReservas(Long usuarioId) {
         List<Reserva> reservas = reservaRepository.findByUsuarioId(usuarioId);
         return reservas.stream().map(this::toDto).collect(Collectors.toList());
     }
 
-    // ─── Cancelar reserva ─────────────────────────────────────────────────────
     @Transactional
     public Reserva cancelarReserva(Long reservaId, Long usuarioId) {
         Objects.requireNonNull(reservaId, "reservaId no puede ser null");
@@ -262,20 +255,16 @@ public class ReservaService {
             throw new IllegalStateException("Solo se puede cancelar una reserva con mas de 24 horas de antelacion.");
         }
 
-        // Reembolsar si la reserva estaba confirmada (pagada)
         if (reserva.getEstado() == EstadoReserva.CONFIRMADA &&
             reserva.getPrecioTotal() != null &&
             reserva.getMetodoPago() != null) {
 
             if (reserva.getMetodoPago() == MetodoPago.BILLETERA) {
-                // Reembolso directo a billetera
                 Usuario usuario = reserva.getUsuario();
                 BigDecimal nuevoSaldo = usuario.getBilletera().add(reserva.getPrecioTotal());
                 usuario.setBilletera(nuevoSaldo);
                 usuarioRepository.save(usuario);
             } else {
-                // Reembolso externo (TARJETA, BIZUM, TRANSFERENCIA)
-                // Se notifica al usuario que el reembolso se procesará por el mismo método
                 String metodoTexto = reserva.getMetodoPago().name().toLowerCase();
                 String titulo = "Reembolso en proceso";
                 String mensaje = "Se ha iniciado la devolución de " + reserva.getPrecioTotal().toPlainString()
@@ -299,14 +288,12 @@ public class ReservaService {
             return;
         }
 
-        // Solo cancelar si la reserva es futura
         LocalDateTime ahora = LocalDateTime.now();
         LocalDateTime inicioReserva = LocalDateTime.of(reserva.getFechaReserva(), reserva.getHoraInicio());
         if (inicioReserva.isBefore(ahora)) {
             return;
         }
 
-        // Reembolsar siempre si la reserva estaba pagada, ignorando la regla de las 24h
         if (reserva.getEstado() == EstadoReserva.CONFIRMADA &&
                 reserva.getPrecioTotal() != null &&
                 reserva.getMetodoPago() != null) {
@@ -317,13 +304,11 @@ public class ReservaService {
                 usuario.setBilletera(nuevoSaldo);
                 usuarioRepository.save(usuario);
             }
-            // Para métodos externos, el reembolso se notifica en el mensaje
         }
 
         reserva.setEstado(EstadoReserva.CANCELADA);
         reservaRepository.save(reserva);
 
-        // Notificar al usuario
         String titulo = "Reserva cancelada por mantenimiento";
         String reembolsoTexto = "";
         if (reserva.getMetodoPago() == MetodoPago.BILLETERA) {
@@ -372,7 +357,7 @@ public class ReservaService {
         }
 
         Pista pista = reserva.getPista();
-        validarHorarioInstalacion(pista, nuevaHoraInicio, nuevaHoraFin);
+        validarHorarioPolideportivo(pista, nuevaHoraInicio, nuevaHoraFin);
 
         List<Reserva> conflictos = reservaRepository.findConflictingReservationsExcludingReserva(
                 pista.getId(), nuevaFecha, nuevaHoraInicio, nuevaHoraFin, reservaId);
@@ -383,7 +368,8 @@ public class ReservaService {
         BigDecimal precioAnterior = reserva.getPrecioTotal() != null ? reserva.getPrecioTotal() : BigDecimal.ZERO;
         BigDecimal nuevoPrecio = tarifaService.calcularPrecio(
                 pista.getTipoDeporte(), nuevaFecha, nuevaHoraInicio, nuevaHoraFin,
-                reserva.getUsuario().isEsSocio());
+                reserva.getUsuario().isEsSocio(),
+                pista.getPolideportivo().getId());
         nuevoPrecio = aplicarDescuentoAbonoSiExiste(usuarioId, nuevoPrecio);
 
         if (reserva.getEstado() == EstadoReserva.CONFIRMADA && reserva.getMetodoPago() == MetodoPago.BILLETERA) {
@@ -415,8 +401,6 @@ public class ReservaService {
             throw new IllegalStateException("No se puede modificar una reserva cancelada.");
         }
 
-        // Saltamos la comprobación de 24h porque es una acción de secretaría
-
         nuevaHoraInicio = nuevaHoraInicio.withSecond(0).withNano(0);
         LocalTime nuevaHoraFin = nuevaHoraInicio.plusMinutes(duracion);
 
@@ -424,7 +408,7 @@ public class ReservaService {
                 ? pistaRepository.findById(nuevaPistaId).orElseThrow(() -> new IllegalArgumentException("Pista no encontrada"))
                 : reserva.getPista();
 
-        validarHorarioInstalacion(pista, nuevaHoraInicio, nuevaHoraFin);
+        validarHorarioPolideportivo(pista, nuevaHoraInicio, nuevaHoraFin);
 
         List<Reserva> conflictos = reservaRepository.findConflictingReservationsExcludingReserva(
                 pista.getId(), nuevaFecha, nuevaHoraInicio, nuevaHoraFin, reservaId);
@@ -448,7 +432,6 @@ public class ReservaService {
         return fechaHoraReserva.isAfter(LocalDateTime.now().plusHours(ANTELACION_MINIMA_HORAS));
     }
 
-    // ─── Disponibilidad 
     public boolean consultarDisponibilidad(Long pistaId, LocalDate fecha,
                                            LocalTime horaInicio, LocalTime horaFin) {
         Objects.requireNonNull(pistaId, "pistaId no puede ser null");
@@ -463,7 +446,6 @@ public class ReservaService {
                 pistaId, fecha, horaInicio, horaFin).isEmpty();
     }
 
-    // ─── Slots ocupados por pista y rango de fechas (para el calendario) ──────
     @Transactional(readOnly = true)
     public List<Map<String, String>> obtenerOcupadosPorPistaYRango(
             Long pistaId, LocalDate inicio, LocalDate fin) {
@@ -480,7 +462,6 @@ public class ReservaService {
                 .collect(Collectors.toList());
     }
 
-    // precio estimado
     @Transactional(readOnly = true)
     public Map<String, Object> calcularPrecioEstimado(Long pistaId, Long usuarioId,
                                                       LocalDate fecha, LocalTime horaInicio,
@@ -494,11 +475,12 @@ public class ReservaService {
         boolean esSocio = usuario.isEsSocio();
 
         BigDecimal precioSinDescuento = tarifaService.calcularPrecio(
-                pista.getTipoDeporte(), fecha, horaInicio, horaFin, false);
+                pista.getTipoDeporte(), fecha, horaInicio, horaFin, false,
+                pista.getPolideportivo().getId());
         BigDecimal precioFinal = tarifaService.calcularPrecio(
-                pista.getTipoDeporte(), fecha, horaInicio, horaFin, esSocio);
+                pista.getTipoDeporte(), fecha, horaInicio, horaFin, esSocio,
+                pista.getPolideportivo().getId());
 
-        // ---> LÓGICA NUEVA: APLICAR DESCUENTO DE ABONO AL ESTIMADO <---
         precioFinal = aplicarDescuentoAbonoSiExiste(usuarioId, precioFinal);
 
         Map<String, Object> resultado = new LinkedHashMap<>();
@@ -508,7 +490,6 @@ public class ReservaService {
         resultado.put("billetera", usuario.getBilletera());
         resultado.put("saldoSuficiente", usuario.getBilletera().compareTo(precioFinal) >= 0);
         
-        // Si el precio original y el final son distintos, hay descuento (por socio o por abono)
         if (precioSinDescuento.compareTo(precioFinal) > 0) {
              resultado.put("descuentoAplicado", true);
              resultado.put("importeDescuento", precioSinDescuento.subtract(precioFinal));
@@ -522,7 +503,6 @@ public class ReservaService {
     private BigDecimal aplicarDescuentoAbonoSiExiste(Long usuarioId, BigDecimal precioActual) {
         Optional<AbonoUsuario> abonoActivo = abonoUsuarioService.obtenerAbonoActivo(usuarioId);
         if (abonoActivo.isPresent()) {
-            // CAMBIO AQUÍ: getPlan() en lugar de getTarifa().getPlanAbono()
             BigDecimal descuentoPorcentaje = abonoActivo.get().getPlan().getDescuentoPistasPorcentaje();
             if (descuentoPorcentaje != null && descuentoPorcentaje.compareTo(BigDecimal.ZERO) > 0) {
                 BigDecimal factor = BigDecimal.ONE.subtract(descuentoPorcentaje.divide(new BigDecimal("100")));
@@ -532,7 +512,6 @@ public class ReservaService {
         return precioActual;
     }
 
-    // ─── Helpers ──────────────────────────────────────────────────────────────
     private ReservaResponse toDto(Reserva r) {
         ReservaResponse dto = new ReservaResponse();
         dto.setId(r.getId());
@@ -554,38 +533,36 @@ public class ReservaService {
 
         dto.setQrUrl(r.getQrUrl());
 
-        // Información de descuento
         boolean esSocio = r.getUsuario().isEsSocio();
         dto.setDescuentoSocioAplicado(esSocio);
         if (esSocio && r.getPista() != null) {
             BigDecimal precioSinDescuento = tarifaService.calcularPrecio(
                     r.getPista().getTipoDeporte(), r.getFechaReserva(),
-                    r.getHoraInicio(), r.getHoraFin(), false);
+                    r.getHoraInicio(), r.getHoraFin(), false,
+                    r.getPista().getPolideportivo().getId());
             dto.setPrecioOriginal(precioSinDescuento);
         } else {
-            // Ponemos el precio original como el precio cobrado por defecto,
-            // aunque idealmente calcularíamos el precio sin el Abono si se quisiera desglosar al 100%.
             dto.setPrecioOriginal(r.getPrecioTotal()); 
         }
 
         return dto;
     }
 
-    private void validarHorarioInstalacion(Pista pista,
+    private void validarHorarioPolideportivo(Pista pista,
                                            LocalTime horaInicio, LocalTime horaFin) {
         if (!estaDentroDeHorario(pista, horaInicio, horaFin)) {
-            LocalTime ap = pista.getInstalacion().getPolideportivo().getHoraApertura();
-            LocalTime ci = pista.getInstalacion().getPolideportivo().getHoraCierre();
+            LocalTime ap = pista.getPolideportivo().getHoraApertura();
+            LocalTime ci = pista.getPolideportivo().getHoraCierre();
             throw new IllegalArgumentException(
                     "Horario fuera del horario general del polideportivo (" + ap + " - " + ci + ").");
         }
     }
 
-    private boolean estaDentroDeHorario(Pista pista,
+    public boolean estaDentroDeHorario(Pista pista,
                                         LocalTime horaInicio, LocalTime horaFin) {
-        if (pista.getInstalacion() == null || pista.getInstalacion().getPolideportivo() == null) return true;
-        LocalTime ap = pista.getInstalacion().getPolideportivo().getHoraApertura();
-        LocalTime ci = pista.getInstalacion().getPolideportivo().getHoraCierre();
+        if (pista.getPolideportivo() == null) return true;
+        LocalTime ap = pista.getPolideportivo().getHoraApertura();
+        LocalTime ci = pista.getPolideportivo().getHoraCierre();
         if (ap == null || ci == null) return true;
         return !horaInicio.isBefore(ap) && !horaFin.isAfter(ci);
     }

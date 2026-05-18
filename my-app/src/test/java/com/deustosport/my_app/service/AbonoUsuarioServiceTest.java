@@ -33,6 +33,8 @@ class AbonoUsuarioServiceTest {
     @Mock private AbonoUsuarioRepository abonoUsuarioRepository;
     @Mock private PlanAbonoRepository planAbonoRepository;
     @Mock private UsuarioRepository usuarioRepository;
+    @Mock private com.deustosport.my_app.repository.PolideportivoRepository polideportivoRepository;
+    @Mock private com.deustosport.my_app.repository.AyuntamientoRepository ayuntamientoRepository;
     @Mock private NotificacionService notificacionService;
 
     @InjectMocks
@@ -59,6 +61,9 @@ class AbonoUsuarioServiceTest {
         planMensual.setPrecio(new BigDecimal("20.00"));
         planMensual.setDuracion(DuracionAbonos.MENSUAL);
         planMensual.setCantidadPersonas(1);
+
+        // Mocks comunes
+        lenient().when(polideportivoRepository.findById(anyLong())).thenReturn(Optional.of(new com.deustosport.my_app.entity.Polideportivo()));
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -92,7 +97,7 @@ class AbonoUsuarioServiceTest {
         when(usuarioRepository.save(any(Usuario.class))).thenReturn(titular);
         when(abonoUsuarioRepository.save(any(AbonoUsuario.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        AbonoUsuario resultado = abonoUsuarioService.comprarAbono(1L, 10L, List.of(), "BILLETERA");
+        AbonoUsuario resultado = abonoUsuarioService.comprarAbono(1L, 10L, List.of(), "BILLETERA", "LOCAL", 1L, null);
 
         assertNotNull(resultado);
         assertTrue(resultado.isActivo());
@@ -111,7 +116,7 @@ class AbonoUsuarioServiceTest {
         when(usuarioRepository.save(any())).thenReturn(titular);
         when(abonoUsuarioRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        AbonoUsuario resultado = abonoUsuarioService.comprarAbono(1L, 10L, null, "BILLETERA");
+        AbonoUsuario resultado = abonoUsuarioService.comprarAbono(1L, 10L, null, "BILLETERA", "LOCAL", 1L, null);
 
         assertEquals(LocalDate.now().plusYears(1), resultado.getFechaFin());
         log.info("[TEST] Abono anual: fechaFin={}", resultado.getFechaFin());
@@ -129,7 +134,7 @@ class AbonoUsuarioServiceTest {
                 .thenReturn(Optional.of(new AbonoUsuario()));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> abonoUsuarioService.comprarAbono(1L, 10L, List.of(), "BILLETERA"));
+                () -> abonoUsuarioService.comprarAbono(1L, 10L, List.of(), "BILLETERA", "LOCAL", 1L, null));
         assertTrue(ex.getMessage().contains("abono activo"));
         log.info("[TEST] Excepción lanzada: {}", ex.getMessage());
     }
@@ -143,9 +148,8 @@ class AbonoUsuarioServiceTest {
         when(planAbonoRepository.findById(10L)).thenReturn(Optional.of(planMensual));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> abonoUsuarioService.comprarAbono(1L, 10L, List.of(), "BILLETERA"));
+                () -> abonoUsuarioService.comprarAbono(1L, 10L, List.of(), "BILLETERA", "LOCAL", 1L, null));
         assertTrue(ex.getMessage().contains("Saldo insuficiente"));
-        log.info("[TEST] Excepción de saldo: {}", ex.getMessage());
     }
 
     @Test
@@ -157,7 +161,7 @@ class AbonoUsuarioServiceTest {
         when(planAbonoRepository.findById(10L)).thenReturn(Optional.of(planMensual));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> abonoUsuarioService.comprarAbono(1L, 10L, List.of(), "BILLETERA"));
+                () -> abonoUsuarioService.comprarAbono(1L, 10L, List.of(), "BILLETERA", "LOCAL", 1L, null));
         assertTrue(ex.getMessage().contains("activo"));
         log.info("[TEST] Excepción plan inactivo: {}", ex.getMessage());
     }
@@ -172,7 +176,7 @@ class AbonoUsuarioServiceTest {
         when(planAbonoRepository.findById(10L)).thenReturn(Optional.of(planMensual));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> abonoUsuarioService.comprarAbono(1L, 10L, List.of(), "BILLETERA"));
+                () -> abonoUsuarioService.comprarAbono(1L, 10L, List.of(), "BILLETERA", "LOCAL", 1L, null));
         assertTrue(ex.getMessage().contains("edad"));
         log.info("[TEST] Excepción edad: {}", ex.getMessage());
     }

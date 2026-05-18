@@ -187,9 +187,9 @@ public class EstadisticasService {
     }
 
     // Compatibility: return map of reservations per installation
-    public java.util.Map<String, Long> obtenerEstadisticasReservasPorInstalacion() {
+    public java.util.Map<String, Long> obtenerEstadisticasReservasPorPolideportivo() {
         try {
-            return reservaRepository.countReservasPorInstalacion();
+            return reservaRepository.countReservasPorPolideportivo();
         } catch (Exception e) {
             return java.util.Collections.emptyMap();
         }
