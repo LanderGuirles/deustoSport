@@ -134,10 +134,10 @@ http://localhost:8080/swagger-ui.html
 | `POST` | `/api/auth/registro` | Registro de usuario |
 | `POST` | `/api/auth/login` | Autenticación |
 | `GET`  | `/api/pistas` | Listado de pistas |
-| `GET`  | `/api/instalaciones` | Listado de instalaciones |
+| `GET`  | `/api/polideportivos` | Listado de polideportivos |
 | `GET`  | `/api/tarifas` | Listado de tarifas |
 | `POST` | `/api/reservas` | Crear reserva |
-| `PUT`  | `/api/instalaciones/{id}/horario-general` | Configurar horario |
+| `PUT`  | `/api/polideportivos/{id}/horario-general` | Configurar horario |
 | `GET`  | `/api/secretaria/usuarios` | Búsqueda por DNI (secretaría) |
 
 ---

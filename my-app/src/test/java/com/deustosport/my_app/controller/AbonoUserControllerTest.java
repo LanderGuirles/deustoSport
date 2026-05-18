@@ -96,15 +96,13 @@ class AbonoUserControllerTest {
     @Test
     void comprarAbono_exitoso_devuelve200() {
         log.info("[TEST] comprarAbono - compra exitosa → 200");
-        when(abonoService.comprarAbono(anyLong(), anyLong(), any(), anyString(), anyString(), any(), any()))
+        when(abonoService.comprarAbono(anyLong(), anyLong(), any(), anyString()))
                 .thenReturn(abonoDummy());
 
         AbonoUsuarioRequest req = new AbonoUsuarioRequest();
         req.setPlanAbonoId(1L);
         req.setEmailsBeneficiarios(Collections.emptyList());
         req.setMetodoPago("TARJETA");
-        req.setAmbito("LOCAL");
-        req.setPolideportivoId(1L);
 
         ResponseEntity<?> resp = abonoUserController.comprarAbono(1L, req);
 
@@ -116,15 +114,13 @@ class AbonoUserControllerTest {
     @Test
     void comprarAbono_planInexistente_devuelve400() {
         log.info("[TEST] comprarAbono - plan no encontrado → 400");
-        when(abonoService.comprarAbono(anyLong(), anyLong(), any(), anyString(), anyString(), anyLong(), anyLong()))
+        when(abonoService.comprarAbono(anyLong(), anyLong(), any(), anyString()))
                 .thenThrow(new RuntimeException("Plan no encontrado"));
 
         AbonoUsuarioRequest req = new AbonoUsuarioRequest();
         req.setPlanAbonoId(99L);
         req.setEmailsBeneficiarios(Collections.emptyList());
         req.setMetodoPago("TARJETA");
-        req.setAmbito("LOCAL");
-        req.setPolideportivoId(1L);
 
         ResponseEntity<?> resp = abonoUserController.comprarAbono(1L, req);
 
@@ -135,15 +131,13 @@ class AbonoUserControllerTest {
     @Test
     void comprarAbono_saldoInsuficiente_devuelve400() {
         log.info("[TEST] comprarAbono - saldo insuficiente → 400");
-        when(abonoService.comprarAbono(anyLong(), anyLong(), any(), anyString(), anyString(), anyLong(), anyLong()))
+        when(abonoService.comprarAbono(anyLong(), anyLong(), any(), anyString()))
                 .thenThrow(new RuntimeException("Saldo insuficiente en billetera"));
 
         AbonoUsuarioRequest req = new AbonoUsuarioRequest();
         req.setPlanAbonoId(1L);
         req.setEmailsBeneficiarios(Collections.emptyList());
         req.setMetodoPago("BILLETERA");
-        req.setAmbito("LOCAL");
-        req.setPolideportivoId(1L);
 
         ResponseEntity<?> resp = abonoUserController.comprarAbono(2L, req);
 

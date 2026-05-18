@@ -97,7 +97,7 @@ class AbonoUsuarioServiceTest {
         when(usuarioRepository.save(any(Usuario.class))).thenReturn(titular);
         when(abonoUsuarioRepository.save(any(AbonoUsuario.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        AbonoUsuario resultado = abonoUsuarioService.comprarAbono(1L, 10L, List.of(), "BILLETERA", "LOCAL", 1L, null);
+        AbonoUsuario resultado = abonoUsuarioService.comprarAbono(1L, 10L, List.of(), "BILLETERA");
 
         assertNotNull(resultado);
         assertTrue(resultado.isActivo());
@@ -116,7 +116,7 @@ class AbonoUsuarioServiceTest {
         when(usuarioRepository.save(any())).thenReturn(titular);
         when(abonoUsuarioRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        AbonoUsuario resultado = abonoUsuarioService.comprarAbono(1L, 10L, null, "BILLETERA", "LOCAL", 1L, null);
+        AbonoUsuario resultado = abonoUsuarioService.comprarAbono(1L, 10L, null, "BILLETERA");
 
         assertEquals(LocalDate.now().plusYears(1), resultado.getFechaFin());
         log.info("[TEST] Abono anual: fechaFin={}", resultado.getFechaFin());
@@ -134,7 +134,7 @@ class AbonoUsuarioServiceTest {
                 .thenReturn(Optional.of(new AbonoUsuario()));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> abonoUsuarioService.comprarAbono(1L, 10L, List.of(), "BILLETERA", "LOCAL", 1L, null));
+                () -> abonoUsuarioService.comprarAbono(1L, 10L, List.of(), "BILLETERA"));
         assertTrue(ex.getMessage().contains("abono activo"));
         log.info("[TEST] Excepción lanzada: {}", ex.getMessage());
     }
@@ -148,7 +148,7 @@ class AbonoUsuarioServiceTest {
         when(planAbonoRepository.findById(10L)).thenReturn(Optional.of(planMensual));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> abonoUsuarioService.comprarAbono(1L, 10L, List.of(), "BILLETERA", "LOCAL", 1L, null));
+                () -> abonoUsuarioService.comprarAbono(1L, 10L, List.of(), "BILLETERA"));
         assertTrue(ex.getMessage().contains("Saldo insuficiente"));
     }
 
@@ -161,7 +161,7 @@ class AbonoUsuarioServiceTest {
         when(planAbonoRepository.findById(10L)).thenReturn(Optional.of(planMensual));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> abonoUsuarioService.comprarAbono(1L, 10L, List.of(), "BILLETERA", "LOCAL", 1L, null));
+                () -> abonoUsuarioService.comprarAbono(1L, 10L, List.of(), "BILLETERA"));
         assertTrue(ex.getMessage().contains("activo"));
         log.info("[TEST] Excepción plan inactivo: {}", ex.getMessage());
     }
@@ -176,7 +176,7 @@ class AbonoUsuarioServiceTest {
         when(planAbonoRepository.findById(10L)).thenReturn(Optional.of(planMensual));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> abonoUsuarioService.comprarAbono(1L, 10L, List.of(), "BILLETERA", "LOCAL", 1L, null));
+                () -> abonoUsuarioService.comprarAbono(1L, 10L, List.of(), "BILLETERA"));
         assertTrue(ex.getMessage().contains("edad"));
         log.info("[TEST] Excepción edad: {}", ex.getMessage());
     }

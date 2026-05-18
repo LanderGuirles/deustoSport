@@ -10,6 +10,7 @@ public class UsuarioListadoResponse {
     private String email;
     private boolean esSocio;
     private BigDecimal billetera;
+    private String rol;
 
     // Getters and setters
     public Long getId() { return id; }
@@ -32,4 +33,7 @@ public class UsuarioListadoResponse {
 
     public BigDecimal getBilletera() { return billetera; }
     public void setBilletera(BigDecimal billetera) { this.billetera = billetera; }
+
+    public String getRol() { return rol; }
+    public void setRol(String rol) { this.rol = rol; }
 }

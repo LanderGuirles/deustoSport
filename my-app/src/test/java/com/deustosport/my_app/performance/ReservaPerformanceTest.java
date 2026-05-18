@@ -121,19 +121,19 @@ public class ReservaPerformanceTest {
     }
 
     // ══════════════════════════════════════════════════════════
-    //  TEST 4 — GET /api/instalaciones
+    //  TEST 4 — GET /api/polideportivos
     //  50 invocaciones, 4 hilos — throughput + concurrencia
     // ══════════════════════════════════════════════════════════
 
     @Test
     @PerfTest(invocations = 50, threads = 4)
     @Required(throughput = 3, average = 1200)
-    public void testGetInstalaciones_concurrencia() {
+    public void testGetPolideportivos_concurrencia() {
         try {
             ResponseEntity<String> response = restTemplate.getForEntity(
-                BASE_URL + "/api/instalaciones", String.class
+                BASE_URL + "/api/polideportivos", String.class
             );
-            log.debug("[PERF] GET /api/instalaciones → {}", response.getStatusCode());
+            log.debug("[PERF] GET /api/polideportivos → {}", response.getStatusCode());
         } catch (ResourceAccessException e) {
             log.error("[PERF] Servidor no disponible en {}.", BASE_URL);
             throw e;

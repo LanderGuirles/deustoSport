@@ -34,7 +34,6 @@ public class AbonoConfigService {
         plan.setEdadMax(detalles.getEdadMax());
         plan.setPrecio(detalles.getPrecio());
         plan.setDuracion(detalles.getDuracion());
-        plan.setAmbito(detalles.getAmbito());
         plan.setDescuentoPistasPorcentaje(detalles.getDescuentoPistasPorcentaje());
         plan.setActivo(detalles.isActivo());
         

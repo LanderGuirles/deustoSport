@@ -1,6 +1,5 @@
 package com.deustosport.my_app.entity;
 
-import com.deustosport.my_app.enums.AmbitoAbono;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -30,18 +29,6 @@ public class AbonoUsuario {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "plan_id", nullable = false)
     private PlanAbono plan;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private AmbitoAbono ambito;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "polideportivo_id")
-    private Polideportivo polideportivo; // Solo si ambito == LOCAL
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ayuntamiento_id")
-    private Ayuntamiento ayuntamiento; // Necesario si ambito == CIUDAD (para saber de qué ciudad son todos los polis)
 
     // Lista de beneficiarios (familiares/amigos incluidos en el plan)
     @ManyToMany(fetch = FetchType.LAZY)

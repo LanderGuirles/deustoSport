@@ -165,7 +165,7 @@
     <div class="header">
         <div>
             <h1>Panel de Coordinación</h1>
-            <p class="subtitle">Configuración y gestión de pistas deportivas del centro.</p>
+            <p class="subtitle" id="poli-header-name">Configuración y gestión de pistas deportivas del centro.</p>
         </div>
         <div class="header-actions">
             <span class="session-user">Coordinador: <strong id="sessionUser">-</strong></span>
@@ -178,8 +178,9 @@
         <form id="horarioGeneralForm">
             <div class="form-grid">
                 <div class="field">
-                    <label>Instalación</label>
-                    <select id="horarioInstalacionId" required></select>
+                    <label>Polideportivo</label>
+                    <input type="text" id="horarioPoliNombre" readonly style="background: var(--surface2); color: var(--muted);">
+                    <input type="hidden" id="horarioPolideportivoId">
                 </div>
                 <div class="field">
                     <label>Hora de apertura</label>
@@ -286,12 +287,6 @@
                 <div class="field">
                     <label>Máx. Jugadores</label>
                     <input id="maxJugadores" type="number" min="1" placeholder="Ej: 4" required>
-                </div>
-                <div class="field">
-                    <label>Instalación</label>
-                    <select id="instalacionId" required>
-                        <option value="" disabled selected>Cargando instalaciones...</option>
-                    </select>
                 </div>
             </div>
             <div class="form-actions">
@@ -409,7 +404,7 @@
         <h2>Modificar Pista <span id="modalPistaIdDisplay" style="color:var(--brand);"></span></h2>
         <form id="editarPistaForm">
             <input type="hidden" id="editPistaId">
-            <input type="hidden" id="editOriginalActiva"> <input type="hidden" id="editInstalacionId"> <div class="form-grid single-col">
+            <input type="hidden" id="editOriginalActiva"> <input type="hidden" id="editPolideportivoId"> <div class="form-grid single-col">
                 <div class="field">
                     <label>Nombre de la pista</label>
                     <input id="editNombre" type="text" required>
@@ -448,10 +443,12 @@
 
 <script>
     const API_URL = "http://localhost:8080/api/pistas";
-    const INSTALACIONES_API_URL = "http://localhost:8080/api/instalaciones";
+    const POLIDEPORTIVOS_API_URL = "http://localhost:8080/api/polideportivos";
     const FESTIVOS_API_URL = "http://localhost:8080/api/festivos";
     
     // Configuración inicial de usuario
+    const currentPoliId = localStorage.getItem("polideportivoId");
+    
     document.getElementById("sessionUser").textContent = localStorage.getItem("usuarioNombre") || "Coordinador";
     document.getElementById("cerrarSesionBtn").addEventListener("click", () => {
         localStorage.clear();
@@ -464,7 +461,8 @@
     const crearForm = document.getElementById("crearPistaForm");
     const horarioGeneralForm = document.getElementById("horarioGeneralForm");
     const horarioStatusEl = document.getElementById("horarioStatus");
-    const horarioInstalacionIdEl = document.getElementById("horarioInstalacionId");
+    const horarioPoliIdEl = document.getElementById("horarioPolideportivoId");
+    const horarioPoliNombreEl = document.getElementById("horarioPoliNombre");
     const horaAperturaEl = document.getElementById("horaApertura");
     const horaCierreEl = document.getElementById("horaCierre");
     const comunicadoForm = document.getElementById("comunicadoForm");
@@ -473,50 +471,39 @@
     const incidenciasContainerEl = document.getElementById("incidenciasContainer");
     const btnRefrescarIncidencias = document.getElementById("btnRefrescarIncidencias");
 
-    async function cargarInstalacionesParaHorario() {
-        showStatus(horarioStatusEl, "Cargando instalaciones...", "loading");
+    async function cargarDatosPolideportivo() {
+        if (!currentPoliId) {
+            showStatus(horarioStatusEl, "No tienes un polideportivo asignado.", "error");
+            return;
+        }
+        showStatus(horarioStatusEl, "Cargando datos del polideportivo...", "loading");
         try {
-            const response = await fetch(INSTALACIONES_API_URL);
-            if (!response.ok) throw new Error("No se pudieron cargar las instalaciones.");
+            const response = await fetch(`${POLIDEPORTIVOS_API_URL}/${currentPoliId}`);
+            if (!response.ok) throw new Error("No se pudieron cargar los datos del polideportivo.");
 
-            const instalaciones = await response.json();
-
-            if (!instalaciones.length) {
-                horarioInstalacionIdEl.innerHTML = '<option value="">Sin instalaciones</option>';
-                showStatus(horarioStatusEl, "No hay instalaciones disponibles.", "error");
-                return;
-            }
-
-            horarioInstalacionIdEl.innerHTML = instalaciones
-                .map(inst => `<option value="${inst.id}" data-apertura="${(inst.horaApertura || "08:00:00").substring(0, 5)}" data-cierre="${(inst.horaCierre || "22:00:00").substring(0, 5)}">${inst.nombre} (ID: ${inst.id})</option>`)
-                .join("");
-
-            aplicarHorarioDesdeSeleccion();
+            const poli = await response.json();
+            
+            document.getElementById("poli-header-name").textContent = `Centro: ${poli.nombre} | Configuración y gestión de pistas deportivas.`;
+            horarioPoliNombreEl.value = poli.nombre;
+            horarioPoliIdEl.value = poli.id;
+            horaAperturaEl.value = (poli.horaApertura || "08:00:00").substring(0, 5);
+            horaCierreEl.value = (poli.horaCierre || "22:00:00").substring(0, 5);
+            
             showStatus(horarioStatusEl, "", "");
         } catch (error) {
             showStatus(horarioStatusEl, error.message, "error");
         }
     }
 
-    function aplicarHorarioDesdeSeleccion() {
-        const selectedOption = horarioInstalacionIdEl.options[horarioInstalacionIdEl.selectedIndex];
-        if (!selectedOption) return;
-
-        horaAperturaEl.value = selectedOption.dataset.apertura || "08:00";
-        horaCierreEl.value = selectedOption.dataset.cierre || "22:00";
-    }
-
-    horarioInstalacionIdEl.addEventListener("change", aplicarHorarioDesdeSeleccion);
-
     horarioGeneralForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const instalacionId = horarioInstalacionIdEl.value;
+        const poliId = horarioPoliIdEl.value;
         const horaApertura = horaAperturaEl.value;
         const horaCierre = horaCierreEl.value;
 
-        if (!instalacionId || !horaApertura || !horaCierre) {
-            showStatus(horarioStatusEl, "Debes completar instalación, apertura y cierre.", "error");
+        if (!poliId || !horaApertura || !horaCierre) {
+            showStatus(horarioStatusEl, "Debes completar apertura y cierre.", "error");
             return;
         }
 
@@ -524,7 +511,7 @@
         document.getElementById("btnGuardarHorario").disabled = true;
 
         try {
-            const response = await fetch(`${INSTALACIONES_API_URL}/${instalacionId}/horario-general`, {
+            const response = await fetch(`${POLIDEPORTIVOS_API_URL}/${poliId}/horario`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -533,16 +520,13 @@
                 })
             });
 
-            const bodyText = await response.text();
-            let body = null;
-            try { body = bodyText ? JSON.parse(bodyText) : null; } catch (_) {}
-
             if (!response.ok) {
-                throw new Error(body?.error || "No se pudo actualizar el horario general.");
+                const body = await response.json();
+                throw new Error(body?.error || "No se pudo actualizar el horario.");
             }
 
             showStatus(horarioStatusEl, "Horario actualizado correctamente.", "success");
-            await cargarInstalacionesParaHorario();
+            await cargarDatosPolideportivo();
         } catch (error) {
             showStatus(horarioStatusEl, error.message, "error");
         } finally {
@@ -628,7 +612,7 @@
                     </div>
                 </div>
                 <div class="incidencia-meta">
-                    Instalación: <strong>${incidencia.instalacionNombre || '-'}</strong>
+                    Polideportivo: <strong>${incidencia.polideportivoNombre || '-'}</strong>
                     ${incidencia.pistaNombre ? ` · Pista: <strong>${incidencia.pistaNombre}</strong>` : ''}
                     ${incidencia.ubicacionEspecifica ? ` · Zona: <strong>${incidencia.ubicacionEspecifica}</strong>` : ''}
                 </div>
@@ -647,7 +631,9 @@
             }
 
             const incidencias = await response.json();
-            renderIncidencias(incidencias);
+            // Filtrar incidencias por el polideportivo del coordinador
+            const incidenciasFiltradas = incidencias.filter(i => i.polideportivoId == currentPoliId);
+            renderIncidencias(incidenciasFiltradas);
         } catch (error) {
             incidenciasContainerEl.innerHTML = '';
             showStatus(incidenciasStatusEl, error.message, "error");
@@ -662,7 +648,8 @@
     async function cargarPistas() {
         showStatus(tablaStatusEl, "Cargando...", "loading");
         try {
-            const response = await fetch(API_URL);
+            // Cargamos solo las pistas de este polideportivo
+            const response = await fetch(`${POLIDEPORTIVOS_API_URL}/${currentPoliId}/pistas`);
             if (!response.ok) throw new Error("Error al obtener las pistas.");
             const pistas = await response.json();
 
@@ -723,7 +710,7 @@
             nombre: document.getElementById("nombrePista").value,
             tipoDeporte: document.getElementById("tipoDeporte").value,
             maxJugadores: parseInt(document.getElementById("maxJugadores").value),
-            instalacionId: parseInt(document.getElementById("instalacionId").value)
+            polideportivoId: parseInt(currentPoliId)
         };
 
         try {
@@ -798,9 +785,6 @@
         document.getElementById("editEstado").value = activa ? "true" : "false";
         document.getElementById("editOriginalActiva").value = activa ? "true" : "false";
         
-        // Asignamos Instalación 1 por defecto para el PUT ya que la API lo suele pedir
-        document.getElementById("editInstalacionId").value = 1; 
-
         showStatus(modalStatus, "", ""); // Limpiar errores previos
         modalEl.style.display = "flex"; // Mostrar modal
     }
@@ -823,7 +807,7 @@
             nombre: document.getElementById("editNombre").value,
             tipoDeporte: document.getElementById("editDeporte").value,
             maxJugadores: parseInt(document.getElementById("editMaxJugadores").value),
-            instalacionId: parseInt(document.getElementById("editInstalacionId").value)
+            polideportivoId: parseInt(currentPoliId)
         };
 
         try {
@@ -944,17 +928,17 @@
 
     window.eliminarFestivo = eliminarFestivo;
 
-    async function cargarInstalacionesParaCrearPista() {
-        const selectEl = document.getElementById("instalacionId");
+    async function cargarPolideportivosParaCrearPista() {
+        const selectEl = document.getElementById("polideportivoId");
         try {
-            const response = await fetch(INSTALACIONES_API_URL);
-            if (!response.ok) throw new Error("Error al cargar instalaciones.");
-            const instalaciones = await response.json();
-            if (!instalaciones.length) {
-                selectEl.innerHTML = '<option value="">Sin instalaciones disponibles</option>';
+            const response = await fetch(POLIDEPORTIVOS_API_URL);
+            if (!response.ok) throw new Error("Error al cargar polideportivos.");
+            const polideportivos = await response.json();
+            if (!polideportivos.length) {
+                selectEl.innerHTML = '<option value="">Sin polideportivos disponibles</option>';
                 return;
             }
-            selectEl.innerHTML = instalaciones
+            selectEl.innerHTML = polideportivos
                 .map(inst => `<option value="${inst.id}">${inst.nombre} (ID: ${inst.id})</option>`)
                 .join("");
         } catch {
@@ -1081,9 +1065,8 @@
 
     btnGenerarReporteEl.addEventListener("click", generarReporte);
 
-    cargarInstalacionesParaHorario();
+    cargarDatosPolideportivo();
     cargarFestivos();
-    cargarInstalacionesParaCrearPista();
     cargarPistas();
     cargarIncidencias();
 </script>

@@ -156,6 +156,33 @@ public class UsuarioService {
         return usuarioRepository.findByDniContainingIgnoreCase(dni);
     }
 
+    public List<Usuario> obtenerPorPolideportivoYRoles(Long polideportivoId, List<Rol> roles) {
+        return usuarioRepository.findByPolideportivoAndRoles(polideportivoId, roles);
+    }
+
+    @Transactional
+    public Usuario actualizarUsuarioPolideportivo(Long usuarioId, String nombre, String apellidos,
+                                                  String telefono, String email, Rol rol) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+        usuario.setNombreCompleto(construirNombreCompleto(nombre, apellidos));
+        usuario.setTelefono(telefono);
+
+        if (email != null && !usuario.getEmail().equals(email)) {
+            if (usuarioRepository.existsByEmail(email)) {
+                throw new IllegalArgumentException("El email ya está en uso");
+            }
+            usuario.setEmail(email);
+        }
+
+        if (rol != null) {
+            usuario.setRol(rol);
+        }
+
+        return usuarioRepository.save(usuario);
+    }
+
     /**
      * Obtiene usuario por ID
      */
@@ -183,6 +210,18 @@ public class UsuarioService {
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
         usuario.setActivo(true);
         usuarioRepository.save(usuario);
+    }
+
+    /**
+     * Elimina un usuario definitivamente
+     */
+    @Transactional
+    public void eliminarUsuarioDefinitivamente(Long usuarioId) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+        credencialRepository.findByUsuarioId(usuarioId).ifPresent(credencialRepository::delete);
+        usuarioRepository.delete(usuario);
     }
 
     /**
