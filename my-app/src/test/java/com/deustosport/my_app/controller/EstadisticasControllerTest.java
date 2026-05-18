@@ -49,13 +49,13 @@ class EstadisticasControllerTest {
     }
 
     @Test
-    void obtenerEstadisticasReservasPorInstalacion_debeRetornarMapa() throws Exception {
-        Map<String, Long> estadisticasPorInstalacion = Map.of(
+    void obtenerEstadisticasReservasPorPolideportivo_debeRetornarMapa() throws Exception {
+        Map<String, Long> estadisticasPorPolideportivo = Map.of(
             "Pista Tenis 1", 45L,
             "Pista Pádel 2", 30L
         );
 
-        when(estadisticasService.obtenerEstadisticasReservasPorPolideportivo()).thenReturn(estadisticasPorInstalacion);
+        when(estadisticasService.obtenerEstadisticasReservasPorPolideportivo()).thenReturn(estadisticasPorPolideportivo);
 
         mockMvc.perform(get("/api/estadisticas/reservas-por-polideportivo"))                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.['Pista Tenis 1']").value(45))

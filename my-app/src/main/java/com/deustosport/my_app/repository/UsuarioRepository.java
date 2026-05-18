@@ -39,4 +39,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
            "WHERE (:dni IS NULL OR LOWER(u.dni) LIKE LOWER(CONCAT('%', :dni, '%'))) " +
            "ORDER BY u.nombreCompleto ASC")
     List<Usuario> buscarParaSecretaria(@Param("dni") String dni);
+
+    @Query("SELECT u FROM Usuario u WHERE u.polideportivo.id = :polideportivoId AND u.rol IN :roles AND u.activo = true")
+    List<Usuario> findByPolideportivoAndRoles(@Param("polideportivoId") Long polideportivoId, @Param("roles") List<Rol> roles);
 }

@@ -53,10 +53,7 @@ public class AbonoUserController {
                     usuarioId, 
                     request.getPlanAbonoId(), 
                     request.getEmailsBeneficiarios(), 
-                    request.getMetodoPago(),
-                    request.getAmbito(),
-                    request.getPolideportivoId(),
-                    request.getAyuntamientoId()
+                    request.getMetodoPago()
             );
             return ResponseEntity.ok(mapearResponse(abono));
         } catch (RuntimeException e) {

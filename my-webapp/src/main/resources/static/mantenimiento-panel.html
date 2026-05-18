@@ -102,7 +102,7 @@
   <div class="header">
     <div>
       <h1>Panel de Mantenimiento</h1>
-      <p class="subtitle">Registra incidencias de instalaciones y avisa a coordinación al instante.</p>
+      <p class="subtitle">Registra incidencias de los polideportivos y avisa a coordinación al instante.</p>
     </div>
     <div class="header-actions">
       <span class="session-user">Empleado: <strong id="sessionUser">-</strong></span>
@@ -115,9 +115,9 @@
     <form id="incidenciaForm">
       <div class="form-grid">
         <div class="field">
-          <label>Instalación</label>
-          <select id="instalacionId" required>
-            <option value="">Cargando instalaciones...</option>
+          <label>Polideportivo</label>
+          <select id="polideportivoId" required>
+            <option value="">Cargando polideportivos...</option>
           </select>
         </div>
         <div class="field">
@@ -164,7 +164,7 @@
   const sessionUserEl = document.getElementById('sessionUser');
   const cerrarSesionBtn = document.getElementById('cerrarSesionBtn');
   const incidenciaForm = document.getElementById('incidenciaForm');
-  const instalacionIdEl = document.getElementById('instalacionId');
+  const polideportivoIdEl = document.getElementById('polideportivoId');
   const pistaIdEl = document.getElementById('pistaId');
   const formStatusEl = document.getElementById('formStatus');
   const listStatusEl = document.getElementById('listStatus');
@@ -195,31 +195,31 @@
     return 'badge-open';
   }
 
-  async function loadInstalaciones() {
+  async function loadPolideportivos() {
     try {
-      const response = await fetch(`${API_BASE}/instalaciones`);
-      if (!response.ok) throw new Error('No se pudieron cargar las instalaciones');
+      const response = await fetch(`${API_BASE}/polideportivos`);
+      if (!response.ok) throw new Error('No se pudieron cargar los polideportivos');
 
-      const instalaciones = await response.json();
-      instalacionIdEl.innerHTML = instalaciones.length
-        ? instalaciones.map(inst => `<option value="${inst.id}">${inst.nombre}</option>`).join('')
-        : '<option value="">No hay instalaciones</option>';
+      const polideportivos = await response.json();
+      polideportivoIdEl.innerHTML = polideportivos.length
+        ? polideportivos.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('')
+        : '<option value="">No hay polideportivos</option>';
 
-      if (instalaciones.length) {
-        await loadPistas(instalacionIdEl.value);
+      if (polideportivos.length) {
+        await loadPistas(polideportivoIdEl.value);
       }
     } catch (error) {
-      instalacionIdEl.innerHTML = '<option value="">Error al cargar</option>';
+      polideportivoIdEl.innerHTML = '<option value="">Error al cargar</option>';
       showStatus(formStatusEl, error.message, 'error');
     }
   }
 
-  async function loadPistas(instalacionId) {
+  async function loadPistas(polideportivoId) {
     pistaIdEl.innerHTML = '<option value="">Sin pista concreta</option>';
-    if (!instalacionId) return;
+    if (!polideportivoId) return;
 
     try {
-      const response = await fetch(`${API_BASE}/instalaciones/${instalacionId}/pistas`);
+      const response = await fetch(`${API_BASE}/polideportivos/${polideportivoId}/pistas`);
       if (!response.ok) return;
 
       const pistas = await response.json();
@@ -233,7 +233,7 @@
     }
   }
 
-  instalacionIdEl.addEventListener('change', () => loadPistas(instalacionIdEl.value));
+  polideportivoIdEl.addEventListener('change', () => loadPistas(polideportivoIdEl.value));
 
   incidenciaForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -243,7 +243,7 @@
 
     const payload = {
       usuarioId: Number(currentUserId),
-      instalacionId: Number(instalacionIdEl.value),
+      polideportivoId: Number(polideportivoIdEl.value),
       pistaId: pistaIdEl.value ? Number(pistaIdEl.value) : null,
       ubicacionEspecifica: document.getElementById('ubicacionEspecifica').value.trim(),
       titulo: document.getElementById('titulo').value.trim(),
@@ -267,7 +267,7 @@
 
       showStatus(formStatusEl, 'Incidencia registrada y coordinación alertada.', 'success');
       incidenciaForm.reset();
-      await loadPistas(instalacionIdEl.value);
+      await loadPistas(polideportivoIdEl.value);
       await loadIncidencias();
     } catch (error) {
       showStatus(formStatusEl, error.message, 'error');
@@ -288,7 +288,7 @@
         <div class="incidencia-top">
           <div>
             <div class="incidencia-title">${incidencia.titulo}</div>
-            <div class="incidencia-meta">${incidencia.instalacionNombre}${incidencia.pistaNombre ? ` · ${incidencia.pistaNombre}` : ''}</div>
+            <div class="incidencia-meta">${incidencia.polideportivoNombre}${incidencia.pistaNombre ? ` · ${incidencia.pistaNombre}` : ''}</div>
             <div class="incidencia-meta">Reportada por ${incidencia.reportadaPorNombre || '-'} · ${formatDate(incidencia.fechaCreacion)}</div>
           </div>
           <span class="badge ${estadoClass(incidencia.estado)}">${incidencia.estado || 'ABIERTA'}</span>
@@ -316,7 +316,7 @@
 
   btnActualizar.addEventListener('click', loadIncidencias);
 
-  loadInstalaciones();
+  loadPolideportivos();
   loadIncidencias();
 </script>
 </body>

@@ -22,7 +22,7 @@ import lombok.Setter;
  *
  * Un aviso del día es un mensaje corto, visible en la pantalla de inicio
  * de todos los usuarios, cuyo propósito es informar de incidencias o
- * novedades que afecten al uso de las instalaciones deportivas.
+ * novedades que afecten al uso de las polideportivos deportivas.
  *
  * Reglas de negocio principales:
  * <ul>

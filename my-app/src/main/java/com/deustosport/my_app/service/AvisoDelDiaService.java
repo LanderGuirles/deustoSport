@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * Los avisos del día son mensajes cortos que aparecen en la pantalla de
  * inicio (home.html) de todos los usuarios para informarles de incidencias
- * o novedades que afecten al uso de las instalaciones del polideportivo.
+ * o novedades que afecten al uso de las polideportivos del polideportivo.
  *
  * Reglas de negocio que aplica este servicio:
  * <ul>

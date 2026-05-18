@@ -208,7 +208,7 @@ public class EmailService {
             "<div style='margin: 20px 0; text-align: center;'>" +
             "<img src='cid:qrCodeImage' alt='Código QR de reserva' style='width:200px;height:200px;border:1px solid #ddd;padding:10px;'/>" +
             "</div>" +
-                "<p>Presenta el código QR en la entrada para acceder a las instalaciones.</p>" +
+                "<p>Presenta el código QR en la entrada para acceder a las polideportivos.</p>" +
                 "<table style='border-collapse: collapse; width: 100%; max-width: 400px;'>" +
                 "<tr><td style='padding: 8px; border: 1px solid #ddd;'><strong>🏟️ Pista:</strong></td><td style='padding: 8px; border: 1px solid #ddd;'>" + nombrePista + " (" + tipoDeporte + ")</td></tr>" +
                 "<tr><td style='padding: 8px; border: 1px solid #ddd;'><strong>📅 Fecha:</strong></td><td style='padding: 8px; border: 1px solid #ddd;'>" + fecha + "</td></tr>" +

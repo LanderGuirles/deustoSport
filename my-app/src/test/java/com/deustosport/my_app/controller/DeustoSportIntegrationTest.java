@@ -126,11 +126,11 @@ class DeustoSportIntegrationTest {
     }
 
     // ══════════════════════════════════════════════════════════
-    //  GET /api/instalaciones  — listado de instalaciones
+    //  GET /api/polideportivos  — listado de instalaciones
     // ══════════════════════════════════════════════════════════
 
     @Test
-    void getInstalaciones_sinAuth_devuelve200() {
+    void getPolideportivos_sinAuth_devuelve200() {
         log.info("[IT] GET /api/polideportivos → llamada remota al servidor");
 
         ResponseEntity<String> response = restTemplate.getForEntity(url("/api/polideportivos"), String.class);

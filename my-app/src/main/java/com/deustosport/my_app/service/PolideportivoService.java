@@ -29,6 +29,12 @@ public class PolideportivoService {
     }
 
     @Transactional(readOnly = true)
+    public Polideportivo obtenerPorId(Long polideportivoId) {
+        return polideportivoRepository.findById(polideportivoId)
+                .orElseThrow(() -> new IllegalArgumentException("Polideportivo no encontrado con ID: " + polideportivoId));
+    }
+
+    @Transactional(readOnly = true)
     public List<Pista> obtenerPistasByPolideportivo(Long polideportivoId) {
         Polideportivo polideportivo = polideportivoRepository.findById(polideportivoId)
                 .orElseThrow(() -> new IllegalArgumentException("Polideportivo no encontrado"));

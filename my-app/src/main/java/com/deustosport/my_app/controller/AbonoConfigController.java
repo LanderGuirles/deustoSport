@@ -32,7 +32,6 @@ public class AbonoConfigController {
             plan.setEdadMax((Integer) payload.get("edadMax"));
             plan.setPrecio(new java.math.BigDecimal(payload.get("precio").toString()));
             plan.setDuracion(com.deustosport.my_app.enums.DuracionAbonos.valueOf((String) payload.get("duracion")));
-            plan.setAmbito(com.deustosport.my_app.enums.AmbitoAbono.valueOf((String) payload.get("ambito")));
             plan.setDescuentoPistasPorcentaje(new java.math.BigDecimal(payload.get("descuentoPistasPorcentaje").toString()));
             plan.setActivo(payload.get("activo") == null || (boolean) payload.get("activo"));
 

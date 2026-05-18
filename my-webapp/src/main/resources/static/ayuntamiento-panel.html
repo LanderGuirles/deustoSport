@@ -242,14 +242,14 @@
             <div class="tile-icon">🏢</div>
             <div>
                 <div class="tile-title">Polideportivos</div>
-                <p class="tile-desc">Gestione los centros, instalaciones y pistas de la ciudad.</p>
+                <p class="tile-desc">Gestione los centros, polideportivos y pistas de la ciudad.</p>
             </div>
         </div>
         <div class="tile" onclick="openAbonos()">
             <div class="tile-icon">💳</div>
             <div>
                 <div class="tile-title">Planes de Abono</div>
-                <p class="tile-desc">Configure abonos locales o con acceso a toda la ciudad.</p>
+                <p class="tile-desc">Configure los planes de suscripción para los usuarios.</p>
             </div>
         </div>
     </div>
@@ -290,6 +290,7 @@
         <button class="btn back-btn" onclick="closeOverlay('overlayPistas')">← Volver a centros</button>
         <h2 id="pistasCenterTitle">Pistas de...</h2>
         <div style="margin-left:auto; display:flex; gap:8px;">
+            <button class="btn btn-secondary" onclick="openUsuariosCurrentPoli()">Gestión del personal</button>
             <button class="btn btn-secondary" onclick="openTarifasCurrentPoli()">Gestionar Tarifas</button>
             <button class="btn btn-primary" onclick="openCreatePista()">+ Nueva Pista</button>
         </div>
@@ -300,6 +301,74 @@
                 <thead><tr><th>Nombre</th><th>Deporte</th><th>Máx. Jugadores</th><th>Estado</th><th>Acciones</th></tr></thead>
                 <tbody id="pistasTableBody"></tbody>
             </table>
+        </div>
+    </div>
+</div>
+
+<!-- OVERLAY: GESTIÓN USUARIOS POLIDEPORTIVO -->
+<div id="overlayUsuariosPoli" class="overlay">
+    <div id="usuariosPoliListView">
+        <div class="overlay-header">
+            <button class="btn back-btn" onclick="closeOverlay('overlayUsuariosPoli'); document.getElementById('overlayPistas').style.display='flex';">← Volver a pistas</button>
+            <h2>Gestión de Usuarios del Centro</h2>
+            <button class="btn btn-primary" style="margin-left:auto;" onclick="openCreateUsuarioPoli()">+ Nuevo Usuario</button>
+        </div>
+        <div class="overlay-body">
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Email</th><th>Rol</th><th>Acciones</th></tr></thead>
+                    <tbody id="usuariosPoliTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- FORMULARIO CREAR/EDITAR USUARIO -->
+    <div id="usuariosPoliEditView" style="display: none; height: 100%; overflow-y: auto;">
+        <div class="overlay-header">
+            <button class="btn back-btn" onclick="showUsuariosPoliList()">← Volver al listado</button>
+            <h2 id="usuarioPoliModalTitle">Crear Usuario</h2>
+        </div>
+        <div class="overlay-body">
+            <div class="card" style="max-width:600px; margin:0 auto;">
+                <input type="hidden" id="usuarioPoliId">
+                <div class="field" id="divUsuarioPoliDni">
+                    <label>DNI</label>
+                    <input type="text" id="usuarioPoliDni" placeholder="Ej: 12345678A">
+                </div>
+                <div class="field">
+                    <label>Nombre</label>
+                    <input type="text" id="usuarioPoliNombre" placeholder="Ej: Juan">
+                </div>
+                <div class="field">
+                    <label>Apellidos</label>
+                    <input type="text" id="usuarioPoliApellidos" placeholder="Ej: Pérez">
+                </div>
+                <div class="field">
+                    <label>Email</label>
+                    <input type="email" id="usuarioPoliEmail" placeholder="Ej: juan@example.com">
+                </div>
+                <div class="field">
+                    <label>Teléfono</label>
+                    <input type="text" id="usuarioPoliTelefono" placeholder="Ej: 600123456">
+                </div>
+                <div class="field" id="divUsuarioPoliPassword">
+                    <label>Contraseña</label>
+                    <input type="password" id="usuarioPoliPassword" placeholder="******">
+                </div>
+                <div class="field">
+                    <label>Rol</label>
+                    <select id="usuarioPoliRol">
+                        <option value="MANTENIMIENTO">MANTENIMIENTO</option>
+                        <option value="SECRETARIA">SECRETARIA</option>
+                        <option value="COORDINADOR">COORDINADOR</option>
+                    </select>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:20px;">
+                    <button class="btn btn-secondary" onclick="showUsuariosPoliList()">Cancelar</button>
+                    <button class="btn btn-primary" onclick="saveUsuarioPoli()">Guardar Usuario</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -315,7 +384,7 @@
         <div class="overlay-body">
             <div class="table-wrap">
                 <table>
-                    <thead><tr><th>Nombre</th><th>Ámbito</th><th>Precio</th><th>Duración</th><th>Estado</th><th>Acciones</th></tr></thead>
+                    <thead><tr><th>Nombre</th><th>Precio</th><th>Duración</th><th>Estado</th><th>Acciones</th></tr></thead>
                     <tbody id="abonosTableBody"></tbody>
                 </table>
             </div>
@@ -368,13 +437,7 @@
                             <option value="ANUAL">Anual</option>
                         </select>
                     </div>
-                    <div class="field">
-                        <label>Ámbito</label>
-                        <select id="abonoAmbito">
-                            <option value="LOCAL">Local (Un centro)</option>
-                            <option value="CIUDAD">Ciudad (Toda la red)</option>
-                        </select>
-                    </div>
+
                 </div>
                 <div class="field">
                     <label>% Descuento en Pistas</label>
@@ -479,6 +542,43 @@
                 <input type="number" id="newPistaMaxJugadores" value="4">
             </div>
             <button class="btn btn-primary" onclick="savePista()">Crear Pista</button>
+        </div>
+    </div>
+</div>
+
+<!-- OVERLAY: EDITAR PISTA -->
+<div id="overlayEditPista" class="overlay">
+    <div class="overlay-header">
+        <button class="btn back-btn" onclick="closeOverlay('overlayEditPista')">←</button>
+        <h2>Editar Pista</h2>
+    </div>
+    <div class="overlay-body">
+        <div class="card" style="max-width:600px; margin:0 auto;">
+            <input type="hidden" id="editPistaId">
+            <div class="field">
+                <label>Nombre de la Pista</label>
+                <input type="text" id="editPistaNombre">
+            </div>
+            <div class="field">
+                <label>Deporte</label>
+                <select id="editPistaDeporte">
+                    <option value="TENIS">Tenis</option>
+                    <option value="PADEL">Pádel</option>
+                    <option value="FUTBOL">Fútbol</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Máximo Jugadores</label>
+                <input type="number" id="editPistaMaxJugadores">
+            </div>
+            <div class="field">
+                <label>Estado</label>
+                <select id="editPistaActiva">
+                    <option value="true">Activa</option>
+                    <option value="false">Inactiva</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="updatePista()">Guardar Cambios</button>
         </div>
     </div>
 </div>
@@ -653,7 +753,7 @@
                     <td>${pista.maxJugadores}</td>
                     <td>${pista.activa ? 'Activa' : 'Inactiva'}</td>
                     <td>
-                        <button class="btn btn-secondary" onclick="editPista(${pista.id})">Editar</button>
+                        <!-- Botón Editar eliminado por solicitud del usuario -->
                     </td>
                 </tr>
             `).join('');
@@ -688,6 +788,194 @@
             loadPistas();
             closeOverlay('overlayCreatePista');
         } catch (e) { alert(e.message); }
+    }
+
+    async function editPista(id) {
+        try {
+            const res = await fetch(`${API_BASE}/pistas/${id}`);
+            if (!res.ok) throw new Error('No se pudo obtener la información de la pista');
+            const pista = await res.json();
+
+            document.getElementById('editPistaId').value = pista.id;
+            document.getElementById('editPistaNombre').value = pista.nombre;
+            document.getElementById('editPistaDeporte').value = pista.tipoDeporte;
+            document.getElementById('editPistaMaxJugadores').value = pista.maxJugadores;
+            document.getElementById('editPistaActiva').value = pista.activa.toString();
+
+            document.getElementById('overlayEditPista').style.display = 'flex';
+        } catch (e) { alert(e.message); }
+    }
+
+    async function updatePista() {
+        const id = document.getElementById('editPistaId').value;
+        const payload = {
+            nombre: document.getElementById('editPistaNombre').value,
+            tipoDeporte: document.getElementById('editPistaDeporte').value,
+            maxJugadores: parseInt(document.getElementById('editPistaMaxJugadores').value),
+            activa: document.getElementById('editPistaActiva').value === 'true',
+            polideportivoId: currentPoliId
+        };
+
+        try {
+            const res = await fetch(`${API_BASE}/pistas/${id}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(errorText || 'Error al actualizar la pista');
+            }
+            alert('Pista actualizada');
+            loadPistas();
+            closeOverlay('overlayEditPista');
+        } catch (e) { alert(e.message); }
+    }
+
+    // ── USUARIOS POLIDEPORTIVO ──
+    function openUsuariosCurrentPoli() {
+        if (!currentPoliId) return;
+        document.getElementById('overlayPistas').style.display = 'none';
+        document.getElementById('overlayUsuariosPoli').style.display = 'flex';
+        showUsuariosPoliList();
+    }
+
+    function showUsuariosPoliList() {
+        document.getElementById('usuariosPoliListView').style.display = 'block';
+        document.getElementById('usuariosPoliEditView').style.display = 'none';
+        loadUsuariosPoli();
+    }
+
+    async function loadUsuariosPoli() {
+        const body = document.getElementById('usuariosPoliTableBody');
+        body.innerHTML = '<tr><td colspan="3">Cargando usuarios...</td></tr>';
+        try {
+            const res = await fetch(`${API_BASE}/usuarios/polideportivo/${currentPoliId}`, {
+                headers: {'Authorization': 'Bearer ' + localStorage.getItem('token')}
+            });
+            if (!res.ok) throw new Error('Error al cargar');
+            const data = await res.json();
+            body.innerHTML = data.map(u => `
+                <tr>
+                    <td>${u.email}</td>
+                    <td>${u.rol || ''}</td>
+                    <td>
+                        <button class="btn btn-secondary" onclick="editUsuarioPoli(${u.id}, '${u.dni}', '${u.nombre}', '${u.apellidos}', '${u.email}', '${u.telefono || ''}', '${u.rol}')">Editar</button>
+                        <button class="btn btn-secondary" style="background:#ff4444; color:white; border:none;" onclick="deleteUsuarioPoli(${u.id})">Eliminar</button>
+                    </td>
+                </tr>
+            `).join('');
+        } catch (e) { body.innerHTML = '<tr><td colspan="3">Error al cargar usuarios</td></tr>'; }
+    }
+
+    function openCreateUsuarioPoli() {
+        document.getElementById('usuarioPoliModalTitle').textContent = 'Crear Usuario';
+        document.getElementById('usuarioPoliId').value = '';
+        document.getElementById('usuarioPoliDni').value = '';
+        document.getElementById('usuarioPoliNombre').value = '';
+        document.getElementById('usuarioPoliApellidos').value = '';
+        document.getElementById('usuarioPoliEmail').value = '';
+        document.getElementById('usuarioPoliTelefono').value = '';
+        document.getElementById('usuarioPoliPassword').value = '';
+        document.getElementById('usuarioPoliRol').value = 'MANTENIMIENTO';
+        
+        document.getElementById('divUsuarioPoliDni').style.display = 'block';
+        document.getElementById('divUsuarioPoliPassword').style.display = 'block';
+        
+        document.getElementById('usuariosPoliListView').style.display = 'none';
+        document.getElementById('usuariosPoliEditView').style.display = 'block';
+    }
+
+    function editUsuarioPoli(id, dni, nombre, apellidos, email, telefono, rol) {
+        document.getElementById('usuarioPoliModalTitle').textContent = 'Editar Usuario';
+        document.getElementById('usuarioPoliId').value = id;
+        document.getElementById('usuarioPoliDni').value = dni;
+        document.getElementById('usuarioPoliNombre').value = nombre;
+        document.getElementById('usuarioPoliApellidos').value = apellidos;
+        document.getElementById('usuarioPoliEmail').value = email;
+        document.getElementById('usuarioPoliTelefono').value = telefono;
+        document.getElementById('usuarioPoliPassword').value = ''; // No edit password easily here
+        if (rol) document.getElementById('usuarioPoliRol').value = rol;
+
+        document.getElementById('divUsuarioPoliDni').style.display = 'none'; // No edit DNI
+        document.getElementById('divUsuarioPoliPassword').style.display = 'none'; // No edit password
+        
+        document.getElementById('usuariosPoliListView').style.display = 'none';
+        document.getElementById('usuariosPoliEditView').style.display = 'block';
+    }
+
+    async function saveUsuarioPoli() {
+        try {
+            const id = document.getElementById('usuarioPoliId').value;
+            const isEdit = !!id;
+            
+            const payload = {
+                nombre: document.getElementById('usuarioPoliNombre').value,
+                apellidos: document.getElementById('usuarioPoliApellidos').value,
+                email: document.getElementById('usuarioPoliEmail').value,
+                telefono: document.getElementById('usuarioPoliTelefono').value,
+                rol: document.getElementById('usuarioPoliRol').value,
+                polideportivoId: currentPoliId
+            };
+            
+            let url = '';
+            let method = '';
+
+            if (!isEdit) {
+                payload.dni = document.getElementById('usuarioPoliDni').value;
+                payload.password = document.getElementById('usuarioPoliPassword').value;
+                payload.esSocio = false;
+                url = `${API_BASE}/usuarios/registro`;
+                method = 'POST';
+            } else {
+                url = `${API_BASE}/usuarios/polideportivo/${id}`;
+                method = 'PUT';
+            }
+
+            const res = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) {
+                const error = await res.json();
+                let errorMsg = error.error || error.mensaje || 'Error al guardar';
+                if (error.errors && error.errors.length > 0) {
+                    errorMsg += '\\n' + error.errors.join('\\n');
+                }
+                throw new Error(errorMsg);
+            }
+            alert('Usuario guardado exitosamente');
+            showUsuariosPoliList();
+        } catch (e) {
+            alert(e.message);
+        }
+    }
+
+    async function deleteUsuarioPoli(id) {
+        if (!confirm('¿Seguro que desea eliminar definitivamente a este usuario de la base de datos?')) return;
+        try {
+            const res = await fetch(`${API_BASE}/usuarios/polideportivo/${id}`, {
+                method: 'DELETE',
+                headers: {'Authorization': 'Bearer ' + localStorage.getItem('token')}
+            });
+            if (!res.ok) {
+                let errorMsg = 'Error al eliminar el usuario';
+                try {
+                    const errObj = await res.json();
+                    if (errObj.error) errorMsg = errObj.error;
+                    else if (errObj.mensaje) errorMsg = errObj.mensaje;
+                } catch(e) {}
+                throw new Error(errorMsg);
+            }
+            alert('Usuario eliminado definitivamente');
+            loadUsuariosPoli();
+        } catch (e) {
+            alert(e.message);
+        }
     }
 
     // ── TARIFAS ──
@@ -759,7 +1047,6 @@
             body.innerHTML = data.map(p => `
                 <tr>
                     <td>${p.nombre}</td>
-                    <td>${p.ambito || 'CIUDAD'}</td>
                     <td>${p.precio}€</td>
                     <td>${p.duracion}</td>
                     <td>${p.activo ? 'Activo' : 'Inactivo'}</td>
@@ -779,7 +1066,6 @@
         document.getElementById('abonoEdadMin').value = 0;
         document.getElementById('abonoEdadMax').value = 99;
         document.getElementById('abonoDuracion').value = 'MENSUAL';
-        document.getElementById('abonoAmbito').value = 'CIUDAD';
         document.getElementById('abonoDescuento').value = '10.00';
         showAbonoForm();
     }
@@ -800,7 +1086,6 @@
             document.getElementById('abonoEdadMin').value = p.edadMinima;
             document.getElementById('abonoEdadMax').value = p.edadMax;
             document.getElementById('abonoDuracion').value = p.duracion;
-            document.getElementById('abonoAmbito').value = p.ambito || 'CIUDAD';
             document.getElementById('abonoDescuento').value = p.descuentoPistasPorcentaje;
             showAbonoForm();
         } catch (e) { alert('Error al cargar datos del plan'); }
@@ -816,7 +1101,6 @@
             edadMinima: parseInt(document.getElementById('abonoEdadMin').value),
             edadMax: parseInt(document.getElementById('abonoEdadMax').value),
             duracion: document.getElementById('abonoDuracion').value,
-            ambito: document.getElementById('abonoAmbito').value,
             descuentoPistasPorcentaje: parseFloat(document.getElementById('abonoDescuento').value),
             ayuntamientoId: ayuntamientoId
         };

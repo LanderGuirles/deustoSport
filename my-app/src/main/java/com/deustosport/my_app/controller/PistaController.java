@@ -37,6 +37,16 @@ public class PistaController {
         return ResponseEntity.ok(pistaService.obtenerTodasLasPistas());
     }
 
+    @GetMapping("/{pistaId}")
+    @io.swagger.v3.oas.annotations.Operation(summary = "Obtener pista por ID", description = "Devuelve los detalles de una pista específica")
+    public ResponseEntity<?> obtenerPorId(@PathVariable("pistaId") Long pistaId) {
+        try {
+            return ResponseEntity.ok(pistaService.obtenerPistaPorId(pistaId));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
     @PostMapping
     @io.swagger.v3.oas.annotations.Operation(summary = "Añadir nueva pista", description = "Permite la creacion de nuevas pistas")
     public ResponseEntity<?> crearPista(@RequestBody PistaRequest pistaDto){

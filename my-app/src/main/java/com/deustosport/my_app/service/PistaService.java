@@ -70,6 +70,12 @@ public class PistaService {
         return pistas.stream().map(this::convertirPistaToDto).collect(Collectors.toList());
     }
 
+    @Transactional
+    public PistaResponse obtenerPistaPorId(Long id) {
+        Objects.requireNonNull(id, "id no puede ser null");
+        Pista pista = pistaRepository.findById(id).orElseThrow(() -> new RuntimeException("La pista con ID " + id + " no existe."));
+        return convertirPistaToDto(pista);
+    }
 
     @Transactional
     public Pista registrarNuevaPista(Pista nuevaPista) {

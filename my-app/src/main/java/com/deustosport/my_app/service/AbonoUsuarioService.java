@@ -73,8 +73,7 @@ public class AbonoUsuarioService {
     }
 
     @Transactional
-    public AbonoUsuario comprarAbono(Long titularId, Long planId, List<String> emailsBeneficiarios, String metodoPago,
-                                     String ambitoStr, Long polideportivoId, Long ayuntamientoId) {
+    public AbonoUsuario comprarAbono(Long titularId, Long planId, List<String> emailsBeneficiarios, String metodoPago) {
         Usuario titular = usuarioRepository.findById(titularId)
                 .orElseThrow(() -> new RuntimeException("Titular no encontrado"));
 
@@ -89,31 +88,10 @@ public class AbonoUsuarioService {
 
         PlanAbono plan = obtenerPlanAdecuado(titularId, planId);
 
-        // Validar ámbito
-        com.deustosport.my_app.enums.AmbitoAbono ambito;
-        try {
-            if (ambitoStr == null) throw new RuntimeException("El ámbito de abono es obligatorio (LOCAL o CIUDAD).");
-            ambito = com.deustosport.my_app.enums.AmbitoAbono.valueOf(ambitoStr.toUpperCase());
-        } catch (Exception e) {
-            String msg = (e instanceof RuntimeException) ? e.getMessage() : "Ámbito de abono no válido: " + ambitoStr;
-            throw new RuntimeException(msg);
-        }
-
         // Crear la suscripción
         AbonoUsuario nuevoAbono = new AbonoUsuario();
         nuevoAbono.setTitular(titular);
         nuevoAbono.setPlan(plan);
-        nuevoAbono.setAmbito(ambito);
-
-        if (ambito == com.deustosport.my_app.enums.AmbitoAbono.LOCAL) {
-            if (polideportivoId == null) throw new RuntimeException("Debes seleccionar un polideportivo para el abono LOCAL.");
-            nuevoAbono.setPolideportivo(polideportivoRepository.findById(polideportivoId)
-                    .orElseThrow(() -> new RuntimeException("Polideportivo no encontrado")));
-        } else {
-            if (ayuntamientoId == null) throw new RuntimeException("Debes seleccionar un ayuntamiento para el abono de CIUDAD.");
-            nuevoAbono.setAyuntamiento(ayuntamientoRepository.findById(ayuntamientoId)
-                    .orElseThrow(() -> new RuntimeException("Ayuntamiento no encontrado")));
-        }
 
         // Validar límite de personas (1 titular + X beneficiarios)
         int totalPersonas = 1 + (emailsBeneficiarios != null ? emailsBeneficiarios.size() : 0);

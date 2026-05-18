@@ -39,6 +39,16 @@ public class PolideportivoController {
         return ResponseEntity.ok(polideportivoService.obtenerPorAyuntamiento(ayuntamientoId));
     }
 
+    @GetMapping("/{polideportivoId}")
+    @Operation(summary = "Obtener polideportivo por ID")
+    public ResponseEntity<?> obtenerPorId(@PathVariable Long polideportivoId) {
+        try {
+            return ResponseEntity.ok(polideportivoService.obtenerPorId(polideportivoId));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
     @PostMapping
     @Operation(summary = "Crear polideportivo")
     public ResponseEntity<?> crearPolideportivo(@RequestBody Map<String, Object> payload) {

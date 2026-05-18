@@ -42,10 +42,6 @@ public class PlanAbono {
     @Column(nullable = false)
     private DuracionAbonos duracion;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private com.deustosport.my_app.enums.AmbitoAbono ambito = com.deustosport.my_app.enums.AmbitoAbono.CIUDAD;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ayuntamiento_id")
     @com.fasterxml.jackson.annotation.JsonIgnore
