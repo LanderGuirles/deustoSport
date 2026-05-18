@@ -2,7 +2,10 @@ package com.deustosport.my_app.service;
 
 import com.deustosport.my_app.entity.Usuario;
 import com.deustosport.my_app.entity.Credencial;
+import com.deustosport.my_app.enums.Rol;
+import com.deustosport.my_app.repository.AyuntamientoRepository;
 import com.deustosport.my_app.repository.CredencialRepository;
+import com.deustosport.my_app.repository.PolideportivoRepository;
 import com.deustosport.my_app.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,15 +21,21 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final CredencialRepository credencialRepository;
+    private final PolideportivoRepository polideportivoRepository;
+    private final AyuntamientoRepository ayuntamientoRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
 
     public UsuarioService(UsuarioRepository usuarioRepository,
                           CredencialRepository credencialRepository,
+                          PolideportivoRepository polideportivoRepository,
+                          AyuntamientoRepository ayuntamientoRepository,
                           PasswordEncoder passwordEncoder,
                           EmailService emailService) {
         this.usuarioRepository = usuarioRepository;
         this.credencialRepository = credencialRepository;
+        this.polideportivoRepository = polideportivoRepository;
+        this.ayuntamientoRepository = ayuntamientoRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
     }
@@ -37,7 +46,7 @@ public class UsuarioService {
     @Transactional
     public Usuario registrarUsuario(String dni, String nombre, String apellidos,
                                     String email, String telefono, String password,
-                                    boolean esSocio) {
+                                    boolean esSocio, Rol rol, Long polideportivoId, Long ayuntamientoId) {
         if (usuarioRepository.existsByDni(dni)) {
             throw new IllegalArgumentException("Ya existe un usuario con ese DNI");
         }
@@ -53,6 +62,22 @@ public class UsuarioService {
         usuario.setEsSocio(esSocio);
         usuario.setBilletera(BigDecimal.ZERO);
         usuario.setActivo(true);
+        usuario.setRol(rol != null ? rol : Rol.CLIENTE);
+
+        // Validaciones y asociaciones según rol
+        if (usuario.getRol() == Rol.SECRETARIA || usuario.getRol() == Rol.COORDINADOR || usuario.getRol() == Rol.MANTENIMIENTO) {
+            if (polideportivoId == null) {
+                throw new IllegalArgumentException("Los usuarios de tipo " + usuario.getRol() + " deben estar asociados a un polideportivo");
+            }
+            usuario.setPolideportivo(polideportivoRepository.findById(polideportivoId)
+                    .orElseThrow(() -> new IllegalArgumentException("Polideportivo no encontrado")));
+        } else if (usuario.getRol() == Rol.AYUNTAMIENTO) {
+            if (ayuntamientoId == null) {
+                throw new IllegalArgumentException("Los usuarios de tipo AYUNTAMIENTO deben estar asociados a un ayuntamiento");
+            }
+            usuario.setAyuntamiento(ayuntamientoRepository.findById(ayuntamientoId)
+                    .orElseThrow(() -> new IllegalArgumentException("Ayuntamiento no encontrado")));
+        }
 
         Usuario saved = usuarioRepository.save(usuario);
 

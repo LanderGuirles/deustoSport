@@ -29,12 +29,22 @@ public class UsuarioController {
     }
 
     /**
-     * Registro de nuevo usuario
+     * Registro de nuevo usuario (solo accesible por AYUNTAMIENTO)
      */
     @PostMapping("/registro")
+    @PreAuthorize("hasRole('AYUNTAMIENTO')")
     @Operation(summary = "Registrar nuevo usuario")
     public ResponseEntity<?> registrarUsuario(@Valid @RequestBody RegistroUsuarioRequest request) {
         try {
+            com.deustosport.my_app.enums.Rol rolEnum = null;
+            if (request.getRol() != null) {
+                try {
+                    rolEnum = com.deustosport.my_app.enums.Rol.valueOf(request.getRol().toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    return ResponseEntity.badRequest().body(Map.of("error", "Rol no válido: " + request.getRol()));
+                }
+            }
+
             Usuario usuario = usuarioService.registrarUsuario(
                     request.getDni(),
                     request.getNombre(),
@@ -42,7 +52,10 @@ public class UsuarioController {
                     request.getEmail(),
                     request.getTelefono(),
                     request.getPassword(),
-                    request.isEsSocio()
+                    request.isEsSocio(),
+                    rolEnum,
+                    request.getPolideportivoId(),
+                    request.getAyuntamientoId()
             );
 
             RegistroUsuarioResponse response = new RegistroUsuarioResponse();

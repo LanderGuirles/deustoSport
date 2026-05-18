@@ -33,6 +33,12 @@ class UsuarioServiceTest {
     private CredencialRepository credencialRepository;
 
     @Mock
+    private com.deustosport.my_app.repository.PolideportivoRepository polideportivoRepository;
+
+    @Mock
+    private com.deustosport.my_app.repository.AyuntamientoRepository ayuntamientoRepository;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     @Mock
@@ -70,7 +76,7 @@ class UsuarioServiceTest {
         when(usuarioRepository.save(any(Usuario.class))).thenReturn(usuarioMock);
 
         // When
-        Usuario result = usuarioService.registrarUsuario(dni, nombre, apellidos, email, telefono, password, esSocio);
+        Usuario result = usuarioService.registrarUsuario(dni, nombre, apellidos, email, telefono, password, esSocio, null, null, null);
 
         // Then
         assertNotNull(result);
@@ -92,7 +98,7 @@ class UsuarioServiceTest {
 
         // When & Then
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-            usuarioService.registrarUsuario(dni, "Juan", "Pérez", "juan@test.com", "+34612345678", "pass", false));
+            usuarioService.registrarUsuario(dni, "Juan", "Pérez", "juan@test.com", "+34612345678", "pass", false, null, null, null));
 
         assertEquals("Ya existe un usuario con ese DNI", exception.getMessage());
     }
@@ -106,7 +112,7 @@ class UsuarioServiceTest {
 
         // When & Then
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-            usuarioService.registrarUsuario("12345678A", "Juan", "Pérez", email, "+34612345678", "pass", false));
+            usuarioService.registrarUsuario("12345678A", "Juan", "Pérez", email, "+34612345678", "pass", false, null, null, null));
 
         assertEquals("Ya existe un usuario con ese email", exception.getMessage());
     }

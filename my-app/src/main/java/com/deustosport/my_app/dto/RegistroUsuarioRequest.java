@@ -30,6 +30,12 @@ public class RegistroUsuarioRequest {
 
     private boolean esSocio;
 
+    private String rol; // CLIENTE, SECRETARIA, COORDINADOR, MANTENIMIENTO, AYUNTAMIENTO
+
+    private Long polideportivoId;
+
+    private Long ayuntamientoId;
+
     // Getters and setters
     public String getDni() { return dni; }
     public void setDni(String dni) { this.dni = dni; }
@@ -51,4 +57,13 @@ public class RegistroUsuarioRequest {
 
     public boolean isEsSocio() { return esSocio; }
     public void setEsSocio(boolean esSocio) { this.esSocio = esSocio; }
+
+    public String getRol() { return rol; }
+    public void setRol(String rol) { this.rol = rol; }
+
+    public Long getPolideportivoId() { return polideportivoId; }
+    public void setPolideportivoId(Long polideportivoId) { this.polideportivoId = polideportivoId; }
+
+    public Long getAyuntamientoId() { return ayuntamientoId; }
+    public void setAyuntamientoId(Long ayuntamientoId) { this.ayuntamientoId = ayuntamientoId; }
 }

@@ -95,11 +95,11 @@ public class DataInitializer implements CommandLineRunner {
             "INSERT INTO usuarios (nombre_completo, email, dni, fecha_nacimiento, telefono, activo, es_socio, billetera, rol) VALUES (?,?,?,?,?,?,?,?,?)",
             "Juan García", "juan@deustosport.com", "11111111A", LocalDate.of(1995, 10, 17), "666111222", true, false, 50.00, "CLIENTE");
         jdbcTemplate.update(
-            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol) VALUES (?,?,?,?,?,?,?,?)",
-            "María López", "maria@deustosport.com", "22222222B", "666333444", true, true, 100.00, "SECRETARIA");
+            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol, polideportivo_id) VALUES (?,?,?,?,?,?,?,?,?)",
+            "María López", "maria@deustosport.com", "22222222B", "666333444", true, true, 100.00, "SECRETARIA", 1);
         jdbcTemplate.update(
-            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol) VALUES (?,?,?,?,?,?,?,?)",
-            "Carlos Rodríguez", "carlos@deustosport.com", "33333333C", "666555666", true, false, 75.00, "COORDINADOR");
+            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol, polideportivo_id) VALUES (?,?,?,?,?,?,?,?,?)",
+            "Carlos Rodríguez", "carlos@deustosport.com", "33333333C", "666555666", true, false, 75.00, "COORDINADOR", 1);
         jdbcTemplate.update(
             "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol) VALUES (?,?,?,?,?,?,?,?)",
             "Laura Fernández", "laura@deustosport.com", "44444444D", "666777888", true, false, 30.00, "CLIENTE");
@@ -110,13 +110,13 @@ public class DataInitializer implements CommandLineRunner {
             "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol) VALUES (?,?,?,?,?,?,?,?)",
             "Nerea Sánchez", "nerea@deustosport.com", "66666666F", "666123789", true, false, 5.00, "CLIENTE");
         jdbcTemplate.update(
-            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol) VALUES (?,?,?,?,?,?,?,?)",
+            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol, polideportivo_id) VALUES (?,?,?,?,?,?,?,?,?)",
             "Iker Martín", "iker.mantenimiento@gmail.com",
-            "88888888H", "944204250", true, false, 0.00, "MANTENIMIENTO");
+            "88888888H", "944204250", true, false, 0.00, "MANTENIMIENTO", 1);
         jdbcTemplate.update(
-            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol) VALUES (?,?,?,?,?,?,?,?)",
+            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol, ayuntamiento_id) VALUES (?,?,?,?,?,?,?,?,?)",
             "Ayuntamiento de Bilbao", "ayuntamiento.bilbao@deustosport.com",
-            "77777777G", "944204200", true, false, 0.00, "AYUNTAMIENTO");
+            "77777777G", "944204200", true, false, 0.00, "AYUNTAMIENTO", 1);
 
         // ── Credenciales ─────────────────────────────────────────────
         LocalDateTime ahora = LocalDateTime.now();
@@ -186,6 +186,12 @@ public class DataInitializer implements CommandLineRunner {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         String email = "iker.mantenimiento@gmail.com";
 
+        com.deustosport.my_app.entity.Polideportivo poli = jdbcTemplate.query("SELECT id FROM polideportivos LIMIT 1", (rs, rowNum) -> {
+            com.deustosport.my_app.entity.Polideportivo p = new com.deustosport.my_app.entity.Polideportivo();
+            p.setId(rs.getLong("id"));
+            return p;
+        }).stream().findFirst().orElse(null);
+
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseGet(() -> {
                     Usuario nuevo = new Usuario();
@@ -197,6 +203,7 @@ public class DataInitializer implements CommandLineRunner {
                     nuevo.setEsSocio(false);
                     nuevo.setBilletera(BigDecimal.ZERO);
                     nuevo.setRol(Rol.MANTENIMIENTO);
+                    nuevo.setPolideportivo(poli);
                     return usuarioRepository.save(nuevo);
                 });
 
@@ -207,6 +214,7 @@ public class DataInitializer implements CommandLineRunner {
         usuario.setEsSocio(false);
         usuario.setBilletera(BigDecimal.ZERO);
         usuario.setRol(Rol.MANTENIMIENTO);
+        usuario.setPolideportivo(poli);
         usuario = usuarioRepository.save(usuario);
 
         Credencial credencial = credencialRepository.findByUsuarioId(usuario.getId())
