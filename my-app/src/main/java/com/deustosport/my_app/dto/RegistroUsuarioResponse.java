@@ -1,6 +1,5 @@
 package com.deustosport.my_app.dto;
 
-import java.math.BigDecimal;
 
 public class RegistroUsuarioResponse {
     private Long id;

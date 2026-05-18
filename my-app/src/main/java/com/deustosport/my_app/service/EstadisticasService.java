@@ -10,18 +10,15 @@ import com.deustosport.my_app.entity.Pista;
 import com.deustosport.my_app.enums.EstadoReserva;
 import com.deustosport.my_app.enums.MetodoPago;
 import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class EstadisticasService {
@@ -254,7 +251,7 @@ public class EstadisticasService {
         reporte.put("numeroReservas", numeroReservas);
 
         if (numeroReservas > 0) {
-            BigDecimal ingresoPromedio = ingresosTotales.divide(BigDecimal.valueOf(numeroReservas), 2, BigDecimal.ROUND_HALF_UP);
+            BigDecimal ingresoPromedio = ingresosTotales.divide(BigDecimal.valueOf(numeroReservas), 2, RoundingMode.HALF_UP);
             reporte.put("ingresoPromedio", ingresoPromedio);
         } else {
             reporte.put("ingresoPromedio", BigDecimal.ZERO);

@@ -2,22 +2,18 @@ package com.deustosport.my_app.config;
 
 import com.deustosport.my_app.entity.Credencial;
 import com.deustosport.my_app.entity.Usuario;
-import com.deustosport.my_app.entity.Tarifa;
 import com.deustosport.my_app.enums.Rol;
-import com.deustosport.my_app.enums.TipoDeporte;
 import com.deustosport.my_app.repository.CredencialRepository;
 import com.deustosport.my_app.repository.UsuarioRepository;
-import com.deustosport.my_app.repository.TarifaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
+
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -26,9 +22,6 @@ public class DataInitializer implements CommandLineRunner {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    private TarifaRepository tarifaRepository;
 
     @Autowired
     private UsuarioRepository usuarioRepository;

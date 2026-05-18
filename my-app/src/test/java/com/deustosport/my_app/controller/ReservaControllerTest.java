@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-
 import com.deustosport.my_app.dto.PagoReservaRequest;
 import com.deustosport.my_app.dto.ReservaRequest;
 import com.deustosport.my_app.entity.Polideportivo;
@@ -13,7 +12,6 @@ import com.deustosport.my_app.entity.Pista;
 import com.deustosport.my_app.entity.Reserva;
 import com.deustosport.my_app.entity.Usuario;
 import com.deustosport.my_app.enums.EstadoReserva;
-import com.deustosport.my_app.enums.MetodoPago;
 import com.deustosport.my_app.enums.TipoDeporte;
 import com.deustosport.my_app.service.QRCodeService;
 import com.deustosport.my_app.service.ReservaService;

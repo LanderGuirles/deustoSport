@@ -1,20 +1,13 @@
 package com.deustosport.my_app.service;
 
-import com.deustosport.my_app.entity.Reserva;
-import com.deustosport.my_app.entity.Usuario;
-import com.deustosport.my_app.entity.Pista;
-import com.deustosport.my_app.enums.EstadoReserva;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mail.javamail.JavaMailSender;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -35,13 +28,7 @@ class ReservaEmailIntegrationTest {
     void crearReserva_debeEnviarEmailConQR() {
         // Este test verifica que al crear una reserva se envía el email correspondiente
         // Nota: Este es un test de integración simplificado
-
-        // Given
-        Long usuarioId = 1L;
-        Long pistaId = 1L;
-        LocalDate fecha = LocalDate.now().plusDays(1);
-        LocalTime horaInicio = LocalTime.of(10, 0);
-        Integer duracionMinutos = 60;
+        
 
         // Mock de Usuario, Pista, etc. serían necesarios para un test completo
         // Por ahora, verificamos que los métodos de email se llamen correctamente

@@ -4,7 +4,6 @@ import com.deustosport.my_app.dto.AbonoUsuarioRequest;
 import com.deustosport.my_app.dto.AbonoUsuarioResponse;
 import com.deustosport.my_app.dto.PlanAbonoResponse;
 import com.deustosport.my_app.entity.AbonoUsuario;
-import com.deustosport.my_app.entity.PlanAbono;
 import com.deustosport.my_app.entity.Usuario;
 import com.deustosport.my_app.service.AbonoUsuarioService;
 import io.swagger.v3.oas.annotations.tags.Tag;

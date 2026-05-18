@@ -1,7 +1,6 @@
 package com.deustosport.my_app.dto;
 
 import jakarta.validation.constraints.*;
-import java.math.BigDecimal;
 
 public class RegistroUsuarioRequest {
     @NotBlank(message = "DNI es obligatorio")

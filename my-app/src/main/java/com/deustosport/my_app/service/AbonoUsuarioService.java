@@ -31,12 +31,6 @@ public class AbonoUsuarioService {
     private UsuarioRepository usuarioRepository;
 
     @Autowired
-    private com.deustosport.my_app.repository.PolideportivoRepository polideportivoRepository;
-
-    @Autowired
-    private com.deustosport.my_app.repository.AyuntamientoRepository ayuntamientoRepository;
-
-    @Autowired
     private NotificacionService notificacionService;
 
     public List<PlanAbono> obtenerPlanesActivos() {

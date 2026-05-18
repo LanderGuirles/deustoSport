@@ -142,9 +142,6 @@ public class AuditoriaController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Obtener resumen de actividad reciente")
     public ResponseEntity<Map<String, Object>> obtenerResumenActividad() {
-        LocalDateTime hace24Horas = LocalDateTime.now().minusHours(24);
-        LocalDateTime hace7Dias = LocalDateTime.now().minusDays(7);
-
         Map<String, Object> resumen = Map.of(
                 "accionesUltimas24Horas", auditoriaService.contarAccionesPorTipo("TODAS"), // Placeholder
                 "accionesUltimos7Dias", auditoriaService.contarAccionesPorTipo("TODAS"), // Placeholder

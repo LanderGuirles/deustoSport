@@ -3,8 +3,6 @@ package com.deustosport.my_app.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
-
-import com.deustosport.my_app.dto.PagoResponse;
 import com.deustosport.my_app.service.PagoService;
 import java.math.BigDecimal;
 import java.util.Map;

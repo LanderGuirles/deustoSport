@@ -357,7 +357,6 @@ class LoginControllerTest {
 
     // ── GET /api/auth/verificar-usuario ──────────────────────────────────────
 
-    @SuppressWarnings("unchecked")
     @Test
     void verificarUsuario_emailExistente_devuelve200() {
         log.info("[TEST] verificarUsuario - email existe → 200");
@@ -371,7 +370,6 @@ class LoginControllerTest {
         assertTrue((Boolean) resp.getBody().get("existe"));
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void verificarUsuario_emailNoExiste_devuelve404() {
         log.info("[TEST] verificarUsuario - email no encontrado → 404");
@@ -383,7 +381,6 @@ class LoginControllerTest {
         assertFalse((Boolean) resp.getBody().get("existe"));
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void verificarUsuario_emailVacio_devuelve400() {
         log.info("[TEST] verificarUsuario - email vacío → 400");

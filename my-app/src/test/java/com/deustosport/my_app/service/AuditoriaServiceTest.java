@@ -37,8 +37,6 @@ class AuditoriaServiceTest {
         String usuario = "admin";
         String accion = "LOGIN";
         String detalles = "Inicio de sesión exitoso";
-        String ip = "192.168.1.100";
-
         Auditoria auditoriaMock = new Auditoria();
         auditoriaMock.setId(1L);
         auditoriaMock.setUsuario(usuario);

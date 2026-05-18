@@ -109,7 +109,7 @@ public class UsuarioController {
             .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 
         try {
-            Usuario usuario = usuarioService.actualizarPerfil(
+            usuarioService.actualizarPerfil(
                     usuarioId,
                     request.getNombreCompleto(),
                     "",
