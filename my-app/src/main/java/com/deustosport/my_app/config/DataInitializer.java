@@ -55,10 +55,22 @@ public class DataInitializer implements CommandLineRunner {
         String hashMantenimiento = encoder.encode("mantenimiento");
         String hashBilbao = encoder.encode("bilbao");
 
-        // ── Instalación ──────────────────────────────────────────────
+        // ── Ayuntamiento ─────────────────────────────────────────────
         jdbcTemplate.update(
-            "INSERT INTO instalaciones (nombre, direccion, hora_apertura, hora_cierre) VALUES (?,?,?,?)",
-            "Polideportivo Deusto", "Calle Agirre, 1, Bilbao", "08:00:00", "22:00:00"
+            "INSERT INTO ayuntamientos (nombre, cif) VALUES (?,?)",
+            "Ayuntamiento de Bilbao", "P4802000D"
+        );
+
+        // ── Polideportivo (ayuntamiento_id = 1) ───────────────────────
+        jdbcTemplate.update(
+            "INSERT INTO polideportivos (nombre, direccion, hora_apertura, hora_cierre, ayuntamiento_id) VALUES (?,?,?,?,?)",
+            "Polideportivo Deusto", "Calle Agirre, 1, Bilbao", "08:00:00", "22:00:00", 1
+        );
+
+        // ── Instalación (polideportivo_id = 1) ───────────────────────
+        jdbcTemplate.update(
+            "INSERT INTO instalaciones (nombre, polideportivo_id) VALUES (?,?)",
+            "Zona Principal Deusto", 1
         );
 
         // ── Pistas (instalacion_id = 1) ───────────────────────────────
