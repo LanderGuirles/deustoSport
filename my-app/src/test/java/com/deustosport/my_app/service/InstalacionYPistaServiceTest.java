@@ -5,13 +5,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.deustosport.my_app.dto.PistaResponse;
+import com.deustosport.my_app.entity.Polideportivo;
 import com.deustosport.my_app.entity.Instalacion;
 import com.deustosport.my_app.entity.Pista;
 import com.deustosport.my_app.enums.TipoDeporte;
+import com.deustosport.my_app.repository.PolideportivoRepository;
 import com.deustosport.my_app.repository.InstalacionRepository;
 import com.deustosport.my_app.repository.PistaRepository;
 import com.deustosport.my_app.repository.ReservaRepository;
 import com.deustosport.my_app.service.ReservaService;
+import com.deustosport.my_app.service.PolideportivoService;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +33,10 @@ class InstalacionYPistaServiceTest {
 
     private static final Logger log = LoggerFactory.getLogger(InstalacionYPistaServiceTest.class);
 
+    // ── PolideportivoService ──────────────────────────────────────────────────
+    @Mock private PolideportivoRepository polideportivoRepository;
+    @InjectMocks private PolideportivoService polideportivoService;
+
     // ── InstalacionService ────────────────────────────────────────────────────
     @Mock private InstalacionRepository instalacionRepository;
     @InjectMocks private InstalacionService instalacionService;
@@ -40,16 +47,22 @@ class InstalacionYPistaServiceTest {
     @Mock private ReservaService reservaService;
     @InjectMocks private PistaService pistaService;
 
+    private Polideportivo polideportivo;
     private Instalacion instalacion;
     private Pista pista;
 
     @BeforeEach
     void setUp() {
+        polideportivo = new Polideportivo();
+        polideportivo.setId(10L);
+        polideportivo.setNombre("Polideportivo Central");
+        polideportivo.setHoraApertura(LocalTime.of(8, 0));
+        polideportivo.setHoraCierre(LocalTime.of(22, 0));
+
         instalacion = new Instalacion();
         instalacion.setId(1L);
-        instalacion.setNombre("Polideportivo Central");
-        instalacion.setHoraApertura(LocalTime.of(8, 0));
-        instalacion.setHoraCierre(LocalTime.of(22, 0));
+        instalacion.setNombre("Zona Padel");
+        instalacion.setPolideportivo(polideportivo);
 
         pista = new Pista();
         pista.setId(5L);
@@ -58,6 +71,40 @@ class InstalacionYPistaServiceTest {
         pista.setMaxJugadores(4);
         pista.setActiva(true);
         pista.setInstalacion(instalacion);
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    //  PolideportivoService
+    // ══════════════════════════════════════════════════════════════════════════
+
+    @Test
+    void polideportivo_actualizarHorario_exitoso() {
+        log.info("[TEST] PolideportivoService.actualizarHorarioGeneral - 09:00-21:00");
+        when(polideportivoRepository.findById(10L)).thenReturn(Optional.of(polideportivo));
+        when(polideportivoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        Polideportivo resultado = polideportivoService.actualizarHorarioGeneral(
+                10L, LocalTime.of(9, 0), LocalTime.of(21, 0));
+
+        assertEquals(LocalTime.of(9, 0), resultado.getHoraApertura());
+        assertEquals(LocalTime.of(21, 0), resultado.getHoraCierre());
+        log.info("[TEST] Horario polideportivo actualizado: {}-{}", resultado.getHoraApertura(), resultado.getHoraCierre());
+    }
+
+    @Test
+    void polideportivo_actualizarHorario_cierreMenorQueApertura_lanzaExcepcion() {
+        log.info("[TEST] PolideportivoService.actualizarHorarioGeneral - cierre <= apertura");
+        assertThrows(IllegalArgumentException.class,
+                () -> polideportivoService.actualizarHorarioGeneral(10L, LocalTime.of(20, 0), LocalTime.of(8, 0)));
+    }
+
+    @Test
+    void polideportivo_actualizarHorario_noExiste_lanzaExcepcion() {
+        log.info("[TEST] PolideportivoService.actualizarHorarioGeneral - polideportivo 999 no existe");
+        when(polideportivoRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class,
+                () -> polideportivoService.actualizarHorarioGeneral(999L, LocalTime.of(8, 0), LocalTime.of(22, 0)));
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -76,33 +123,19 @@ class InstalacionYPistaServiceTest {
     }
 
     @Test
-    void instalacion_actualizarHorario_exitoso() {
-        log.info("[TEST] InstalacionService.actualizarHorarioGeneral - 09:00-21:00");
-        when(instalacionRepository.findById(1L)).thenReturn(Optional.of(instalacion));
-        when(instalacionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+    void instalacion_existeInstalacion_devuelveTrue() {
+        log.info("[TEST] InstalacionService.existeInstalacion - id=1 existe");
+        when(instalacionRepository.existsById(1L)).thenReturn(true);
 
-        Instalacion resultado = instalacionService.actualizarHorarioGeneral(
-                1L, LocalTime.of(9, 0), LocalTime.of(21, 0));
-
-        assertEquals(LocalTime.of(9, 0), resultado.getHoraApertura());
-        assertEquals(LocalTime.of(21, 0), resultado.getHoraCierre());
-        log.info("[TEST] Horario actualizado: {}-{}", resultado.getHoraApertura(), resultado.getHoraCierre());
+        assertTrue(instalacionService.existeInstalacion(1L));
     }
 
     @Test
-    void instalacion_actualizarHorario_cierreMenorQueApertura_lanzaExcepcion() {
-        log.info("[TEST] InstalacionService.actualizarHorarioGeneral - cierre <= apertura");
-        assertThrows(IllegalArgumentException.class,
-                () -> instalacionService.actualizarHorarioGeneral(1L, LocalTime.of(20, 0), LocalTime.of(8, 0)));
-    }
+    void pista_obtenerPorInstalacion_noExiste_lanzaExcepcion() {
+        log.info("[TEST] PistaService.obtenerPistasPorInstalacionId - instalacion 99 no existe");
+        when(instalacionRepository.existsById(99L)).thenReturn(false);
 
-    @Test
-    void instalacion_actualizarHorario_noExiste_lanzaExcepcion() {
-        log.info("[TEST] InstalacionService.actualizarHorarioGeneral - instalacion 999 no existe");
-        when(instalacionRepository.findById(999L)).thenReturn(Optional.empty());
-
-        assertThrows(IllegalArgumentException.class,
-                () -> instalacionService.actualizarHorarioGeneral(999L, LocalTime.of(8, 0), LocalTime.of(22, 0)));
+        assertThrows(RuntimeException.class, () -> pistaService.obtenerPistasPorInstalacionId(99L));
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -191,22 +224,6 @@ class InstalacionYPistaServiceTest {
         assertTrue(resultado.isActiva(), "La pista debería quedar activa");
         verify(reservaRepository, never()).findActivasByPistaAndRango(any(), any(), any());
         verify(reservaService, never()).cancelarReservaPorBloqueo(any());
-    }
-
-    @Test
-    void instalacion_existeInstalacion_devuelveTrue() {
-        log.info("[TEST] InstalacionService.existeInstalacion - id=1 existe");
-        when(instalacionRepository.existsById(1L)).thenReturn(true);
-
-        assertTrue(instalacionService.existeInstalacion(1L));
-    }
-
-    @Test
-    void pista_obtenerPorInstalacion_noExiste_lanzaExcepcion() {
-        log.info("[TEST] PistaService.obtenerPistasPorInstalacionId - instalacion 99 no existe");
-        when(instalacionRepository.existsById(99L)).thenReturn(false);
-
-        assertThrows(RuntimeException.class, () -> pistaService.obtenerPistasPorInstalacionId(99L));
     }
 
     @Test

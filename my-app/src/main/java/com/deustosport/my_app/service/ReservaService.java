@@ -574,18 +574,18 @@ public class ReservaService {
     private void validarHorarioInstalacion(Pista pista,
                                            LocalTime horaInicio, LocalTime horaFin) {
         if (!estaDentroDeHorario(pista, horaInicio, horaFin)) {
-            LocalTime ap = pista.getInstalacion().getHoraApertura();
-            LocalTime ci = pista.getInstalacion().getHoraCierre();
+            LocalTime ap = pista.getInstalacion().getPolideportivo().getHoraApertura();
+            LocalTime ci = pista.getInstalacion().getPolideportivo().getHoraCierre();
             throw new IllegalArgumentException(
-                    "Horario fuera del horario general de la instalación (" + ap + " - " + ci + ").");
+                    "Horario fuera del horario general del polideportivo (" + ap + " - " + ci + ").");
         }
     }
 
     private boolean estaDentroDeHorario(Pista pista,
                                         LocalTime horaInicio, LocalTime horaFin) {
-        if (pista.getInstalacion() == null) return true;
-        LocalTime ap = pista.getInstalacion().getHoraApertura();
-        LocalTime ci = pista.getInstalacion().getHoraCierre();
+        if (pista.getInstalacion() == null || pista.getInstalacion().getPolideportivo() == null) return true;
+        LocalTime ap = pista.getInstalacion().getPolideportivo().getHoraApertura();
+        LocalTime ci = pista.getInstalacion().getPolideportivo().getHoraCierre();
         if (ap == null || ci == null) return true;
         return !horaInicio.isBefore(ap) && !horaFin.isAfter(ci);
     }

@@ -28,22 +28,9 @@ public class InstalacionService {
         return instalacionRepository.findAll();
     }
 
-    @Transactional
-    public Instalacion actualizarHorarioGeneral(Long instalacionId, LocalTime horaApertura, LocalTime horaCierre) {
-        Objects.requireNonNull(instalacionId, "instalacionId no puede ser null");
-        if (horaApertura == null || horaCierre == null) {
-            throw new IllegalArgumentException("La hora de apertura y cierre son obligatorias.");
-        }
-
-        if (!horaCierre.isAfter(horaApertura)) {
-            throw new IllegalArgumentException("La hora de cierre debe ser posterior a la hora de apertura.");
-        }
-
-        Instalacion instalacion = instalacionRepository.findById(instalacionId)
-                .orElseThrow(() -> new IllegalArgumentException("Instalación no encontrada con ID: " + instalacionId));
-
-        instalacion.setHoraApertura(horaApertura);
-        instalacion.setHoraCierre(horaCierre);
-        return instalacionRepository.save(instalacion);
+    @Transactional(readOnly = true)
+    public List<Instalacion> obtenerPorPolideportivo(Long polideportivoId) {
+        // Asumiendo que añadiremos este método al repositorio
+        return instalacionRepository.findByPolideportivoId(polideportivoId);
     }
 }

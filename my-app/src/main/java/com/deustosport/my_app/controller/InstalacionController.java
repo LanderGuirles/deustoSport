@@ -38,6 +38,12 @@ public class InstalacionController {
     public ResponseEntity<List<Instalacion>> listarInstalaciones() {
         return ResponseEntity.ok(instalacionService.obtenerTodas());
     }
+
+    @GetMapping("/polideportivo/{polideportivoId}")
+    @Operation(summary = "Listar instalaciones por polideportivo")
+    public ResponseEntity<List<Instalacion>> listarPorPolideportivo(@PathVariable Long polideportivoId) {
+        return ResponseEntity.ok(instalacionService.obtenerPorPolideportivo(polideportivoId));
+    }
  
     @GetMapping("/{instalacionId}/pistas")
     @Operation(summary = "Listar todas las pistas de una instalacion", description = "Devuelve todas las pistas activas de esa instalacion")
@@ -47,24 +53,6 @@ public class InstalacionController {
             return ResponseEntity.ok(pistas);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
-    }
- 
-    @PutMapping("/{instalacionId}/horario-general")
-    @Operation(summary = "Actualizar horario general", description = "Define la hora general de apertura y cierre del polideportivo")
-    public ResponseEntity<?> actualizarHorarioGeneral(
-            @PathVariable("instalacionId") Long instalacionId,
-            @Valid @RequestBody HorarioInstalacionRequest request) {
-        try {
-            Instalacion instalacion = instalacionService.actualizarHorarioGeneral(
-                    instalacionId,
-                    request.getHoraApertura(),
-                    request.getHoraCierre());
- 
-            return ResponseEntity.ok(instalacion);
- 
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 }

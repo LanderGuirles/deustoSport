@@ -48,10 +48,14 @@ class ReservaServiceTest {
         usuario.setEsSocio(false);
         usuario.setBilletera(new BigDecimal("100.00"));
 
+        Polideportivo polideportivo = new Polideportivo();
+        polideportivo.setId(5L);
+        polideportivo.setHoraApertura(LocalTime.of(8, 0));
+        polideportivo.setHoraCierre(LocalTime.of(22, 0));
+
         Instalacion instalacion = new Instalacion();
         instalacion.setId(1L);
-        instalacion.setHoraApertura(LocalTime.of(8, 0));
-        instalacion.setHoraCierre(LocalTime.of(22, 0));
+        instalacion.setPolideportivo(polideportivo);
 
         pista = new Pista();
         pista.setId(20L);
