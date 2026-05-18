@@ -61,14 +61,29 @@ public class PagoService {
         LocalDateTime inicioMes = hoy.withDayOfMonth(1).atStartOfDay();
         LocalDateTime inicioMesSiguiente = inicioMes.plusMonths(1);
 
+        // Obtener todos los polideportivos del ayuntamiento
+        java.util.List<com.deustosport.my_app.entity.Polideportivo> polis = 
+                polideportivoRepository.findByAyuntamientoId(ayuntamientoId);
+
+        // Obtener la recaudación real (solo los que tienen pagos)
         java.util.List<Object[]> rows = pagoRepository.getBreakdownByAyuntamiento(
                 EstadoPago.COMPLETADO, inicioMes, inicioMesSiguiente, ayuntamientoId);
 
-        return rows.stream().map(row -> Map.of(
-                "centroId", row[0],
-                "centroNombre", row[1],
-                "total", ((BigDecimal) row[2]).setScale(2, RoundingMode.HALF_UP)
-        )).collect(java.util.stream.Collectors.toList());
+        // Mapear ingresos existentes por ID de polideportivo
+        Map<Long, BigDecimal> revenueMap = rows.stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> (BigDecimal) row[2]
+                ));
+
+        // Construir resultado final incluyendo centros con 0€
+        return polis.stream().map(poli -> {
+            Map<String, Object> map = new java.util.HashMap<>();
+            map.put("centroId", poli.getId());
+            map.put("centroNombre", poli.getNombre());
+            map.put("total", revenueMap.getOrDefault(poli.getId(), BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP));
+            return map;
+        }).collect(java.util.stream.Collectors.toList());
     }
 
     @Transactional(readOnly = true)

@@ -34,10 +34,18 @@ public class AbonoConfigService {
         plan.setEdadMax(detalles.getEdadMax());
         plan.setPrecio(detalles.getPrecio());
         plan.setDuracion(detalles.getDuracion());
+        plan.setAmbito(detalles.getAmbito());
         plan.setDescuentoPistasPorcentaje(detalles.getDescuentoPistasPorcentaje());
         plan.setActivo(detalles.isActivo());
         
         return planAbonoRepository.save(plan);
+    }
+
+    public List<PlanAbono> listarPlanesPorAyuntamiento(Long ayuntamientoId) {
+        // Asumimos que los planes con ayuntamiento null son globales o de ejemplo
+        return planAbonoRepository.findAll().stream()
+                .filter(p -> p.getAyuntamiento() != null && p.getAyuntamiento().getId().equals(ayuntamientoId))
+                .collect(java.util.stream.Collectors.toList());
     }
 
     @Transactional

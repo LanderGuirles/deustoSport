@@ -35,19 +35,52 @@ public class LoginService {
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
+    private LoginResponse construirLoginResponse(Usuario usuario, String mensaje, boolean exitoso) {
+        if (usuario == null) {
+            return new LoginResponse(null, null, null, null, false, null, mensaje, exitoso);
+        }
+        
+        LoginResponse response = new LoginResponse(
+                usuario.getId(),
+                usuario.getNombreCompleto(),
+                usuario.getEmail(),
+                toRolString(usuario.getRol()),
+                usuario.isEsSocio(),
+                usuario.getBilletera(),
+                mensaje,
+                exitoso
+        );
+
+        // Poblar IDs de contexto si existen
+        if (usuario.getAyuntamiento() != null) {
+            response.setAyuntamientoId(usuario.getAyuntamiento().getId());
+        }
+        if (usuario.getPolideportivo() != null) {
+            response.setPolideportivoId(usuario.getPolideportivo().getId());
+        }
+
+        return response;
+    }
+
     @Transactional
     public LoginResponse registrarUsuario(RegistroRequest solicitud) {
         String email = solicitud.getEmail().trim().toLowerCase();
         String dni = solicitud.getDni().trim().toUpperCase();
 
         if (usuarioRepository.existsByEmail(email)) {
-            return new LoginResponse(null, null, solicitud.getEmail(), null,
-                    false, null, "El email ya está registrado", false);
+            LoginResponse res = new LoginResponse();
+            res.setEmail(solicitud.getEmail());
+            res.setMensaje("El email ya está registrado");
+            res.setExitoso(false);
+            return res;
         }
 
         if (usuarioRepository.existsByDni(dni)) {
-            return new LoginResponse(null, null, solicitud.getEmail(), null,
-                    false, null, "El DNI ya está registrado", false);
+            LoginResponse res = new LoginResponse();
+            res.setEmail(solicitud.getEmail());
+            res.setMensaje("El DNI ya está registrado");
+            res.setExitoso(false);
+            return res;
         }
 
         try {
@@ -71,11 +104,7 @@ public class LoginService {
             credencial.setFechaCreacion(LocalDateTime.now());
             credencialRepository.save(credencial);
 
-            // Devolvemos el rol y esSocio en la respuesta exitosa
-                return new LoginResponse(usuarioGuardado.getId(), usuarioGuardado.getNombreCompleto(),
-                    usuarioGuardado.getEmail(), toRolString(usuarioGuardado.getRol()),
-                    usuarioGuardado.isEsSocio(), usuarioGuardado.getBilletera(),
-                    "Usuario registrado exitosamente", true);
+            return construirLoginResponse(usuarioGuardado, "Usuario registrado exitosamente", true);
         } catch (Exception e) {
             return new LoginResponse(null, null, solicitud.getEmail(), null,
                     false, null, "Error al registrar usuario: " + e.getMessage(), false);
@@ -115,11 +144,7 @@ public class LoginService {
         credencial.setUltimoAcceso(LocalDateTime.now());
         credencialRepository.save(credencial);
 
-        // Pasamos el rol y esSocio en el login exitoso
-        return new LoginResponse(usuario.getId(), usuario.getNombreCompleto(),
-            usuario.getEmail(), toRolString(usuario.getRol()),
-            usuario.isEsSocio(), usuario.getBilletera(),
-            "Sesión iniciada exitosamente", true);
+        return construirLoginResponse(usuario, "Sesión iniciada exitosamente", true);
     }
 
     @Transactional
@@ -133,12 +158,7 @@ public class LoginService {
         }
 
         Usuario usuario = usuarioOpt.get();
-        // Lógica de credencial (omitida como en tu original)
-
-        return new LoginResponse(usuario.getId(), usuario.getNombreCompleto(),
-            usuario.getEmail(), toRolString(usuario.getRol()),
-            usuario.isEsSocio(), usuario.getBilletera(),
-            "Sesión cerrada exitosamente", true);
+        return construirLoginResponse(usuario, "Sesión cerrada exitosamente", true);
     }
 
     @Transactional
@@ -168,10 +188,7 @@ public class LoginService {
             // Enviar email con el token de recuperación
             emailService.enviarEmailRecuperacion(usuario.getEmail(), token);
 
-            return new LoginResponse(usuario.getId(), usuario.getNombreCompleto(),
-                    usuario.getEmail(), toRolString(usuario.getRol()),
-                    usuario.isEsSocio(), usuario.getBilletera(),
-                    "Instrucciones enviadas al email", true);
+            return construirLoginResponse(usuario, "Instrucciones enviadas al email", true);
         } catch (Exception e) {
             return new LoginResponse(null, null, email, null,
                     false, null, "Error al procesar solicitud de recuperación", false);
@@ -203,10 +220,7 @@ public class LoginService {
             credencialRepository.save(credencial);
 
             Usuario usuario = credencial.getUsuario();
-                return new LoginResponse(usuario.getId(), usuario.getNombreCompleto(),
-                    usuario.getEmail(), toRolString(usuario.getRol()),
-                    usuario.isEsSocio(), usuario.getBilletera(),
-                    "Contraseña actualizada exitosamente", true);
+            return construirLoginResponse(usuario, "Contraseña actualizada exitosamente", true);
         } catch (Exception e) {
             return new LoginResponse(null, null, null, null,
                     false, null, "Error al actualizar contraseña: " + e.getMessage(), false);
@@ -242,10 +256,7 @@ public class LoginService {
             credencial.setPasswordHash(passwordEncoder.encode(passwordNueva));
             credencialRepository.save(credencial);
 
-                return new LoginResponse(usuario.getId(), usuario.getNombreCompleto(),
-                    usuario.getEmail(), toRolString(usuario.getRol()),
-                    usuario.isEsSocio(), usuario.getBilletera(),
-                    "Contraseña actualizada exitosamente", true);
+            return construirLoginResponse(usuario, "Contraseña actualizada exitosamente", true);
         } catch (Exception e) {
             return new LoginResponse(null, null, usuario.getEmail(), null,
                     false, null, "Error al cambiar contraseña: " + e.getMessage(), false);

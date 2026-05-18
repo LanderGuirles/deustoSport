@@ -36,10 +36,12 @@ public class Polideportivo {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
     private LocalTime horaCierre = LocalTime.of(22, 0);
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ayuntamiento_id", nullable = false)
     private Ayuntamiento ayuntamiento;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @OneToMany(mappedBy = "polideportivo", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Pista> pistas = new ArrayList<>();
 }

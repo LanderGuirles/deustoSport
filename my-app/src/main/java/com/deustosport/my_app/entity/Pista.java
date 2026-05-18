@@ -43,6 +43,7 @@ public class Pista {
     @Column(nullable = false, length = 20)
     private TipoDeporte tipoDeporte;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "polideportivo_id")
     private Polideportivo polideportivo;

@@ -47,9 +47,20 @@ public class PolideportivoController {
             poli.setNombre((String) payload.get("nombre"));
             poli.setDireccion((String) payload.get("direccion"));
             
-            Long ayuntamientoId = Long.valueOf(payload.get("ayuntamientoId").toString());
+            Object aytoIdObj = payload.get("ayuntamientoId");
+            if (aytoIdObj == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "El ayuntamientoId es obligatorio"));
+            }
+
+            Long ayuntamientoId;
+            if (aytoIdObj instanceof Number) {
+                ayuntamientoId = ((Number) aytoIdObj).longValue();
+            } else {
+                ayuntamientoId = Long.valueOf(aytoIdObj.toString());
+            }
+
             Ayuntamiento ayu = ayuntamientoRepository.findById(ayuntamientoId)
-                    .orElseThrow(() -> new IllegalArgumentException("Ayuntamiento no encontrado"));
+                    .orElseThrow(() -> new IllegalArgumentException("Ayuntamiento no encontrado con ID: " + ayuntamientoId));
             poli.setAyuntamiento(ayu);
 
             return ResponseEntity.ok(polideportivoService.crearPolideportivo(poli));
