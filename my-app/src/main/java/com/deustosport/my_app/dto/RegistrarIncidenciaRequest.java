@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class RegistrarIncidenciaRequest {
     private Long usuarioId;
-    private Long instalacionId;
+    private Long polideportivoId;
     private Long pistaId;
     private String titulo;
     private String descripcion;

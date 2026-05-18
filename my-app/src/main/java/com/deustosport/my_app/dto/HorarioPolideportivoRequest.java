@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalTime;
 
-public class HorarioInstalacionRequest {
+public class HorarioPolideportivoRequest {
 
     @NotNull
     @Schema(type = "string", example = "08:00:00", description = "Hora de apertura en formato HH:mm:ss")

@@ -41,5 +41,5 @@ public class Polideportivo {
     private Ayuntamiento ayuntamiento;
 
     @OneToMany(mappedBy = "polideportivo", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Instalacion> instalaciones = new ArrayList<>();
+    private List<Pista> pistas = new ArrayList<>();
 }

@@ -25,10 +25,50 @@ public class PagoService {
 
     private final PagoRepository pagoRepository;
     private final ReservaRepository reservaRepository;
+    private final com.deustosport.my_app.repository.PolideportivoRepository polideportivoRepository;
 
-    public PagoService(PagoRepository pagoRepository, ReservaRepository reservaRepository) {
+    public PagoService(PagoRepository pagoRepository,
+                       ReservaRepository reservaRepository,
+                       com.deustosport.my_app.repository.PolideportivoRepository polideportivoRepository) {
         this.pagoRepository = pagoRepository;
         this.reservaRepository = reservaRepository;
+        this.polideportivoRepository = polideportivoRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, Object> obtenerRecaudacionAyuntamiento(Long ayuntamientoId) {
+        LocalDate hoy = LocalDate.now();
+        LocalDateTime inicioMes = hoy.withDayOfMonth(1).atStartOfDay();
+        LocalDateTime inicioMesSiguiente = inicioMes.plusMonths(1);
+
+        BigDecimal total = pagoRepository.sumByAyuntamiento(
+                EstadoPago.COMPLETADO, inicioMes, inicioMesSiguiente, ayuntamientoId);
+        long centrosCount = polideportivoRepository.countByAyuntamientoId(ayuntamientoId);
+
+        String nombreMes = hoy.getMonth().getDisplayName(TextStyle.FULL, new Locale("es", "ES"));
+
+        return Map.of(
+                "total", (total != null ? total : BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP),
+                "centrosCount", centrosCount,
+                "mesNombre", nombreMes.toUpperCase(),
+                "anio", hoy.getYear()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.List<Map<String, Object>> obtenerDesglosePorCentro(Long ayuntamientoId) {
+        LocalDate hoy = LocalDate.now();
+        LocalDateTime inicioMes = hoy.withDayOfMonth(1).atStartOfDay();
+        LocalDateTime inicioMesSiguiente = inicioMes.plusMonths(1);
+
+        java.util.List<Object[]> rows = pagoRepository.getBreakdownByAyuntamiento(
+                EstadoPago.COMPLETADO, inicioMes, inicioMesSiguiente, ayuntamientoId);
+
+        return rows.stream().map(row -> Map.of(
+                "centroId", row[0],
+                "centroNombre", row[1],
+                "total", ((BigDecimal) row[2]).setScale(2, RoundingMode.HALF_UP)
+        )).collect(java.util.stream.Collectors.toList());
     }
 
     @Transactional(readOnly = true)

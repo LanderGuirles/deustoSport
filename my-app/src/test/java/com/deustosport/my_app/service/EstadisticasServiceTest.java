@@ -69,23 +69,23 @@ class EstadisticasServiceTest {
     }
 
     @Test
-    void obtenerEstadisticasReservasPorInstalacion_debeRetornarMapaCorrecto() {
+    void obtenerEstadisticasReservasPorPolideportivo_debeRetornarMapaCorrecto() {
         // Given
-        when(reservaRepository.countReservasPorInstalacion()).thenReturn(java.util.Map.of(
-            "Pista Tenis 1", 45L,
-            "Pista Pádel 2", 30L,
-            "Campo Fútbol", 25L
+        when(reservaRepository.countReservasPorPolideportivo()).thenReturn(java.util.Map.of(
+            "Polideportivo A", 45L,
+            "Polideportivo B", 30L,
+            "Polideportivo C", 25L
         ));
 
         // When
-        var result = estadisticasService.obtenerEstadisticasReservasPorInstalacion();
+        var result = estadisticasService.obtenerEstadisticasReservasPorPolideportivo();
 
         // Then
         assertNotNull(result);
         assertEquals(3, result.size());
-        assertEquals(45L, result.get("Pista Tenis 1"));
-        assertEquals(30L, result.get("Pista Pádel 2"));
-        assertEquals(25L, result.get("Campo Fútbol"));
+        assertEquals(45L, result.get("Polideportivo A"));
+        assertEquals(30L, result.get("Polideportivo B"));
+        assertEquals(25L, result.get("Polideportivo C"));
     }
 
     @Test

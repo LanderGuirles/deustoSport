@@ -55,10 +55,9 @@ class EstadisticasControllerTest {
             "Pista Pádel 2", 30L
         );
 
-        when(estadisticasService.obtenerEstadisticasReservasPorInstalacion()).thenReturn(estadisticasPorInstalacion);
+        when(estadisticasService.obtenerEstadisticasReservasPorPolideportivo()).thenReturn(estadisticasPorInstalacion);
 
-        mockMvc.perform(get("/api/estadisticas/reservas-por-instalacion"))
-                .andExpect(status().isOk())
+        mockMvc.perform(get("/api/estadisticas/reservas-por-polideportivo"))                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.['Pista Tenis 1']").value(45))
                 .andExpect(jsonPath("$.['Pista Pádel 2']").value(30));
     }

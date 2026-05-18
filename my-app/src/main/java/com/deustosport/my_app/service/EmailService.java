@@ -226,7 +226,7 @@ public class EmailService {
     public String generarContenidoTextoReservaConfirmada(String nombrePista, String tipoDeporte, LocalDate fecha,
                                                 LocalTime horaInicio, LocalTime horaFin, BigDecimal precio) {
         return "✨ Tu reserva ha sido confirmada! ✨\n\n" +
-                "Presenta el código QR en la entrada para acceder a las instalaciones.\n\n" +
+                "Presenta el código QR en la entrada para acceder al polideportivo.\n\n" +
                 "🏟️ Pista: " + nombrePista + " (" + tipoDeporte + ")\n" +
                 "📅 Fecha: " + fecha + "\n" +
                 "⏰ Hora: " + horaInicio + " - " + horaFin + "\n" +

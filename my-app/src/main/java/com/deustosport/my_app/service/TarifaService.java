@@ -46,10 +46,17 @@ public class TarifaService {
         Pista pista = pistaRepository.findById(pistaId)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Pista no encontrada con ID: " + pistaId));
-        return tarifaRepository.findByTipoDeporte(pista.getTipoDeporte())
-                .stream()
-                .filter(Tarifa::isActiva)
-                .collect(java.util.stream.Collectors.toList());
+        return tarifaRepository.findActiveByDeporteDiaAndFecha(
+                pista.getTipoDeporte(),
+                LocalDate.now().getDayOfWeek().getValue(),
+                LocalDate.now(),
+                pista.getPolideportivo().getId()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public List<Tarifa> obtenerPorPolideportivo(Long polideportivoId) {
+        return tarifaRepository.findByPolideportivoId(polideportivoId);
     }
 
     @Transactional
@@ -90,11 +97,11 @@ public class TarifaService {
     @Transactional(readOnly = true)
     public BigDecimal calcularPrecio(TipoDeporte tipoDeporte, LocalDate fecha,
                                      LocalTime horaInicio, LocalTime horaFin,
-                                     boolean esSocio) {
+                                     boolean esSocio, Long polideportivoId) {
         int diaSemana = fecha.getDayOfWeek().getValue();
 
         List<Tarifa> tarifasActivas = tarifaRepository
-                .findActiveByDeporteDiaAndFecha(tipoDeporte, diaSemana, fecha);
+                .findActiveByDeporteDiaAndFecha(tipoDeporte, diaSemana, fecha, polideportivoId);
 
         BigDecimal precio = BigDecimal.ZERO;
         long minutosCubiertos = 0;

@@ -8,4 +8,5 @@ import java.util.List;
 @Repository
 public interface PolideportivoRepository extends JpaRepository<Polideportivo, Long> {
     List<Polideportivo> findByAyuntamientoId(Long ayuntamientoId);
+    long countByAyuntamientoId(Long ayuntamientoId);
 }

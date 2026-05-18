@@ -31,4 +31,27 @@ public interface PagoRepository extends JpaRepository<Pago, Long> {
          @Param("estado") EstadoPago estado,
          @Param("inicio") LocalDateTime inicio,
          @Param("fin") LocalDateTime fin);
-}
+
+    @Query("SELECT COALESCE(SUM(p.importe), 0) FROM Pago p " +
+           "JOIN p.reserva r JOIN r.pista pst JOIN pst.polideportivo poli " +
+           "WHERE p.estadoPago = :estado " +
+           "AND p.fechaPago >= :inicio AND p.fechaPago < :fin " +
+           "AND poli.ayuntamiento.id = :ayuntamientoId")
+    BigDecimal sumByAyuntamiento(
+            @Param("estado") EstadoPago estado,
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fin") LocalDateTime fin,
+            @Param("ayuntamientoId") Long ayuntamientoId);
+
+    @Query("SELECT poli.id, poli.nombre, COALESCE(SUM(p.importe), 0) FROM Pago p " +
+           "JOIN p.reserva r JOIN r.pista pst JOIN pst.polideportivo poli " +
+           "WHERE p.estadoPago = :estado " +
+           "AND p.fechaPago >= :inicio AND p.fechaPago < :fin " +
+           "AND poli.ayuntamiento.id = :ayuntamientoId " +
+           "GROUP BY poli.id, poli.nombre")
+    java.util.List<Object[]> getBreakdownByAyuntamiento(
+            @Param("estado") EstadoPago estado,
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fin") LocalDateTime fin,
+            @Param("ayuntamientoId") Long ayuntamientoId);
+    }

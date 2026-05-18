@@ -63,8 +63,8 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
     @Query("SELECT COALESCE(SUM(r.precioTotal), 0) FROM Reserva r WHERE r.fechaReserva = :fecha")
     java.math.BigDecimal sumIngresosHoy(@Param("fecha") LocalDate fecha);
 
-    @Query("SELECT r.pista.nombre, COUNT(r) FROM Reserva r GROUP BY r.pista.nombre")
-    java.util.Map<String, Long> countReservasPorInstalacion();
+    @Query("SELECT r.pista.polideportivo.nombre, COUNT(r) FROM Reserva r GROUP BY r.pista.polideportivo.nombre")
+    java.util.Map<String, Long> countReservasPorPolideportivo();
 
     @Query("SELECT r.fechaReserva, COUNT(r) FROM Reserva r WHERE r.fechaReserva BETWEEN :inicio AND :fin GROUP BY r.fechaReserva ORDER BY r.fechaReserva DESC")
     java.util.List<Object[]> countReservasPorDia(@Param("inicio") LocalDate inicio, @Param("fin") LocalDate fin);

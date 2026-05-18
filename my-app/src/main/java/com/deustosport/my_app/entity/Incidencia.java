@@ -33,8 +33,8 @@ public class Incidencia {
     private Usuario reportadaPor;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "instalacion_id")
-    private Instalacion instalacion;
+    @JoinColumn(name = "polideportivo_id")
+    private Polideportivo polideportivo;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pista_id")

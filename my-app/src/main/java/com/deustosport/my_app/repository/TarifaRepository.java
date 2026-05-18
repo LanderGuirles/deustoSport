@@ -25,10 +25,16 @@ public interface TarifaRepository extends JpaRepository<Tarifa, Long> {
            "AND t.vigenteDesde <= :fecha " +
            "AND (t.vigenteHasta IS NULL OR t.vigenteHasta >= :fecha) " +
             "AND t.activa = true " +
+            "AND t.polideportivo.id = :polideportivoId " +
             "ORDER BY t.horaInicio ASC, t.vigenteDesde DESC, t.id DESC")
     List<Tarifa> findActiveByDeporteDiaAndFecha(
             @Param("tipoDeporte") TipoDeporte tipoDeporte,
             @Param("diaSemana") Integer diaSemana,
-            @Param("fecha") LocalDate fecha
+            @Param("fecha") LocalDate fecha,
+            @Param("polideportivoId") Long polideportivoId
     );
+
+    List<Tarifa> findByPolideportivoId(Long polideportivoId);
+
+    List<Tarifa> findByPolideportivoIdAndActivaTrue(Long polideportivoId);
 }

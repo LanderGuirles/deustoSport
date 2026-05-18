@@ -27,7 +27,8 @@ import lombok.Setter;
         name = "tarifas",
         indexes = {
                 @Index(name = "idx_tarifa_deporte_dia", columnList = "tipoDeporte,diaSemana"),
-                @Index(name = "idx_tarifa_vigencia", columnList = "vigenteDesde,vigenteHasta")
+                @Index(name = "idx_tarifa_vigencia", columnList = "vigenteDesde,vigenteHasta"),
+                @Index(name = "idx_tarifa_polideportivo", columnList = "polideportivo_id")
         }
 )
 public class Tarifa {
@@ -35,6 +36,10 @@ public class Tarifa {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
+    @jakarta.persistence.JoinColumn(name = "polideportivo_id", nullable = false)
+    private Polideportivo polideportivo;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

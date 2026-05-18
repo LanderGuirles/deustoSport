@@ -67,27 +67,21 @@ public class DataInitializer implements CommandLineRunner {
             "Polideportivo Deusto", "Calle Agirre, 1, Bilbao", "08:00:00", "22:00:00", 1
         );
 
-        // ── Instalación (polideportivo_id = 1) ───────────────────────
+        // ── Pistas (polideportivo_id = 1) ──────────────────────────────
         jdbcTemplate.update(
-            "INSERT INTO instalaciones (nombre, polideportivo_id) VALUES (?,?)",
-            "Zona Principal Deusto", 1
-        );
-
-        // ── Pistas (instalacion_id = 1) ───────────────────────────────
-        jdbcTemplate.update(
-            "INSERT INTO pistas (nombre, tipo_deporte, instalacion_id, max_jugadores, activa) VALUES (?,?,?,?,?)",
+            "INSERT INTO pistas (nombre, tipo_deporte, polideportivo_id, max_jugadores, activa) VALUES (?,?,?,?,?)",
             "Pista Pádel 1", "PADEL", 1, 4, true);
         jdbcTemplate.update(
-            "INSERT INTO pistas (nombre, tipo_deporte, instalacion_id, max_jugadores, activa) VALUES (?,?,?,?,?)",
+            "INSERT INTO pistas (nombre, tipo_deporte, polideportivo_id, max_jugadores, activa) VALUES (?,?,?,?,?)",
             "Pista Pádel 2", "PADEL", 1, 4, true);
         jdbcTemplate.update(
-            "INSERT INTO pistas (nombre, tipo_deporte, instalacion_id, max_jugadores, activa) VALUES (?,?,?,?,?)",
+            "INSERT INTO pistas (nombre, tipo_deporte, polideportivo_id, max_jugadores, activa) VALUES (?,?,?,?,?)",
             "Pista Tenis 1", "TENIS", 1, 4, true);
         jdbcTemplate.update(
-            "INSERT INTO pistas (nombre, tipo_deporte, instalacion_id, max_jugadores, activa) VALUES (?,?,?,?,?)",
+            "INSERT INTO pistas (nombre, tipo_deporte, polideportivo_id, max_jugadores, activa) VALUES (?,?,?,?,?)",
             "Pista Tenis 2", "TENIS", 1, 4, true);
         jdbcTemplate.update(
-            "INSERT INTO pistas (nombre, tipo_deporte, instalacion_id, max_jugadores, activa) VALUES (?,?,?,?,?)",
+            "INSERT INTO pistas (nombre, tipo_deporte, polideportivo_id, max_jugadores, activa) VALUES (?,?,?,?,?)",
             "Pista Fútbol 1", "FUTBOL", 1, 22, true);
 
         // ── Usuarios ─────────────────────────────────────────────────
@@ -132,54 +126,8 @@ public class DataInitializer implements CommandLineRunner {
             "INSERT INTO credenciales (usuario_id, password_hash, activo, fecha_creacion) VALUES (?,?,?,?)",
             8, hashBilbao, true, ahora);
 
-        // ── Tarifas ──────────────────────────────────────────────────
-        TipoDeporte[] deportes  = {TipoDeporte.PADEL, TipoDeporte.TENIS, TipoDeporte.FUTBOL};
-        BigDecimal[]  valle     = {new BigDecimal("8.00"),  new BigDecimal("7.00"),  new BigDecimal("12.00")};
-        BigDecimal[]  punta     = {new BigDecimal("15.00"), new BigDecimal("13.00"), new BigDecimal("20.00")};
-        BigDecimal[]  finde     = {new BigDecimal("18.00"), new BigDecimal("16.00"), new BigDecimal("25.00")};
-        LocalDate     desde     = LocalDate.of(2026, 1, 1);
-
-        for (int i = 0; i < deportes.length; i++) {
-            // Lunes–Viernes hora valle (8-17)
-            for (int dia = 1; dia <= 5; dia++) {
-                Tarifa t = new Tarifa();
-                t.setTipoDeporte(deportes[i]);
-                t.setDiaSemana(dia);
-                t.setHoraInicio(LocalTime.of(8, 0));
-                t.setHoraFin(LocalTime.of(17, 0));
-                t.setPrecioPorHora(valle[i]);
-                t.setVigenteDesde(desde);
-                t.setActiva(true);
-                tarifaRepository.save(t);
-            }
-            // Lunes–Viernes hora punta (17-22)
-            for (int dia = 1; dia <= 5; dia++) {
-                Tarifa t = new Tarifa();
-                t.setTipoDeporte(deportes[i]);
-                t.setDiaSemana(dia);
-                t.setHoraInicio(LocalTime.of(17, 0));
-                t.setHoraFin(LocalTime.of(22, 0));
-                t.setPrecioPorHora(punta[i]);
-                t.setVigenteDesde(desde);
-                t.setActiva(true);
-                tarifaRepository.save(t);
-            }
-            // Sábado y domingo (8-22)
-            for (int dia = 6; dia <= 7; dia++) {
-                Tarifa t = new Tarifa();
-                t.setTipoDeporte(deportes[i]);
-                t.setDiaSemana(dia);
-                t.setHoraInicio(LocalTime.of(8, 0));
-                t.setHoraFin(LocalTime.of(22, 0));
-                t.setPrecioPorHora(finde[i]);
-                t.setVigenteDesde(desde);
-                t.setActiva(true);
-                tarifaRepository.save(t);
-            }
-        }
-
         log.info("Datos de prueba inicializados correctamente");
-        log.info("Usuarios: juan@deustosport.com / password123 | Pistas: 5 | Tarifas: {}", tarifaRepository.count());
+        log.info("Usuarios: juan@deustosport.com / password123 | Pistas: 5");
     }
 
     private void asegurarCuentaMantenimiento() {

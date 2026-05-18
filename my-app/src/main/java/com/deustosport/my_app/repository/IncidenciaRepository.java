@@ -12,4 +12,6 @@ public interface IncidenciaRepository extends JpaRepository<Incidencia, Long> {
     List<Incidencia> findAllByOrderByFechaCreacionDesc();
 
     List<Incidencia> findByEstadoOrderByFechaCreacionDesc(EstadoIncidencia estado);
+
+    List<Incidencia> findByPolideportivoId(Long polideportivoId);
 }

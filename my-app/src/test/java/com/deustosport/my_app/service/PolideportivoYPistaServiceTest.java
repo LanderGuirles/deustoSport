@@ -6,15 +6,11 @@ import static org.mockito.Mockito.*;
 
 import com.deustosport.my_app.dto.PistaResponse;
 import com.deustosport.my_app.entity.Polideportivo;
-import com.deustosport.my_app.entity.Instalacion;
 import com.deustosport.my_app.entity.Pista;
 import com.deustosport.my_app.enums.TipoDeporte;
 import com.deustosport.my_app.repository.PolideportivoRepository;
-import com.deustosport.my_app.repository.InstalacionRepository;
 import com.deustosport.my_app.repository.PistaRepository;
 import com.deustosport.my_app.repository.ReservaRepository;
-import com.deustosport.my_app.service.ReservaService;
-import com.deustosport.my_app.service.PolideportivoService;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -29,17 +25,13 @@ import org.slf4j.LoggerFactory;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("null")
-class InstalacionYPistaServiceTest {
+class PolideportivoYPistaServiceTest {
 
-    private static final Logger log = LoggerFactory.getLogger(InstalacionYPistaServiceTest.class);
+    private static final Logger log = LoggerFactory.getLogger(PolideportivoYPistaServiceTest.class);
 
     // ── PolideportivoService ──────────────────────────────────────────────────
     @Mock private PolideportivoRepository polideportivoRepository;
     @InjectMocks private PolideportivoService polideportivoService;
-
-    // ── InstalacionService ────────────────────────────────────────────────────
-    @Mock private InstalacionRepository instalacionRepository;
-    @InjectMocks private InstalacionService instalacionService;
 
     // ── PistaService ──────────────────────────────────────────────────────────
     @Mock private PistaRepository pistaRepository;
@@ -48,7 +40,6 @@ class InstalacionYPistaServiceTest {
     @InjectMocks private PistaService pistaService;
 
     private Polideportivo polideportivo;
-    private Instalacion instalacion;
     private Pista pista;
 
     @BeforeEach
@@ -59,18 +50,13 @@ class InstalacionYPistaServiceTest {
         polideportivo.setHoraApertura(LocalTime.of(8, 0));
         polideportivo.setHoraCierre(LocalTime.of(22, 0));
 
-        instalacion = new Instalacion();
-        instalacion.setId(1L);
-        instalacion.setNombre("Zona Padel");
-        instalacion.setPolideportivo(polideportivo);
-
         pista = new Pista();
         pista.setId(5L);
         pista.setNombre("Pista Pádel 1");
         pista.setTipoDeporte(TipoDeporte.PADEL);
         pista.setMaxJugadores(4);
         pista.setActiva(true);
-        pista.setInstalacion(instalacion);
+        pista.setPolideportivo(polideportivo);
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -107,35 +93,16 @@ class InstalacionYPistaServiceTest {
                 () -> polideportivoService.actualizarHorarioGeneral(999L, LocalTime.of(8, 0), LocalTime.of(22, 0)));
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  InstalacionService
-    // ══════════════════════════════════════════════════════════════════════════
-
     @Test
-    void instalacion_obtenerTodas_devuelveLista() {
-        log.info("[TEST] InstalacionService.obtenerTodas");
-        when(instalacionRepository.findAll()).thenReturn(List.of(instalacion));
+    void polideportivo_obtenerPistas_devuelveLista() {
+        log.info("[TEST] PolideportivoService.obtenerPistasByPolideportivo");
+        polideportivo.setPistas(List.of(pista));
+        when(polideportivoRepository.findById(10L)).thenReturn(Optional.of(polideportivo));
 
-        List<Instalacion> resultado = instalacionService.obtenerTodas();
+        List<Pista> resultado = polideportivoService.obtenerPistasByPolideportivo(10L);
 
         assertEquals(1, resultado.size());
-        log.info("[TEST] Instalaciones: {}", resultado.size());
-    }
-
-    @Test
-    void instalacion_existeInstalacion_devuelveTrue() {
-        log.info("[TEST] InstalacionService.existeInstalacion - id=1 existe");
-        when(instalacionRepository.existsById(1L)).thenReturn(true);
-
-        assertTrue(instalacionService.existeInstalacion(1L));
-    }
-
-    @Test
-    void pista_obtenerPorInstalacion_noExiste_lanzaExcepcion() {
-        log.info("[TEST] PistaService.obtenerPistasPorInstalacionId - instalacion 99 no existe");
-        when(instalacionRepository.existsById(99L)).thenReturn(false);
-
-        assertThrows(RuntimeException.class, () -> pistaService.obtenerPistasPorInstalacionId(99L));
+        assertEquals(pista.getId(), resultado.get(0).getId());
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -161,10 +128,10 @@ class InstalacionYPistaServiceTest {
         nueva.setNombre("Pista Tenis 1");
         nueva.setTipoDeporte(TipoDeporte.TENIS);
         nueva.setMaxJugadores(2);
-        nueva.setInstalacion(instalacion);
+        nueva.setPolideportivo(polideportivo);
 
         when(pistaRepository.existsByNombreIgnoreCase("Pista Tenis 1")).thenReturn(false);
-        when(instalacionRepository.findById(1L)).thenReturn(Optional.of(instalacion));
+        when(polideportivoRepository.findById(10L)).thenReturn(Optional.of(polideportivo));
         when(pistaRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         Pista resultado = pistaService.registrarNuevaPista(nueva);
