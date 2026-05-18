@@ -131,9 +131,9 @@ class DeustoSportIntegrationTest {
 
     @Test
     void getInstalaciones_sinAuth_devuelve200() {
-        log.info("[IT] GET /api/instalaciones → llamada remota al servidor");
+        log.info("[IT] GET /api/polideportivos → llamada remota al servidor");
 
-        ResponseEntity<String> response = restTemplate.getForEntity(url("/api/instalaciones"), String.class);
+        ResponseEntity<String> response = restTemplate.getForEntity(url("/api/polideportivos"), String.class);
 
         log.info("[IT] Respuesta: status={}", response.getStatusCode());
         assertEquals(HttpStatus.OK, response.getStatusCode());
