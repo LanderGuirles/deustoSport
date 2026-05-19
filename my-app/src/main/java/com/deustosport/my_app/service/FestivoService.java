@@ -39,11 +39,9 @@ public class FestivoService {
         festivo.setFechaFin(request.getFechaFin());
         Festivo guardado = festivoRepository.save(festivo);
 
-        // Cancelar reservas existentes en ese periodo
-        List<Reserva> reservasConflictivas = reservaRepository.findAll().stream()
-                .filter(r -> !r.getFechaReserva().isBefore(request.getFechaInicio()) && 
-                             !r.getFechaReserva().isAfter(request.getFechaFin()))
-                .collect(Collectors.toList());
+        // Cancelar reservas existentes en ese periodo usando consulta acotada por fechas
+        List<Reserva> reservasConflictivas = reservaRepository.findActivasByRango(
+                request.getFechaInicio(), request.getFechaFin());
 
         for (Reserva r : reservasConflictivas) {
             reservaService.cancelarReservaPorBloqueo(r.getId());

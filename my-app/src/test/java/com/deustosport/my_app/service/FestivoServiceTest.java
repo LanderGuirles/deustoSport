@@ -59,7 +59,7 @@ class FestivoServiceTest {
     void programarFestivo_unDia_sinReservas_guardaCorrectamente() {
         log.info("[TEST] FestivoService.programarFestivo - un día, sin reservas conflictivas");
         when(festivoRepository.save(any())).thenReturn(festivoGuardado);
-        when(reservaRepository.findAll()).thenReturn(List.of());
+        when(reservaRepository.findActivasByRango(any(), any())).thenReturn(List.of());
 
         FestivoResponse resp = festivoService.programarFestivo(requestValido);
 
@@ -78,19 +78,17 @@ class FestivoServiceTest {
         reservaEnFestivo.setId(100L);
         reservaEnFestivo.setFechaReserva(LocalDate.of(2026, 5, 1));
 
-        Reserva reservaFuera = new Reserva();
-        reservaFuera.setId(200L);
-        reservaFuera.setFechaReserva(LocalDate.of(2026, 5, 3));
-
+        // La query findActivasByRango ya filtra por rango: solo devuelve las del periodo
         when(festivoRepository.save(any())).thenReturn(festivoGuardado);
-        when(reservaRepository.findAll()).thenReturn(List.of(reservaEnFestivo, reservaFuera));
+        when(reservaRepository.findActivasByRango(
+                LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 1)))
+                .thenReturn(List.of(reservaEnFestivo));
         doNothing().when(reservaService).cancelarReservaPorBloqueo(anyLong());
 
         festivoService.programarFestivo(requestValido);
 
         verify(reservaService, times(1)).cancelarReservaPorBloqueo(100L);
-        verify(reservaService, never()).cancelarReservaPorBloqueo(200L);
-        log.info("[TEST] Reserva en festivo cancelada, reserva fuera del período no cancelada");
+        log.info("[TEST] Reserva en festivo cancelada mediante query eficiente");
     }
 
     @Test
@@ -109,18 +107,19 @@ class FestivoServiceTest {
 
         Reserva r1 = new Reserva(); r1.setId(1L); r1.setFechaReserva(LocalDate.of(2026, 4, 2));
         Reserva r2 = new Reserva(); r2.setId(2L); r2.setFechaReserva(LocalDate.of(2026, 4, 5));
-        Reserva r3 = new Reserva(); r3.setId(3L); r3.setFechaReserva(LocalDate.of(2026, 4, 6));
 
+        // findActivasByRango devuelve solo las reservas dentro del rango (la DB filtra)
         when(festivoRepository.save(any())).thenReturn(festivoRango);
-        when(reservaRepository.findAll()).thenReturn(List.of(r1, r2, r3));
+        when(reservaRepository.findActivasByRango(
+                LocalDate.of(2026, 4, 2), LocalDate.of(2026, 4, 5)))
+                .thenReturn(List.of(r1, r2));
         doNothing().when(reservaService).cancelarReservaPorBloqueo(anyLong());
 
         festivoService.programarFestivo(rangoRequest);
 
         verify(reservaService).cancelarReservaPorBloqueo(1L);
         verify(reservaService).cancelarReservaPorBloqueo(2L);
-        verify(reservaService, never()).cancelarReservaPorBloqueo(3L);
-        log.info("[TEST] Rango multi-día: 2 reservas canceladas, 1 fuera de rango intacta");
+        log.info("[TEST] Rango multi-día: 2 reservas canceladas en rango");
     }
 
     @Test
@@ -142,7 +141,7 @@ class FestivoServiceTest {
     void programarFestivo_mismaFechaInicioYFin_esValido() {
         log.info("[TEST] FestivoService.programarFestivo - mismo día inicio y fin es válido");
         when(festivoRepository.save(any())).thenReturn(festivoGuardado);
-        when(reservaRepository.findAll()).thenReturn(List.of());
+        when(reservaRepository.findActivasByRango(any(), any())).thenReturn(List.of());
 
         assertDoesNotThrow(() -> festivoService.programarFestivo(requestValido));
         verify(festivoRepository).save(any());

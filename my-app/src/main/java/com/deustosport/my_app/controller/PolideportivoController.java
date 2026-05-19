@@ -1,6 +1,7 @@
 package com.deustosport.my_app.controller;
 
 import com.deustosport.my_app.dto.DisponibilidadPolideportivoDTO;
+import com.deustosport.my_app.dto.ResumenSemanalPolideportivoDTO;
 import com.deustosport.my_app.entity.Polideportivo;
 import com.deustosport.my_app.entity.Pista;
 import com.deustosport.my_app.entity.Ayuntamiento;
@@ -115,6 +116,19 @@ public class PolideportivoController {
                     request.getHoraApertura(),
                     request.getHoraCierre());
             return ResponseEntity.ok(polideportivo);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{polideportivoId}/resumen-semanal")
+    @Operation(summary = "Resumen semanal de ocupación e ingresos por polideportivo",
+               description = "Devuelve estadísticas de la semana actual: reservas, ingresos y tasa de ocupación por pista.")
+    public ResponseEntity<?> obtenerResumenSemanal(@PathVariable Long polideportivoId) {
+        try {
+            ResumenSemanalPolideportivoDTO dto =
+                    polideportivoService.obtenerResumenSemanal(polideportivoId);
+            return ResponseEntity.ok(dto);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

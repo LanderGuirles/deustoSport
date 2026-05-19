@@ -7,12 +7,16 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import com.deustosport.my_app.dto.PistaResponse;
+import com.deustosport.my_app.dto.ResumenSemanalPolideportivoDTO;
 import com.deustosport.my_app.entity.Polideportivo;
 import com.deustosport.my_app.entity.Pista;
+import com.deustosport.my_app.entity.Reserva;
+import com.deustosport.my_app.enums.EstadoReserva;
 import com.deustosport.my_app.enums.TipoDeporte;
 import com.deustosport.my_app.repository.PolideportivoRepository;
 import com.deustosport.my_app.repository.PistaRepository;
 import com.deustosport.my_app.repository.ReservaRepository;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -390,5 +394,116 @@ class PolideportivoYPistaServiceTest {
         assertEquals(0, resultado.getPistasActivas());
         assertFalse(resultado.getPistas().get(0).isActiva());
         log.info("[TEST] Pista bloqueada reflejada en DTO: activa={}", resultado.getPistas().get(0).isActiva());
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    //  PolideportivoService – obtenerResumenSemanal (HU4)
+    // ══════════════════════════════════════════════════════════════════════════
+
+    @Test
+    void resumenSemanal_sinPistas_devuelveTotalesCero() {
+        log.info("[TEST] PolideportivoService.obtenerResumenSemanal - polideportivo sin pistas");
+        polideportivo.setPistas(new ArrayList<>());
+        when(polideportivoRepository.findById(10L)).thenReturn(Optional.of(polideportivo));
+
+        ResumenSemanalPolideportivoDTO resultado =
+                polideportivoService.obtenerResumenSemanal(10L);
+
+        assertNotNull(resultado);
+        assertEquals(10L, resultado.getPolideportivoId());
+        assertEquals(0, resultado.getTotalPistas());
+        assertEquals(0L, resultado.getTotalReservasSemana());
+        assertEquals(BigDecimal.ZERO, resultado.getIngresosTotalesSemana());
+        assertTrue(resultado.getDetallesPorPista().isEmpty());
+        log.info("[TEST] Resumen sin pistas: totalReservas={}, ingresos={}",
+                resultado.getTotalReservasSemana(), resultado.getIngresosTotalesSemana());
+    }
+
+    @Test
+    void resumenSemanal_conUnaReservaConfirmada_refleja_ingresos() {
+        log.info("[TEST] PolideportivoService.obtenerResumenSemanal - reserva confirmada contabilizada");
+        polideportivo.setPistas(List.of(pista));
+        Reserva r = new Reserva();
+        r.setId(1L);
+        r.setEstado(EstadoReserva.CONFIRMADA);
+        r.setPrecioTotal(new BigDecimal("20.00"));
+        r.setHoraInicio(LocalTime.of(10, 0));
+        r.setHoraFin(LocalTime.of(11, 0));
+
+        when(polideportivoRepository.findById(10L)).thenReturn(Optional.of(polideportivo));
+        when(reservaRepository.findActivasByPistaAndRango(eq(5L), any(), any()))
+                .thenReturn(List.of(r));
+
+        ResumenSemanalPolideportivoDTO resultado =
+                polideportivoService.obtenerResumenSemanal(10L);
+
+        assertEquals(1L, resultado.getTotalReservasSemana());
+        assertEquals(1L, resultado.getReservasConfirmadasSemana());
+        assertEquals(new BigDecimal("20.00"), resultado.getIngresosTotalesSemana());
+        assertEquals(1, resultado.getDetallesPorPista().size());
+        assertEquals(1L, resultado.getDetallesPorPista().get(0).getReservasConfirmadas());
+        log.info("[TEST] Reserva confirmada: ingresos={}", resultado.getIngresosTotalesSemana());
+    }
+
+    @Test
+    void resumenSemanal_conReservaCancelada_noContabilizaIngresos() {
+        log.info("[TEST] PolideportivoService.obtenerResumenSemanal - reserva cancelada no suma ingresos");
+        polideportivo.setPistas(List.of(pista));
+        Reserva r = new Reserva();
+        r.setId(2L);
+        r.setEstado(EstadoReserva.CANCELADA);
+        r.setPrecioTotal(new BigDecimal("15.00"));
+        r.setHoraInicio(LocalTime.of(12, 0));
+        r.setHoraFin(LocalTime.of(13, 0));
+
+        when(polideportivoRepository.findById(10L)).thenReturn(Optional.of(polideportivo));
+        when(reservaRepository.findActivasByPistaAndRango(eq(5L), any(), any()))
+                .thenReturn(List.of(r));
+
+        ResumenSemanalPolideportivoDTO resultado =
+                polideportivoService.obtenerResumenSemanal(10L);
+
+        // findActivasByPistaAndRango excluye canceladas; el service las contaría como canceladas
+        // pero como la query no devuelve canceladas, el total seria 1 con 0 confirmadas
+        assertEquals(0L, resultado.getReservasConfirmadasSemana());
+        assertEquals(BigDecimal.ZERO, resultado.getIngresosTotalesSemana());
+        log.info("[TEST] Reserva cancelada: ingresos={}", resultado.getIngresosTotalesSemana());
+    }
+
+    @Test
+    void resumenSemanal_polideportivoNoExiste_lanzaExcepcion() {
+        log.info("[TEST] PolideportivoService.obtenerResumenSemanal - polideportivo 999 no existe");
+        when(polideportivoRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class,
+                () -> polideportivoService.obtenerResumenSemanal(999L));
+        log.info("[TEST] Excepción correcta al pedir resumen de polideportivo inexistente");
+    }
+
+    @Test
+    void resumenSemanal_horarioCustom_calculaTasaOcupacion() {
+        log.info("[TEST] PolideportivoService.obtenerResumenSemanal - tasa ocupación con horario 8:00-20:00");
+        polideportivo.setHoraApertura(LocalTime.of(8, 0));
+        polideportivo.setHoraCierre(LocalTime.of(20, 0));
+        polideportivo.setPistas(List.of(pista));
+
+        Reserva r = new Reserva();
+        r.setId(3L);
+        r.setEstado(EstadoReserva.CONFIRMADA);
+        r.setPrecioTotal(new BigDecimal("12.00"));
+        r.setHoraInicio(LocalTime.of(10, 0));
+        r.setHoraFin(LocalTime.of(12, 0)); // 2 horas
+
+        when(polideportivoRepository.findById(10L)).thenReturn(Optional.of(polideportivo));
+        when(reservaRepository.findActivasByPistaAndRango(eq(5L), any(), any()))
+                .thenReturn(List.of(r));
+
+        ResumenSemanalPolideportivoDTO resultado =
+                polideportivoService.obtenerResumenSemanal(10L);
+
+        // 2 horas reservadas / (12 h/dia * 7 dias) = 2/84 ≈ 2.38%
+        double tasa = resultado.getDetallesPorPista().get(0).getTasaOcupacion();
+        assertTrue(tasa > 0.0 && tasa < 5.0, "Tasa de ocupación esperada ~2.38%: fue " + tasa);
+        log.info("[TEST] Tasa de ocupación calculada: {}%", tasa);
     }
 }

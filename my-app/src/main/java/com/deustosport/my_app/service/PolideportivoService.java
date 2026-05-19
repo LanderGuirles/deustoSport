@@ -2,15 +2,21 @@ package com.deustosport.my_app.service;
 
 import com.deustosport.my_app.dto.DisponibilidadPistaDTO;
 import com.deustosport.my_app.dto.DisponibilidadPolideportivoDTO;
+import com.deustosport.my_app.dto.ResumenSemanalPistaDTO;
+import com.deustosport.my_app.dto.ResumenSemanalPolideportivoDTO;
 import com.deustosport.my_app.entity.Polideportivo;
 import com.deustosport.my_app.entity.Pista;
 import com.deustosport.my_app.entity.Reserva;
+import com.deustosport.my_app.enums.EstadoReserva;
 import com.deustosport.my_app.repository.PolideportivoRepository;
 import com.deustosport.my_app.repository.ReservaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -96,6 +102,97 @@ public class PolideportivoService {
         poli.setNombre(nombre);
         poli.setDireccion(direccion);
         return polideportivoRepository.save(poli);
+    }
+
+    @Transactional(readOnly = true)
+    public ResumenSemanalPolideportivoDTO obtenerResumenSemanal(Long polideportivoId) {
+        Objects.requireNonNull(polideportivoId, "polideportivoId no puede ser null");
+        Polideportivo poli = polideportivoRepository.findById(polideportivoId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Polideportivo no encontrado con ID: " + polideportivoId));
+
+        LocalDate hoy = LocalDate.now();
+        LocalDate inicioSemana = hoy.minusDays(hoy.getDayOfWeek().getValue() - 1);
+        LocalDate finSemana = inicioSemana.plusDays(6);
+
+        long horasPorDia = calcularHorasDisponibles(poli);
+        List<Pista> pistas = poli.getPistas();
+        List<ResumenSemanalPistaDTO> detalles = new ArrayList<>();
+
+        long totalReservasSemana = 0;
+        long totalConfirmadas = 0;
+        long totalCanceladas = 0;
+        BigDecimal ingresosTotales = BigDecimal.ZERO;
+
+        for (Pista pista : pistas) {
+            List<Reserva> reservasSemana = reservaRepository.findActivasByPistaAndRango(
+                    pista.getId(), inicioSemana, finSemana);
+
+            long confirmadas = reservasSemana.stream()
+                    .filter(r -> r.getEstado() == EstadoReserva.CONFIRMADA
+                              || r.getEstado() == EstadoReserva.COMPLETADA)
+                    .count();
+            long canceladas = reservasSemana.stream()
+                    .filter(r -> r.getEstado() == EstadoReserva.CANCELADA)
+                    .count();
+
+            BigDecimal ingresosPista = reservasSemana.stream()
+                    .filter(r -> r.getEstado() == EstadoReserva.CONFIRMADA
+                              || r.getEstado() == EstadoReserva.COMPLETADA)
+                    .map(Reserva::getPrecioTotal)
+                    .filter(Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            long horasReservadas = reservasSemana.stream()
+                    .filter(r -> r.getEstado() != EstadoReserva.CANCELADA)
+                    .mapToLong(r -> Duration.between(r.getHoraInicio(), r.getHoraFin()).toHours())
+                    .sum();
+            long horasDisponibles = horasPorDia * 7;
+            double tasa = horasDisponibles > 0
+                    ? Math.round((double) horasReservadas / horasDisponibles * 10000.0) / 100.0
+                    : 0.0;
+
+            ResumenSemanalPistaDTO dto = new ResumenSemanalPistaDTO();
+            dto.setPistaId(pista.getId());
+            dto.setPistaNombre(pista.getNombre());
+            dto.setTipoDeporte(pista.getTipoDeporte());
+            dto.setActiva(pista.isActiva());
+            dto.setTotalReservasSemana(reservasSemana.size());
+            dto.setReservasConfirmadas(confirmadas);
+            dto.setReservasCanceladas(canceladas);
+            dto.setIngresosSemana(ingresosPista);
+            dto.setHorasReservadas(horasReservadas);
+            dto.setHorasDisponibles(horasDisponibles);
+            dto.setTasaOcupacion(tasa);
+            detalles.add(dto);
+
+            totalReservasSemana += reservasSemana.size();
+            totalConfirmadas += confirmadas;
+            totalCanceladas += canceladas;
+            ingresosTotales = ingresosTotales.add(ingresosPista);
+        }
+
+        ResumenSemanalPolideportivoDTO resultado = new ResumenSemanalPolideportivoDTO();
+        resultado.setPolideportivoId(poli.getId());
+        resultado.setPolideportivoNombre(poli.getNombre());
+        resultado.setDireccion(poli.getDireccion());
+        resultado.setInicioSemana(inicioSemana);
+        resultado.setFinSemana(finSemana);
+        resultado.setTotalPistas(pistas.size());
+        resultado.setPistasActivas((int) pistas.stream().filter(Pista::isActiva).count());
+        resultado.setTotalReservasSemana(totalReservasSemana);
+        resultado.setReservasConfirmadasSemana(totalConfirmadas);
+        resultado.setReservasCanceladasSemana(totalCanceladas);
+        resultado.setIngresosTotalesSemana(ingresosTotales);
+        resultado.setDetallesPorPista(detalles);
+        return resultado;
+    }
+
+    private long calcularHorasDisponibles(Polideportivo poli) {
+        if (poli.getHoraApertura() == null || poli.getHoraCierre() == null) {
+            return 12L;
+        }
+        return Duration.between(poli.getHoraApertura(), poli.getHoraCierre()).toHours();
     }
 
     @Transactional(readOnly = true)

@@ -107,6 +107,13 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
             @Param("fin") LocalDate fin
     );
 
+    @Query("SELECT r FROM Reserva r WHERE r.fechaReserva BETWEEN :inicio AND :fin " +
+           "AND r.estado != com.deustosport.my_app.enums.EstadoReserva.CANCELADA")
+    List<Reserva> findActivasByRango(
+            @Param("inicio") LocalDate inicio,
+            @Param("fin") LocalDate fin
+    );
+
     @Query("SELECT COUNT(r) FROM Reserva r WHERE r.pista.id IN :pistaIds " +
            "AND r.fechaReserva >= :hoy " +
            "AND r.estado != com.deustosport.my_app.enums.EstadoReserva.CANCELADA")

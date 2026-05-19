@@ -7,6 +7,7 @@ import static org.mockito.Mockito.*;
 import com.deustosport.my_app.dto.DisponibilidadPistaDTO;
 import com.deustosport.my_app.dto.DisponibilidadPolideportivoDTO;
 import com.deustosport.my_app.dto.HorarioPolideportivoRequest;
+import com.deustosport.my_app.dto.ResumenSemanalPolideportivoDTO;
 import com.deustosport.my_app.entity.Ayuntamiento;
 import com.deustosport.my_app.entity.Polideportivo;
 import com.deustosport.my_app.entity.Pista;
@@ -347,5 +348,43 @@ class PolideportivoControllerTest {
 
         assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
         log.info("[TEST] Error correcto al eliminar inexistente");
+    }
+
+    // ── obtenerResumenSemanal (HU4) ───────────────────────────────────────────
+
+    @Test
+    void obtenerResumenSemanal_devuelveOk() {
+        log.info("[TEST] PolideportivoController.obtenerResumenSemanal - polideportivoId=10");
+        ResumenSemanalPolideportivoDTO dto = new ResumenSemanalPolideportivoDTO();
+        dto.setPolideportivoId(10L);
+        dto.setPolideportivoNombre("Polideportivo Deusto");
+        dto.setTotalPistas(3);
+        dto.setPistasActivas(3);
+        dto.setTotalReservasSemana(15L);
+        dto.setDetallesPorPista(List.of());
+
+        when(polideportivoService.obtenerResumenSemanal(10L)).thenReturn(dto);
+
+        ResponseEntity<?> resp = polideportivoController.obtenerResumenSemanal(10L);
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        ResumenSemanalPolideportivoDTO body = (ResumenSemanalPolideportivoDTO) resp.getBody();
+        assertEquals(15L, body.getTotalReservasSemana());
+        assertEquals(3, body.getTotalPistas());
+        log.info("[TEST] Resumen semanal devuelto: totalReservas={}", body.getTotalReservasSemana());
+    }
+
+    @Test
+    void obtenerResumenSemanal_polideportivoNoExiste_devuelveBadRequest() {
+        log.info("[TEST] PolideportivoController.obtenerResumenSemanal - polideportivo no existe");
+        when(polideportivoService.obtenerResumenSemanal(999L))
+                .thenThrow(new IllegalArgumentException("Polideportivo no encontrado con ID: 999"));
+
+        ResponseEntity<?> resp = polideportivoController.obtenerResumenSemanal(999L);
+
+        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+        Map<String, Object> body = (Map<String, Object>) resp.getBody();
+        assertTrue(body.get("error").toString().contains("999"));
+        log.info("[TEST] Error correcto al pedir resumen de polideportivo inexistente");
     }
 }
