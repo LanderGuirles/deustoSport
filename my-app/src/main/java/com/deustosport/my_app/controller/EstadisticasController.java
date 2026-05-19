@@ -179,36 +179,36 @@ public class EstadisticasController {
     }
 
     @GetMapping("/reportes/uso-pistas")
-    @PreAuthorize("hasRole('COORDINADOR') or hasRole('ADMIN')")
     @Operation(summary = "Reporte consolidado de uso y rentabilidad de todas las pistas")
     public ResponseEntity<ReporteUsoPistasDTO> obtenerReporteUsoPistas(
             @RequestParam("fechaInicio") LocalDate fechaInicio,
-            @RequestParam("fechaFin") LocalDate fechaFin) {
-        ReporteUsoPistasDTO reporte = estadisticasService.generarReporteUsoPistas(fechaInicio, fechaFin);
+            @RequestParam("fechaFin") LocalDate fechaFin,
+            @RequestParam(name = "polideportivoId", required = false) Long polideportivoId) {
+        ReporteUsoPistasDTO reporte = estadisticasService.generarReporteUsoPistas(fechaInicio, fechaFin, polideportivoId);
         return ResponseEntity.ok(reporte);
     }
 
     @GetMapping("/reportes/uso-pistas/semana-actual")
-    @PreAuthorize("hasRole('COORDINADOR') or hasRole('ADMIN')")
     @Operation(summary = "Reporte de uso y rentabilidad para la semana actual")
-    public ResponseEntity<ReporteUsoPistasDTO> obtenerReporteSemanaActual() {
+    public ResponseEntity<ReporteUsoPistasDTO> obtenerReporteSemanaActual(
+            @RequestParam(name = "polideportivoId", required = false) Long polideportivoId) {
         LocalDate hoy = LocalDate.now();
-        LocalDate inicioSemana = hoy.minusDays(hoy.getDayOfWeek().getValue() - 1); // Lunes
-        LocalDate finSemana = inicioSemana.plusDays(6); // Domingo
-        
-        ReporteUsoPistasDTO reporte = estadisticasService.generarReporteUsoPistas(inicioSemana, finSemana);
+        LocalDate inicioSemana = hoy.minusDays(hoy.getDayOfWeek().getValue() - 1);
+        LocalDate finSemana = inicioSemana.plusDays(6);
+
+        ReporteUsoPistasDTO reporte = estadisticasService.generarReporteUsoPistas(inicioSemana, finSemana, polideportivoId);
         return ResponseEntity.ok(reporte);
     }
 
     @GetMapping("/reportes/uso-pistas/mes-actual")
-    @PreAuthorize("hasRole('COORDINADOR') or hasRole('ADMIN')")
     @Operation(summary = "Reporte de uso y rentabilidad para el mes actual")
-    public ResponseEntity<ReporteUsoPistasDTO> obtenerReporteMesActual() {
+    public ResponseEntity<ReporteUsoPistasDTO> obtenerReporteMesActual(
+            @RequestParam(name = "polideportivoId", required = false) Long polideportivoId) {
         LocalDate hoy = LocalDate.now();
         LocalDate inicioMes = hoy.withDayOfMonth(1);
         LocalDate finMes = hoy.plusMonths(1).withDayOfMonth(1).minusDays(1);
-        
-        ReporteUsoPistasDTO reporte = estadisticasService.generarReporteUsoPistas(inicioMes, finMes);
+
+        ReporteUsoPistasDTO reporte = estadisticasService.generarReporteUsoPistas(inicioMes, finMes, polideportivoId);
         return ResponseEntity.ok(reporte);
     }
 }

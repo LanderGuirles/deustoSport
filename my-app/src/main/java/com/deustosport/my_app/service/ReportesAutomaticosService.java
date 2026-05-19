@@ -55,7 +55,7 @@ public class ReportesAutomaticosService {
             LocalDate finSemana = ultimoDomingo;
 
             // Generar el reporte
-            ReporteUsoPistasDTO reporte = estadisticasService.generarReporteUsoPistas(inicioSemana, finSemana);
+            ReporteUsoPistasDTO reporte = estadisticasService.generarReporteUsoPistas(inicioSemana, finSemana, null);
             reporte.setGeneradoPor("Sistema automático - Reporte semanal");
 
             logger.info("Reporte generado para período: {} a {}", inicioSemana, finSemana);
@@ -146,7 +146,7 @@ public class ReportesAutomaticosService {
             LocalDate finMes = hoy.withDayOfMonth(1).minusDays(1);
 
             // Generar el reporte
-            ReporteUsoPistasDTO reporte = estadisticasService.generarReporteUsoPistas(inicioMes, finMes);
+            ReporteUsoPistasDTO reporte = estadisticasService.generarReporteUsoPistas(inicioMes, finMes, null);
             reporte.setGeneradoPor("Sistema automático - Reporte mensual");
 
             logger.info("Reporte mensual generado para período: {} a {}", inicioMes, finMes);

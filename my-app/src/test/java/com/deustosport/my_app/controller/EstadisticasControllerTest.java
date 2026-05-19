@@ -173,7 +173,7 @@ class EstadisticasControllerTest {
         ReporteUsoPistasDTO reporte = new ReporteUsoPistasDTO();
         reporte.setTotalReservas(30L);
         reporte.setReportesPorPista(List.of());
-        when(estadisticasService.generarReporteUsoPistas(any(), any())).thenReturn(reporte);
+        when(estadisticasService.generarReporteUsoPistas(any(), any(), any())).thenReturn(reporte);
 
         mockMvc.perform(get("/api/estadisticas/reportes/uso-pistas/semana-actual"))
                 .andExpect(status().isOk())
@@ -188,7 +188,7 @@ class EstadisticasControllerTest {
         ReporteUsoPistasDTO reporte = new ReporteUsoPistasDTO();
         reporte.setTotalReservas(120L);
         reporte.setReportesPorPista(List.of());
-        when(estadisticasService.generarReporteUsoPistas(any(), any())).thenReturn(reporte);
+        when(estadisticasService.generarReporteUsoPistas(any(), any(), any())).thenReturn(reporte);
 
         mockMvc.perform(get("/api/estadisticas/reportes/uso-pistas/mes-actual"))
                 .andExpect(status().isOk())

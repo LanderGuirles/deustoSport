@@ -992,16 +992,16 @@
     async function generarReporte() {
         const periodo = reportePeriodoEl.value;
         let url = "http://localhost:8080/api/estadisticas/reportes/uso-pistas";
-        let fechaInicio, fechaFin;
+        const poliParam = currentPoliId ? `polideportivoId=${currentPoliId}` : "";
 
         try {
             if (periodo === "semana-actual") {
-                url += "/semana-actual";
+                url += "/semana-actual" + (poliParam ? `?${poliParam}` : "");
             } else if (periodo === "mes-actual") {
-                url += "/mes-actual";
+                url += "/mes-actual" + (poliParam ? `?${poliParam}` : "");
             } else if (periodo === "personalizado") {
-                fechaInicio = reporteFechaInicioEl.value;
-                fechaFin = reporteFechaFinEl.value;
+                const fechaInicio = reporteFechaInicioEl.value;
+                const fechaFin = reporteFechaFinEl.value;
 
                 if (!fechaInicio || !fechaFin) {
                     showStatus(reporteStatusEl, "Debes especificar fecha de inicio y fin.", "error");
@@ -1013,7 +1013,7 @@
                     return;
                 }
 
-                url += `?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+                url += `?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}` + (poliParam ? `&${poliParam}` : "");
             }
 
             showStatus(reporteStatusEl, "Generando reporte...", "loading");
@@ -1021,7 +1021,8 @@
 
             const response = await fetch(url);
             if (!response.ok) {
-                throw new Error("Error al generar el reporte");
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.error || "Error al generar el reporte");
             }
 
             const reporte = await response.json();

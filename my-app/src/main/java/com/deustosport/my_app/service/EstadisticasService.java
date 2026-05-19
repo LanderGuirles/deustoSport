@@ -418,8 +418,10 @@ public class EstadisticasService {
     /**
      * Genera un reporte consolidado de uso y rentabilidad para todas las pistas
      */
-    public ReporteUsoPistasDTO generarReporteUsoPistas(LocalDate fechaInicio, LocalDate fechaFin) {
-        List<Pista> pistas = pistaRepository.findAll();
+    public ReporteUsoPistasDTO generarReporteUsoPistas(LocalDate fechaInicio, LocalDate fechaFin, Long polideportivoId) {
+        List<Pista> pistas = (polideportivoId != null)
+                ? pistaRepository.findByPolideportivoId(polideportivoId)
+                : pistaRepository.findAll();
         List<ReporteUsoPistaDTO> reportesPorPista = new ArrayList<>();
 
         for (Pista pista : pistas) {
