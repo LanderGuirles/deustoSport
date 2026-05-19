@@ -1,5 +1,6 @@
 package com.deustosport.my_app.controller;
 
+import com.deustosport.my_app.dto.DisponibilidadPolideportivoDTO;
 import com.deustosport.my_app.entity.Polideportivo;
 import com.deustosport.my_app.entity.Pista;
 import com.deustosport.my_app.entity.Ayuntamiento;
@@ -7,8 +8,10 @@ import com.deustosport.my_app.service.PolideportivoService;
 import com.deustosport.my_app.repository.AyuntamientoRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import jakarta.validation.Valid;
@@ -112,6 +115,21 @@ public class PolideportivoController {
                     request.getHoraApertura(),
                     request.getHoraCierre());
             return ResponseEntity.ok(polideportivo);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{polideportivoId}/disponibilidad")
+    @Operation(summary = "Consultar disponibilidad de todas las pistas del polideportivo",
+               description = "Devuelve, para cada pista, los bloques horarios ya ocupados en la fecha indicada.")
+    public ResponseEntity<?> obtenerDisponibilidad(
+            @PathVariable Long polideportivoId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
+        try {
+            DisponibilidadPolideportivoDTO dto =
+                    polideportivoService.obtenerDisponibilidadPolideportivo(polideportivoId, fecha);
+            return ResponseEntity.ok(dto);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

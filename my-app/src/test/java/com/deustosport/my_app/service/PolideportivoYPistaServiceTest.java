@@ -308,4 +308,87 @@ class PolideportivoYPistaServiceTest {
         assertEquals(1, resultado.size());
         log.info("[TEST] Polideportivos por ayuntamiento: {}", resultado.size());
     }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    //  PolideportivoService – obtenerDisponibilidadPolideportivo (HU2)
+    // ══════════════════════════════════════════════════════════════════════════
+
+    @Test
+    void disponibilidad_polideportivoSinPistas_devuelveDtoVacio() {
+        log.info("[TEST] PolideportivoService.obtenerDisponibilidadPolideportivo - sin pistas");
+        polideportivo.setPistas(new ArrayList<>());
+        when(polideportivoRepository.findById(10L)).thenReturn(Optional.of(polideportivo));
+
+        com.deustosport.my_app.dto.DisponibilidadPolideportivoDTO resultado =
+                polideportivoService.obtenerDisponibilidadPolideportivo(10L, LocalDate.now().plusDays(1));
+
+        assertNotNull(resultado);
+        assertEquals(10L, resultado.getPolideportivoId());
+        assertEquals(0, resultado.getTotalPistas());
+        assertTrue(resultado.getPistas().isEmpty());
+        log.info("[TEST] DTO sin pistas correcto: totalPistas={}", resultado.getTotalPistas());
+    }
+
+    @Test
+    void disponibilidad_polideportivoConPista_devuelveSlots() {
+        log.info("[TEST] PolideportivoService.obtenerDisponibilidadPolideportivo - pista con reservas");
+        polideportivo.setPistas(List.of(pista));
+        LocalDate fecha = LocalDate.now().plusDays(1);
+
+        com.deustosport.my_app.entity.Reserva reserva = new com.deustosport.my_app.entity.Reserva();
+        reserva.setHoraInicio(java.time.LocalTime.of(10, 0));
+        reserva.setHoraFin(java.time.LocalTime.of(11, 0));
+        reserva.setEstado(com.deustosport.my_app.enums.EstadoReserva.CONFIRMADA);
+
+        when(polideportivoRepository.findById(10L)).thenReturn(Optional.of(polideportivo));
+        when(reservaRepository.findActivasByPistaAndRango(5L, fecha, fecha))
+                .thenReturn(List.of(reserva));
+
+        com.deustosport.my_app.dto.DisponibilidadPolideportivoDTO resultado =
+                polideportivoService.obtenerDisponibilidadPolideportivo(10L, fecha);
+
+        assertEquals(1, resultado.getTotalPistas());
+        assertEquals(1, resultado.getPistasActivas());
+        assertEquals(1, resultado.getPistas().get(0).getSlotsOcupados().size());
+        assertEquals("10:00", resultado.getPistas().get(0).getSlotsOcupados().get(0).get("horaInicio"));
+        log.info("[TEST] DTO con 1 slot ocupado: {}", resultado.getPistas().get(0).getSlotsOcupados());
+    }
+
+    @Test
+    void disponibilidad_polideportivoNoExiste_lanzaExcepcion() {
+        log.info("[TEST] PolideportivoService.obtenerDisponibilidadPolideportivo - no existe");
+        when(polideportivoRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class,
+                () -> polideportivoService.obtenerDisponibilidadPolideportivo(999L, LocalDate.now()));
+        log.info("[TEST] Excepción correcta para polideportivo inexistente");
+    }
+
+    @Test
+    void disponibilidad_fechaNull_lanzaNullPointer() {
+        log.info("[TEST] PolideportivoService.obtenerDisponibilidadPolideportivo - fecha null");
+        assertThrows(NullPointerException.class,
+                () -> polideportivoService.obtenerDisponibilidadPolideportivo(10L, null));
+        log.info("[TEST] NullPointerException lanzada correctamente para fecha null");
+    }
+
+    @Test
+    void disponibilidad_conPistasBloqueadas_reflejaEstado() {
+        log.info("[TEST] PolideportivoService.obtenerDisponibilidadPolideportivo - pista bloqueada");
+        pista.setActiva(false);
+        polideportivo.setPistas(List.of(pista));
+        LocalDate fecha = LocalDate.now().plusDays(1);
+
+        when(polideportivoRepository.findById(10L)).thenReturn(Optional.of(polideportivo));
+        when(reservaRepository.findActivasByPistaAndRango(5L, fecha, fecha))
+                .thenReturn(List.of());
+
+        com.deustosport.my_app.dto.DisponibilidadPolideportivoDTO resultado =
+                polideportivoService.obtenerDisponibilidadPolideportivo(10L, fecha);
+
+        assertEquals(1, resultado.getTotalPistas());
+        assertEquals(0, resultado.getPistasActivas());
+        assertFalse(resultado.getPistas().get(0).isActiva());
+        log.info("[TEST] Pista bloqueada reflejada en DTO: activa={}", resultado.getPistas().get(0).isActiva());
+    }
 }
