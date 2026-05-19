@@ -197,6 +197,114 @@
             display: flex; justify-content: space-between; padding: 12px;
             border-bottom: 1px solid var(--border);
         }
+
+        /* ══════════════ ESTADÍSTICAS ══════════════ */
+        .stats-deporte-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-top: 20px;
+        }
+        .deporte-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .deporte-card-titulo {
+            font-family: 'Syne', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .deporte-card-num {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--accent);
+            font-family: 'Syne', sans-serif;
+            line-height: 1;
+        }
+        .deporte-card-label {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+        }
+        .deporte-barra-fondo {
+            background: var(--border);
+            border-radius: 999px;
+            height: 6px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+        .deporte-barra-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: var(--accent);
+            transition: width 0.6s ease;
+        }
+        .top-usuario-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .top-usuario-row:last-child { border-bottom: none; }
+        .top-usuario-rank {
+            font-family: 'Syne', sans-serif;
+            font-size: 18px;
+            font-weight: 800;
+            width: 32px;
+            text-align: center;
+            color: var(--muted);
+            flex-shrink: 0;
+        }
+        .top-usuario-rank.oro   { color: #ffd700; }
+        .top-usuario-rank.plata { color: #c0c0c0; }
+        .top-usuario-rank.bronce{ color: #cd7f32; }
+        .top-usuario-nombre { flex: 1; font-size: 14px; font-weight: 500; }
+        .top-usuario-count {
+            font-family: 'Syne', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        .stats-generales-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+        .stat-mini {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+            text-align: center;
+        }
+        .stat-mini-val {
+            font-family: 'Syne', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--accent);
+        }
+        .stat-mini-lbl {
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            margin-top: 4px;
+        }
+        .stats-seccion-titulo {
+            font-family: 'Syne', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
     </style>
 </head>
 <body>
@@ -250,6 +358,13 @@
             <div>
                 <div class="tile-title">Planes de Abono</div>
                 <p class="tile-desc">Configure los planes de suscripción para los usuarios.</p>
+            </div>
+        </div>
+        <div class="tile" onclick="openEstadisticas()" style="grid-column: span 2;">
+            <div class="tile-icon">📊</div>
+            <div>
+                <div class="tile-title">Estadísticas de Uso</div>
+                <p class="tile-desc">Consulte estadísticas reales de uso por tipo de deporte, reservas y los usuarios más activos del sistema.</p>
             </div>
         </div>
     </div>
@@ -474,6 +589,43 @@
     </div>
 </div>
 
+<!-- OVERLAY: ESTADÍSTICAS DE USO -->
+<div id="overlayEstadisticas" class="overlay">
+    <div class="overlay-header">
+        <button class="btn back-btn" onclick="closeOverlay('overlayEstadisticas')">←</button>
+        <h2>Estadísticas de Uso</h2>
+        <button class="btn btn-secondary" style="margin-left:auto;" onclick="loadEstadisticas()">↻ Actualizar</button>
+    </div>
+    <div class="overlay-body">
+        <!-- Mini stats generales -->
+        <p class="stats-seccion-titulo">Resumen General del Sistema</p>
+        <div class="stats-generales-grid" id="statsGeneralesGrid">
+            <div class="stat-mini"><div class="stat-mini-val" id="sttTotalUsuarios">—</div><div class="stat-mini-lbl">Usuarios totales</div></div>
+            <div class="stat-mini"><div class="stat-mini-val" id="sttUsuariosActivos">—</div><div class="stat-mini-lbl">Usuarios activos</div></div>
+            <div class="stat-mini"><div class="stat-mini-val" id="sttSocios">—</div><div class="stat-mini-lbl">Socios</div></div>
+            <div class="stat-mini"><div class="stat-mini-val" id="sttTotalReservas">—</div><div class="stat-mini-lbl">Reservas totales</div></div>
+            <div class="stat-mini"><div class="stat-mini-val" id="sttConfirmadas">—</div><div class="stat-mini-lbl">Confirmadas</div></div>
+            <div class="stat-mini"><div class="stat-mini-val" id="sttCanceladas">—</div><div class="stat-mini-lbl">Canceladas</div></div>
+            <div class="stat-mini"><div class="stat-mini-val" id="sttIngresosTotales">—</div><div class="stat-mini-lbl">Ingresos totales</div></div>
+            <div class="stat-mini"><div class="stat-mini-val" id="sttIngresosMes">—</div><div class="stat-mini-lbl">Ingresos este mes</div></div>
+        </div>
+
+        <!-- Estadísticas por deporte -->
+        <p class="stats-seccion-titulo" style="margin-top:32px;">Reservas por Tipo de Deporte</p>
+        <div id="deportesGrid" class="stats-deporte-grid">
+            <div class="stat-mini" style="grid-column:span 4;text-align:center;color:var(--muted)">Cargando estadísticas…</div>
+        </div>
+
+        <!-- Top usuarios -->
+        <p class="stats-seccion-titulo" style="margin-top:32px;">Top 10 Usuarios más Activos</p>
+        <div class="card" style="padding:0;overflow:hidden;">
+            <div id="topUsuariosList" style="padding:8px 0;">
+                <div style="padding:20px;text-align:center;color:var(--muted)">Cargando…</div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- OVERLAY: EDITAR CIUDAD -->
 <div id="overlayCity" class="overlay">
     <div class="overlay-header">
@@ -679,8 +831,9 @@
                         <strong>${poli.nombre}</strong><br>
                         <small style="color:var(--muted)">${poli.direccion}</small>
                     </div>
-                    <div>
+                    <div style="display:flex;gap:8px;">
                         <button class="btn btn-secondary" onclick="event.stopPropagation(); editPolideportivo(${poli.id}, '${poli.nombre}', '${poli.direccion}')">Editar</button>
+                        <button class="btn btn-danger" onclick="event.stopPropagation(); deletePolideportivo(${poli.id}, '${poli.nombre}')">Eliminar</button>
                     </div>
                 </div>
             `).join('');
@@ -1125,7 +1278,122 @@
     }
 
     function openEditCity() { document.getElementById('overlayCity').style.display = 'flex'; }
+    function openAyuntamientoEdit() { openEditCity(); }
     function openCreateTarifa() { alert('Función de creación en desarrollo'); }
+
+    // ── ELIMINAR POLIDEPORTIVO ──
+    async function deletePolideportivo(id, nombre) {
+        const confirmMsg = `¿Seguro que desea eliminar "${nombre}"?\n\nEsta acción es permanente. Solo se puede eliminar si no tiene reservas activas futuras.`;
+        if (!confirm(confirmMsg)) return;
+        try {
+            const res = await fetch(`${API_BASE}/polideportivos/${id}`, { method: 'DELETE' });
+            if (res.status === 204) {
+                alert(`Polideportivo "${nombre}" eliminado correctamente.`);
+                loadPolideportivos();
+                loadGlobalStats();
+            } else if (res.status === 409) {
+                const err = await res.json();
+                alert('No se puede eliminar: ' + (err.error || 'tiene reservas activas.'));
+            } else {
+                const err = await res.json().catch(() => ({}));
+                alert('Error al eliminar: ' + (err.error || 'Error desconocido.'));
+            }
+        } catch (e) {
+            alert('Error de red al intentar eliminar el polideportivo.');
+        }
+    }
+
+    // ── ESTADÍSTICAS ──
+    function openEstadisticas() {
+        document.getElementById('overlayEstadisticas').style.display = 'flex';
+        loadEstadisticas();
+    }
+
+    async function loadEstadisticas() {
+        try {
+            const [generalesRes, deportesRes, topRes] = await Promise.all([
+                fetch(`${API_BASE}/estadisticas/generales`),
+                fetch(`${API_BASE}/estadisticas/deportes`),
+                fetch(`${API_BASE}/estadisticas/usuarios/top?limit=10`)
+            ]);
+
+            if (generalesRes.ok) {
+                const g = await generalesRes.json();
+                renderEstadisticasGenerales(g);
+            }
+            if (deportesRes.ok) {
+                const d = await deportesRes.json();
+                renderDeportes(d);
+            }
+            if (topRes.ok) {
+                const t = await topRes.json();
+                renderTopUsuarios(t);
+            }
+        } catch (e) {
+            console.error('Error cargando estadísticas:', e);
+        }
+    }
+
+    function renderEstadisticasGenerales(g) {
+        const fmt = v => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(v || 0);
+        document.getElementById('sttTotalUsuarios').textContent   = g.totalUsuarios    ?? '—';
+        document.getElementById('sttUsuariosActivos').textContent = g.usuariosActivos  ?? '—';
+        document.getElementById('sttSocios').textContent          = g.usuariosSocios   ?? '—';
+        document.getElementById('sttTotalReservas').textContent   = g.totalReservas    ?? '—';
+        document.getElementById('sttConfirmadas').textContent     = g.reservasConfirmadas ?? '—';
+        document.getElementById('sttCanceladas').textContent      = g.reservasCanceladas  ?? '—';
+        document.getElementById('sttIngresosTotales').textContent = fmt(g.ingresosTotales);
+        document.getElementById('sttIngresosMes').textContent     = fmt(g.ingresosMesActual);
+    }
+
+    const DEPORTE_ICONS = { TENIS: '🎾', PADEL: '🏸', FUTBOL: '⚽', BALONCESTO: '🏀', NATACION: '🏊', GIMNASIO: '💪' };
+
+    function renderDeportes(data) {
+        const grid = document.getElementById('deportesGrid');
+        const deportes = data.deportes || [];
+        const maxReservas = deportes.reduce((m, d) => Math.max(m, d.totalReservas), 1);
+
+        if (deportes.length === 0) {
+            grid.innerHTML = '<div class="stat-mini" style="grid-column:span 4;text-align:center;color:var(--muted)">Sin datos de reservas por deporte aún.</div>';
+            return;
+        }
+
+        grid.innerHTML = deportes.map(d => {
+            const icon = DEPORTE_ICONS[d.tipoDeporte] || '🏅';
+            const pct = maxReservas > 0 ? Math.round((d.totalReservas / maxReservas) * 100) : 0;
+            return `
+                <div class="deporte-card">
+                    <div class="deporte-card-titulo">${icon} ${d.tipoDeporte}</div>
+                    <div class="deporte-card-num">${d.totalReservas}</div>
+                    <div class="deporte-card-label">reservas · ${d.porcentaje}% del total</div>
+                    <div class="deporte-barra-fondo">
+                        <div class="deporte-barra-fill" style="width:${pct}%"></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function renderTopUsuarios(data) {
+        const list = document.getElementById('topUsuariosList');
+        const usuarios = data.topUsuarios || [];
+
+        if (usuarios.length === 0) {
+            list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted)">Sin datos de usuarios activos aún.</div>';
+            return;
+        }
+
+        const rankClass = i => i === 0 ? 'oro' : i === 1 ? 'plata' : i === 2 ? 'bronce' : '';
+        const rankLabel = i => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
+
+        list.innerHTML = usuarios.map((u, i) => `
+            <div class="top-usuario-row" style="padding:10px 16px;">
+                <div class="top-usuario-rank ${rankClass(i)}">${rankLabel(i)}</div>
+                <div class="top-usuario-nombre">${u.nombreCompleto || 'Usuario #' + u.usuarioId}</div>
+                <div class="top-usuario-count">${u.totalReservas} reservas</div>
+            </div>
+        `).join('');
+    }
 </script>
 </body>
 </html>

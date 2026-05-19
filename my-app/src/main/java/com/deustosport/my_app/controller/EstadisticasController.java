@@ -48,7 +48,6 @@ public class EstadisticasController {
     }
 
     @GetMapping("/generales")
-    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Estadísticas generales del sistema")
     public ResponseEntity<Map<String, Object>> obtenerEstadisticasGenerales() {
         Map<String, Object> stats = estadisticasService.obtenerEstadisticasGenerales();
@@ -72,7 +71,6 @@ public class EstadisticasController {
     }
 
     @GetMapping("/usuarios/top")
-    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Top usuarios por número de reservas")
     public ResponseEntity<Map<String, Object>> obtenerTopUsuariosReservas(
             @RequestParam(defaultValue = "10") int limit) {
@@ -97,7 +95,6 @@ public class EstadisticasController {
     }
 
     @GetMapping("/deportes")
-    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Estadísticas por tipo de deporte")
     public ResponseEntity<Map<String, Object>> obtenerEstadisticasPorDeporte() {
         Map<String, Object> stats = estadisticasService.obtenerEstadisticasPorDeporte();
