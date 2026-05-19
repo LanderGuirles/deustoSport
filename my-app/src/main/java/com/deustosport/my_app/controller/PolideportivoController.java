@@ -39,13 +39,17 @@ public class PolideportivoController {
 
     @GetMapping("/ayuntamiento/{ayuntamientoId}")
     @Operation(summary = "Listar polideportivos por ayuntamiento")
-    public ResponseEntity<List<Polideportivo>> listarPorAyuntamiento(@PathVariable Long ayuntamientoId) {
-        return ResponseEntity.ok(polideportivoService.obtenerPorAyuntamiento(ayuntamientoId));
+    public ResponseEntity<?> listarPorAyuntamiento(@PathVariable("ayuntamientoId") Long ayuntamientoId) {
+        try {
+            return ResponseEntity.ok(polideportivoService.obtenerPorAyuntamiento(ayuntamientoId));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+        }
     }
 
     @GetMapping("/{polideportivoId}")
     @Operation(summary = "Obtener polideportivo por ID")
-    public ResponseEntity<?> obtenerPorId(@PathVariable Long polideportivoId) {
+    public ResponseEntity<?> obtenerPorId(@PathVariable("polideportivoId") Long polideportivoId) {
         try {
             return ResponseEntity.ok(polideportivoService.obtenerPorId(polideportivoId));
         } catch (Exception e) {
@@ -86,7 +90,7 @@ public class PolideportivoController {
     @PutMapping("/{polideportivoId}")
     @Operation(summary = "Actualizar polideportivo")
     public ResponseEntity<?> actualizarPolideportivo(
-            @PathVariable Long polideportivoId,
+            @PathVariable("polideportivoId") Long polideportivoId,
             @RequestBody Map<String, String> payload) {
         try {
             Polideportivo poli = polideportivoService.actualizarPolideportivo(
@@ -101,14 +105,14 @@ public class PolideportivoController {
 
     @GetMapping("/{polideportivoId}/pistas")
     @Operation(summary = "Listar pistas de un polideportivo")
-    public ResponseEntity<List<Pista>> listarPistas(@PathVariable Long polideportivoId) {
+    public ResponseEntity<List<Pista>> listarPistas(@PathVariable("polideportivoId") Long polideportivoId) {
         return ResponseEntity.ok(polideportivoService.obtenerPistasByPolideportivo(polideportivoId));
     }
 
     @PutMapping("/{polideportivoId}/horario")
     @Operation(summary = "Actualizar horario del polideportivo")
     public ResponseEntity<?> actualizarHorario(
-            @PathVariable Long polideportivoId,
+            @PathVariable("polideportivoId") Long polideportivoId,
             @Valid @RequestBody HorarioPolideportivoRequest request) {
         try {
             Polideportivo polideportivo = polideportivoService.actualizarHorarioGeneral(
@@ -124,7 +128,7 @@ public class PolideportivoController {
     @GetMapping("/{polideportivoId}/resumen-semanal")
     @Operation(summary = "Resumen semanal de ocupación e ingresos por polideportivo",
                description = "Devuelve estadísticas de la semana actual: reservas, ingresos y tasa de ocupación por pista.")
-    public ResponseEntity<?> obtenerResumenSemanal(@PathVariable Long polideportivoId) {
+    public ResponseEntity<?> obtenerResumenSemanal(@PathVariable("polideportivoId") Long polideportivoId) {
         try {
             ResumenSemanalPolideportivoDTO dto =
                     polideportivoService.obtenerResumenSemanal(polideportivoId);
@@ -138,8 +142,8 @@ public class PolideportivoController {
     @Operation(summary = "Consultar disponibilidad de todas las pistas del polideportivo",
                description = "Devuelve, para cada pista, los bloques horarios ya ocupados en la fecha indicada.")
     public ResponseEntity<?> obtenerDisponibilidad(
-            @PathVariable Long polideportivoId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
+            @PathVariable("polideportivoId") Long polideportivoId,
+            @RequestParam("fecha") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
         try {
             DisponibilidadPolideportivoDTO dto =
                     polideportivoService.obtenerDisponibilidadPolideportivo(polideportivoId, fecha);
@@ -152,7 +156,7 @@ public class PolideportivoController {
     @DeleteMapping("/{polideportivoId}")
     @Operation(summary = "Eliminar polideportivo",
                description = "Elimina un polideportivo. Falla si tiene reservas activas pendientes.")
-    public ResponseEntity<?> eliminarPolideportivo(@PathVariable Long polideportivoId) {
+    public ResponseEntity<?> eliminarPolideportivo(@PathVariable("polideportivoId") Long polideportivoId) {
         try {
             polideportivoService.eliminarPolideportivo(polideportivoId);
             return ResponseEntity.noContent().build();

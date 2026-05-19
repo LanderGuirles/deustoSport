@@ -54,13 +54,21 @@ public class PagoController {
 
     @GetMapping("/recaudacion/ayuntamiento/{ayuntamientoId}")
     @Operation(summary = "Obtener recaudación del mes actual para un ayuntamiento")
-    public ResponseEntity<Map<String, Object>> obtenerRecaudacionAyuntamiento(@PathVariable Long ayuntamientoId) {
-        return ResponseEntity.ok(pagoService.obtenerRecaudacionAyuntamiento(ayuntamientoId));
+    public ResponseEntity<?> obtenerRecaudacionAyuntamiento(@PathVariable("ayuntamientoId") Long ayuntamientoId) {
+        try {
+            return ResponseEntity.ok(pagoService.obtenerRecaudacionAyuntamiento(ayuntamientoId));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+        }
     }
 
     @GetMapping("/recaudacion/ayuntamiento/{ayuntamientoId}/desglose")
     @Operation(summary = "Obtener desglose de recaudación por centro para un ayuntamiento")
-    public ResponseEntity<java.util.List<Map<String, Object>>> obtenerDesglosePorCentro(@PathVariable Long ayuntamientoId) {
-        return ResponseEntity.ok(pagoService.obtenerDesglosePorCentro(ayuntamientoId));
+    public ResponseEntity<?> obtenerDesglosePorCentro(@PathVariable("ayuntamientoId") Long ayuntamientoId) {
+        try {
+            return ResponseEntity.ok(pagoService.obtenerDesglosePorCentro(ayuntamientoId));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+        }
     }
     }

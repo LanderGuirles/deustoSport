@@ -57,7 +57,7 @@ public class EstadisticasController {
     @GetMapping("/reservas/mes/{year}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Estadísticas de reservas por mes")
-    public ResponseEntity<Map<String, Object>> obtenerEstadisticasReservasPorMes(@PathVariable int year) {
+    public ResponseEntity<Map<String, Object>> obtenerEstadisticasReservasPorMes(@PathVariable("year") int year) {
         Map<String, Object> stats = estadisticasService.obtenerEstadisticasReservasPorMes(year);
         return ResponseEntity.ok(stats);
     }
@@ -105,8 +105,8 @@ public class EstadisticasController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Reporte de ingresos por rango de fechas")
     public ResponseEntity<Map<String, Object>> obtenerReporteIngresos(
-            @RequestParam LocalDate fechaInicio,
-            @RequestParam LocalDate fechaFin) {
+            @RequestParam("fechaInicio") LocalDate fechaInicio,
+            @RequestParam("fechaFin") LocalDate fechaFin) {
         Map<String, Object> reporte = estadisticasService.obtenerReporteIngresos(fechaInicio, fechaFin);
         return ResponseEntity.ok(reporte);
     }
@@ -168,9 +168,9 @@ public class EstadisticasController {
     @PreAuthorize("hasRole('COORDINADOR') or hasRole('ADMIN')")
     @Operation(summary = "Reporte de uso y rentabilidad de una pista")
     public ResponseEntity<ReporteUsoPistaDTO> obtenerReporteUsoPista(
-            @PathVariable Long pistaId,
-            @RequestParam LocalDate fechaInicio,
-            @RequestParam LocalDate fechaFin) {
+            @PathVariable("pistaId") Long pistaId,
+            @RequestParam("fechaInicio") LocalDate fechaInicio,
+            @RequestParam("fechaFin") LocalDate fechaFin) {
         ReporteUsoPistaDTO reporte = estadisticasService.generarReporteUsoPista(pistaId, fechaInicio, fechaFin);
         if (reporte == null) {
             return ResponseEntity.notFound().build();
@@ -182,8 +182,8 @@ public class EstadisticasController {
     @PreAuthorize("hasRole('COORDINADOR') or hasRole('ADMIN')")
     @Operation(summary = "Reporte consolidado de uso y rentabilidad de todas las pistas")
     public ResponseEntity<ReporteUsoPistasDTO> obtenerReporteUsoPistas(
-            @RequestParam LocalDate fechaInicio,
-            @RequestParam LocalDate fechaFin) {
+            @RequestParam("fechaInicio") LocalDate fechaInicio,
+            @RequestParam("fechaFin") LocalDate fechaFin) {
         ReporteUsoPistasDTO reporte = estadisticasService.generarReporteUsoPistas(fechaInicio, fechaFin);
         return ResponseEntity.ok(reporte);
     }

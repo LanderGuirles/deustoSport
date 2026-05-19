@@ -49,10 +49,10 @@ public class PistaController {
             description = "Devuelve todas las pistas activas del deporte indicado que no tienen reservas "
                     + "conflictivas en el horario solicitado y cuyo polideportivo está abierto en ese tramo.")
     public ResponseEntity<?> buscarDisponibles(
-            @RequestParam TipoDeporte tipoDeporte,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime horaInicio,
-            @RequestParam(defaultValue = "60") int duracionMinutos) {
+            @RequestParam("tipoDeporte") TipoDeporte tipoDeporte,
+            @RequestParam("fecha") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
+            @RequestParam("horaInicio") @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime horaInicio,
+            @RequestParam(name = "duracionMinutos", defaultValue = "60") int duracionMinutos) {
         try {
             if (duracionMinutos <= 0 || duracionMinutos > 480) {
                 return ResponseEntity.badRequest()

@@ -35,7 +35,7 @@ public class FestivoController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Eliminar un festivo programado")
-    public ResponseEntity<Void> eliminarFestivo(@PathVariable Long id) {
+    public ResponseEntity<Void> eliminarFestivo(@PathVariable("id") Long id) {
         festivoService.eliminarFestivo(id);
         return ResponseEntity.noContent().build();
     }

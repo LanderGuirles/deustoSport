@@ -97,11 +97,12 @@ class PolideportivoControllerTest {
         log.info("[TEST] PolideportivoController.listarPorAyuntamiento - ayuntamientoId=1");
         when(polideportivoService.obtenerPorAyuntamiento(1L)).thenReturn(List.of(polideportivo));
 
-        ResponseEntity<List<Polideportivo>> resp = polideportivoController.listarPorAyuntamiento(1L);
+        ResponseEntity<?> resp = polideportivoController.listarPorAyuntamiento(1L);
 
         assertEquals(HttpStatus.OK, resp.getStatusCode());
-        assertEquals(1, resp.getBody().size());
-        log.info("[TEST] Polideportivos por ayuntamiento: {}", resp.getBody().size());
+        List<Polideportivo> body = (List<Polideportivo>) resp.getBody();
+        assertEquals(1, body.size());
+        log.info("[TEST] Polideportivos por ayuntamiento: {}", body.size());
     }
 
     // ── obtenerPorId ──────────────────────────────────────────────────────────

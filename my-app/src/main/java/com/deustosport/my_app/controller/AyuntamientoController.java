@@ -22,7 +22,7 @@ public class AyuntamientoController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Obtener datos de un ayuntamiento")
-    public ResponseEntity<Ayuntamiento> obtenerAyuntamiento(@PathVariable Long id) {
+    public ResponseEntity<Ayuntamiento> obtenerAyuntamiento(@PathVariable("id") Long id) {
         return ayuntamientoRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -30,7 +30,7 @@ public class AyuntamientoController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Actualizar datos de un ayuntamiento")
-    public ResponseEntity<?> actualizarAyuntamiento(@PathVariable Long id, @RequestBody Map<String, String> payload) {
+    public ResponseEntity<?> actualizarAyuntamiento(@PathVariable("id") Long id, @RequestBody Map<String, String> payload) {
         return ayuntamientoRepository.findById(id)
                 .map(ayu -> {
                     ayu.setNombre(payload.get("nombre"));

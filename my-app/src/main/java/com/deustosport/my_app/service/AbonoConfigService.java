@@ -18,6 +18,7 @@ public class AbonoConfigService {
         return planAbonoRepository.save(plan);
     }
 
+    @Transactional(readOnly = true)
     public List<PlanAbono> listarPlanes() {
         return planAbonoRepository.findAll();
     }
@@ -40,8 +41,8 @@ public class AbonoConfigService {
         return planAbonoRepository.save(plan);
     }
 
+    @Transactional(readOnly = true)
     public List<PlanAbono> listarPlanesPorAyuntamiento(Long ayuntamientoId) {
-        // Asumimos que los planes con ayuntamiento null son globales o de ejemplo
         return planAbonoRepository.findAll().stream()
                 .filter(p -> p.getAyuntamiento() != null && p.getAyuntamiento().getId().equals(ayuntamientoId))
                 .collect(java.util.stream.Collectors.toList());

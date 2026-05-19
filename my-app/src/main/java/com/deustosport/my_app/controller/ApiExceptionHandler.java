@@ -32,6 +32,14 @@ public class ApiExceptionHandler {
         ));
     }
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> handleAllExceptions(Exception ex) {
+        return ResponseEntity.internalServerError().body(Map.of(
+                "error", ex.getClass().getSimpleName() + ": " + (ex.getMessage() != null ? ex.getMessage() : "null"),
+                "causa", ex.getCause() != null ? ex.getCause().getMessage() : ""
+        ));
+    }
+
     private String formatFieldError(FieldError fieldError) {
         return fieldError.getField() + ": " + fieldError.getDefaultMessage();
     }

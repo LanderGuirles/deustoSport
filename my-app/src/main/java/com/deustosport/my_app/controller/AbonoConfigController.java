@@ -48,7 +48,7 @@ public class AbonoConfigController {
 
     @GetMapping("/planes")
     @io.swagger.v3.oas.annotations.Operation(summary = "Listar planes de abono")
-    public ResponseEntity<List<PlanAbono>> listarPlanes(@RequestParam(required = false) Long ayuntamientoId) {
+    public ResponseEntity<List<PlanAbono>> listarPlanes(@RequestParam(name = "ayuntamientoId", required = false) Long ayuntamientoId) {
         if (ayuntamientoId != null) {
             return ResponseEntity.ok(adminService.listarPlanesPorAyuntamiento(ayuntamientoId));
         }

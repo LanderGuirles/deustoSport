@@ -234,7 +234,7 @@ public class UsuarioController {
      */
     @PostMapping("/{usuarioId}/desactivar")
     @Operation(summary = "Desactivar usuario")
-    public ResponseEntity<?> desactivarUsuario(@PathVariable Long usuarioId) {
+    public ResponseEntity<?> desactivarUsuario(@PathVariable("usuarioId") Long usuarioId) {
         try {
             usuarioService.desactivarUsuario(usuarioId);
             return ResponseEntity.ok(Map.of("mensaje", "Usuario desactivado exitosamente"));
@@ -245,7 +245,7 @@ public class UsuarioController {
 
     @GetMapping("/polideportivo/{polideportivoId}")
     @Operation(summary = "Listar usuarios por polideportivo (roles MANTENIMIENTO, SECRETARIA, COORDINADOR)")
-    public ResponseEntity<List<UsuarioListadoResponse>> listarUsuariosPorPolideportivo(@PathVariable Long polideportivoId) {
+    public ResponseEntity<List<UsuarioListadoResponse>> listarUsuariosPorPolideportivo(@PathVariable("polideportivoId") Long polideportivoId) {
         List<com.deustosport.my_app.enums.Rol> roles = java.util.Arrays.asList(
                 com.deustosport.my_app.enums.Rol.MANTENIMIENTO,
                 com.deustosport.my_app.enums.Rol.SECRETARIA,
@@ -270,7 +270,7 @@ public class UsuarioController {
     @PutMapping("/polideportivo/{usuarioId}")
     @Operation(summary = "Actualizar usuario de un polideportivo")
     public ResponseEntity<?> actualizarUsuarioPolideportivo(
-            @PathVariable Long usuarioId,
+            @PathVariable("usuarioId") Long usuarioId,
             @Valid @RequestBody ActualizarUsuarioPoliRequest request) {
         try {
             com.deustosport.my_app.enums.Rol rolEnum = null;
@@ -294,7 +294,7 @@ public class UsuarioController {
 
     @DeleteMapping("/polideportivo/{usuarioId}")
     @Operation(summary = "Eliminar definitivamente un usuario de polideportivo")
-    public ResponseEntity<?> eliminarUsuarioPolideportivo(@PathVariable Long usuarioId) {
+    public ResponseEntity<?> eliminarUsuarioPolideportivo(@PathVariable("usuarioId") Long usuarioId) {
         try {
             usuarioService.eliminarUsuarioDefinitivamente(usuarioId);
             return ResponseEntity.ok(Map.of("mensaje", "Usuario eliminado exitosamente de la base de datos"));
@@ -313,7 +313,7 @@ public class UsuarioController {
     @PostMapping("/{usuarioId}/activar")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Activar usuario")
-    public ResponseEntity<?> activarUsuario(@PathVariable Long usuarioId) {
+    public ResponseEntity<?> activarUsuario(@PathVariable("usuarioId") Long usuarioId) {
         try {
             usuarioService.activarUsuario(usuarioId);
             return ResponseEntity.ok(Map.of("mensaje", "Usuario activado exitosamente"));

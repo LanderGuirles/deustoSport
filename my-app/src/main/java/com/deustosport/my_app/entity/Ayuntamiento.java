@@ -26,6 +26,7 @@ public class Ayuntamiento {
     @Column(nullable = false, unique = true, length = 20)
     private String cif;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @OneToMany(mappedBy = "ayuntamiento", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Polideportivo> polideportivos = new ArrayList<>();
 }

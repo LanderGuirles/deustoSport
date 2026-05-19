@@ -42,7 +42,7 @@ public class AuditoriaController {
     @GetMapping("/usuario/{usuario}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Obtener acciones de auditoría por usuario")
-    public ResponseEntity<List<Auditoria>> obtenerAccionesPorUsuario(@PathVariable String usuario) {
+    public ResponseEntity<List<Auditoria>> obtenerAccionesPorUsuario(@PathVariable("usuario") String usuario) {
         List<Auditoria> acciones = auditoriaService.obtenerAccionesPorUsuario(usuario);
         return ResponseEntity.ok(acciones);
     }
@@ -53,7 +53,7 @@ public class AuditoriaController {
     @GetMapping("/entidad/{entidad}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Obtener acciones de auditoría por entidad")
-    public ResponseEntity<List<Auditoria>> obtenerAccionesPorEntidad(@PathVariable String entidad) {
+    public ResponseEntity<List<Auditoria>> obtenerAccionesPorEntidad(@PathVariable("entidad") String entidad) {
         List<Auditoria> acciones = auditoriaService.obtenerAccionesPorEntidad(entidad);
         return ResponseEntity.ok(acciones);
     }
@@ -65,8 +65,8 @@ public class AuditoriaController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Obtener acciones de auditoría por rango de fechas")
     public ResponseEntity<List<Auditoria>> obtenerAccionesPorFecha(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaInicio,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaFin) {
+            @RequestParam("fechaInicio") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaInicio,
+            @RequestParam("fechaFin") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaFin) {
         List<Auditoria> acciones = auditoriaService.obtenerAccionesPorFecha(fechaInicio, fechaFin);
         return ResponseEntity.ok(acciones);
     }
@@ -94,7 +94,7 @@ public class AuditoriaController {
     @GetMapping("/buscar")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Buscar en los detalles de auditoría")
-    public ResponseEntity<List<Auditoria>> buscarEnAuditoria(@RequestParam String busqueda) {
+    public ResponseEntity<List<Auditoria>> buscarEnAuditoria(@RequestParam("busqueda") String busqueda) {
         // Nota: Este método necesitaría ser implementado en el repository
         // Por ahora devolvemos lista vacía
         return ResponseEntity.ok(List.of());
@@ -159,8 +159,8 @@ public class AuditoriaController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Exportar registros de auditoría")
     public ResponseEntity<?> exportarAuditoria(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaInicio,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaFin,
+            @RequestParam(name = "fechaInicio", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaInicio,
+            @RequestParam(name = "fechaFin", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaFin,
             @RequestParam(defaultValue = "CSV") String formato) {
 
         // Implementación placeholder
