@@ -116,4 +116,19 @@ public class PolideportivoController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
+
+    @DeleteMapping("/{polideportivoId}")
+    @Operation(summary = "Eliminar polideportivo",
+               description = "Elimina un polideportivo. Falla si tiene reservas activas pendientes.")
+    public ResponseEntity<?> eliminarPolideportivo(@PathVariable Long polideportivoId) {
+        try {
+            polideportivoService.eliminarPolideportivo(polideportivoId);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.CONFLICT)
+                    .body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
 }

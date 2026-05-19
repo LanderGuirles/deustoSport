@@ -3,19 +3,25 @@ package com.deustosport.my_app.service;
 import com.deustosport.my_app.entity.Polideportivo;
 import com.deustosport.my_app.entity.Pista;
 import com.deustosport.my_app.repository.PolideportivoRepository;
+import com.deustosport.my_app.repository.ReservaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class PolideportivoService {
 
     private final PolideportivoRepository polideportivoRepository;
+    private final ReservaRepository reservaRepository;
 
-    public PolideportivoService(PolideportivoRepository polideportivoRepository) {
+    public PolideportivoService(PolideportivoRepository polideportivoRepository,
+                                ReservaRepository reservaRepository) {
         this.polideportivoRepository = polideportivoRepository;
+        this.reservaRepository = reservaRepository;
     }
 
     @Transactional(readOnly = true)
@@ -74,11 +80,10 @@ public class PolideportivoService {
     public Polideportivo actualizarPolideportivo(Long id, String nombre, String direccion) {
         Polideportivo poli = polideportivoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Polideportivo no encontrado"));
-        
-        // Verificar duplicados excluyendo el actual
-        if (polideportivoRepository.findAll().stream().anyMatch(p -> 
+
+        if (polideportivoRepository.findAll().stream().anyMatch(p ->
             !p.getId().equals(id) &&
-            p.getNombre().equalsIgnoreCase(nombre) && 
+            p.getNombre().equalsIgnoreCase(nombre) &&
             p.getDireccion().equalsIgnoreCase(direccion))) {
             throw new IllegalArgumentException("Ya existe otro polideportivo con el mismo nombre y dirección.");
         }
@@ -86,5 +91,28 @@ public class PolideportivoService {
         poli.setNombre(nombre);
         poli.setDireccion(direccion);
         return polideportivoRepository.save(poli);
+    }
+
+    @Transactional
+    public void eliminarPolideportivo(Long id) {
+        Objects.requireNonNull(id, "id no puede ser null");
+        Polideportivo polideportivo = polideportivoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Polideportivo no encontrado con ID: " + id));
+
+        List<Long> pistaIds = polideportivo.getPistas().stream()
+                .map(Pista::getId)
+                .collect(Collectors.toList());
+
+        if (!pistaIds.isEmpty()) {
+            long reservasActivas = reservaRepository.countActivasFuturasByPistaIds(pistaIds, LocalDate.now());
+            if (reservasActivas > 0) {
+                throw new IllegalStateException(
+                        "No se puede eliminar el polideportivo porque tiene " + reservasActivas
+                        + " reserva(s) activa(s). Cancele las reservas antes de eliminar el polideportivo.");
+            }
+        }
+
+        polideportivoRepository.delete(polideportivo);
     }
 }

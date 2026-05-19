@@ -106,4 +106,27 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
             @Param("inicio") LocalDate inicio,
             @Param("fin") LocalDate fin
     );
+
+    @Query("SELECT COUNT(r) FROM Reserva r WHERE r.pista.id IN :pistaIds " +
+           "AND r.fechaReserva >= :hoy " +
+           "AND r.estado != com.deustosport.my_app.enums.EstadoReserva.CANCELADA")
+    long countActivasFuturasByPistaIds(
+            @Param("pistaIds") List<Long> pistaIds,
+            @Param("hoy") LocalDate hoy
+    );
+
+    @Query("SELECT r.pista.tipoDeporte, COUNT(r) FROM Reserva r " +
+           "WHERE r.estado != com.deustosport.my_app.enums.EstadoReserva.CANCELADA " +
+           "GROUP BY r.pista.tipoDeporte ORDER BY COUNT(r) DESC")
+    List<Object[]> countReservasPorTipoDeporte();
+
+    @Query("SELECT r.usuario.id, r.usuario.nombreCompleto, COUNT(r) as total FROM Reserva r " +
+           "WHERE r.estado != com.deustosport.my_app.enums.EstadoReserva.CANCELADA " +
+           "GROUP BY r.usuario.id, r.usuario.nombreCompleto ORDER BY total DESC")
+    List<Object[]> findTopUsuariosPorReservas(org.springframework.data.domain.Pageable pageable);
+
+    @Query("SELECT r.pista.id, r.pista.nombre, r.pista.tipoDeporte, COUNT(r) FROM Reserva r " +
+           "WHERE r.estado != com.deustosport.my_app.enums.EstadoReserva.CANCELADA " +
+           "GROUP BY r.pista.id, r.pista.nombre, r.pista.tipoDeporte ORDER BY COUNT(r) DESC")
+    List<Object[]> countReservasPorPista();
 }
