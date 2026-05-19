@@ -79,9 +79,8 @@ public class PolideportivoService {
 
     @Transactional
     public Polideportivo crearPolideportivo(Polideportivo polideportivo) {
-        if (polideportivoRepository.findAll().stream().anyMatch(p -> 
-            p.getNombre().equalsIgnoreCase(polideportivo.getNombre()) && 
-            p.getDireccion().equalsIgnoreCase(polideportivo.getDireccion()))) {
+        if (polideportivoRepository.existsByNombreAndDireccionIgnoreCase(
+                polideportivo.getNombre(), polideportivo.getDireccion())) {
             throw new IllegalArgumentException("Ya existe un polideportivo con el mismo nombre y dirección.");
         }
         return polideportivoRepository.save(polideportivo);
@@ -92,10 +91,7 @@ public class PolideportivoService {
         Polideportivo poli = polideportivoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Polideportivo no encontrado"));
 
-        if (polideportivoRepository.findAll().stream().anyMatch(p ->
-            !p.getId().equals(id) &&
-            p.getNombre().equalsIgnoreCase(nombre) &&
-            p.getDireccion().equalsIgnoreCase(direccion))) {
+        if (polideportivoRepository.existsByNombreAndDireccionIgnoreCaseExcludingId(id, nombre, direccion)) {
             throw new IllegalArgumentException("Ya existe otro polideportivo con el mismo nombre y dirección.");
         }
 

@@ -1,11 +1,15 @@
 package com.deustosport.my_app.controller;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.deustosport.my_app.dto.PistaDisponibleDTO;
 import com.deustosport.my_app.dto.PistaRequest;
 import com.deustosport.my_app.dto.PistaResponse;
 import com.deustosport.my_app.entity.Polideportivo;
 import com.deustosport.my_app.entity.Pista;
+import com.deustosport.my_app.enums.TipoDeporte;
 import com.deustosport.my_app.service.PistaService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,6 +21,8 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 
 
@@ -35,6 +41,30 @@ public class PistaController {
     @io.swagger.v3.oas.annotations.Operation(summary = "Listar todas las pistas", description = "Devuelve todas las pistas")
     public ResponseEntity<java.util.List<PistaResponse>> listarTodas() {
         return ResponseEntity.ok(pistaService.obtenerTodasLasPistas());
+    }
+
+    @GetMapping("/disponibles")
+    @io.swagger.v3.oas.annotations.Operation(
+            summary = "Buscar pistas disponibles por deporte, fecha y hora",
+            description = "Devuelve todas las pistas activas del deporte indicado que no tienen reservas "
+                    + "conflictivas en el horario solicitado y cuyo polideportivo está abierto en ese tramo.")
+    public ResponseEntity<?> buscarDisponibles(
+            @RequestParam TipoDeporte tipoDeporte,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime horaInicio,
+            @RequestParam(defaultValue = "60") int duracionMinutos) {
+        try {
+            if (duracionMinutos <= 0 || duracionMinutos > 480) {
+                return ResponseEntity.badRequest()
+                        .body(java.util.Map.of("error", "La duración debe estar entre 1 y 480 minutos."));
+            }
+            LocalTime horaFin = horaInicio.plusMinutes(duracionMinutos);
+            java.util.List<PistaDisponibleDTO> disponibles =
+                    pistaService.buscarPistasDisponibles(tipoDeporte, fecha, horaInicio, horaFin);
+            return ResponseEntity.ok(disponibles);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
+        }
     }
 
     @GetMapping("/{pistaId}")

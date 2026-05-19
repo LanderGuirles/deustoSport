@@ -281,8 +281,8 @@ class PolideportivoYPistaServiceTest {
         Polideportivo duplicado = new Polideportivo();
         duplicado.setNombre("Polideportivo Central");
         duplicado.setDireccion("Calle Principal 1");
-        when(polideportivoRepository.findAll()).thenReturn(List.of(polideportivo));
-        polideportivo.setDireccion("Calle Principal 1");
+        when(polideportivoRepository.existsByNombreAndDireccionIgnoreCase(
+                "Polideportivo Central", "Calle Principal 1")).thenReturn(true);
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> polideportivoService.crearPolideportivo(duplicado));

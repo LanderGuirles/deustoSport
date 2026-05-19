@@ -4,12 +4,16 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import com.deustosport.my_app.dto.PistaDisponibleDTO;
 import com.deustosport.my_app.dto.PistaRequest;
 import com.deustosport.my_app.dto.PistaResponse;
 import com.deustosport.my_app.entity.Pista;
 import com.deustosport.my_app.entity.Polideportivo;
 import com.deustosport.my_app.enums.TipoDeporte;
 import com.deustosport.my_app.service.PistaService;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -272,5 +276,81 @@ class PistaControllerTest {
 
         assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
         log.info("[TEST] Error bloquear pista inexistente");
+    }
+
+    // ── buscarDisponibles (HU5) ───────────────────────────────────────────────
+
+    @Test
+    void buscarDisponibles_deporeFechaHora_devuelveOk() {
+        log.info("[TEST] PistaController.buscarDisponibles - PADEL mañana 10:00 60min");
+        PistaDisponibleDTO dto = new PistaDisponibleDTO();
+        dto.setPistaId(10L);
+        dto.setPistaNombre("Pista Pádel 1");
+        dto.setTipoDeporte(TipoDeporte.PADEL);
+        dto.setPolideportivoNombre("Polideportivo Central");
+
+        when(pistaService.buscarPistasDisponibles(
+                eq(TipoDeporte.PADEL), any(LocalDate.class),
+                eq(LocalTime.of(10, 0)), eq(LocalTime.of(11, 0))))
+                .thenReturn(List.of(dto));
+
+        LocalDate fecha = LocalDate.now().plusDays(1);
+        ResponseEntity<?> resp = pistaController.buscarDisponibles(
+                TipoDeporte.PADEL, fecha, LocalTime.of(10, 0), 60);
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        List<PistaDisponibleDTO> body = (List<PistaDisponibleDTO>) resp.getBody();
+        assertEquals(1, body.size());
+        assertEquals("Pista Pádel 1", body.get(0).getPistaNombre());
+        log.info("[TEST] Pistas disponibles: {}", body.size());
+    }
+
+    @Test
+    void buscarDisponibles_sinPistasLibres_devuelveListaVacia() {
+        log.info("[TEST] PistaController.buscarDisponibles - sin pistas disponibles");
+        when(pistaService.buscarPistasDisponibles(any(), any(), any(), any()))
+                .thenReturn(List.of());
+
+        ResponseEntity<?> resp = pistaController.buscarDisponibles(
+                TipoDeporte.TENIS, LocalDate.now().plusDays(1), LocalTime.of(9, 0), 90);
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertTrue(((List<?>) resp.getBody()).isEmpty());
+        log.info("[TEST] Lista vacía devuelta correctamente");
+    }
+
+    @Test
+    void buscarDisponibles_duracionInvalida_devuelveBadRequest() {
+        log.info("[TEST] PistaController.buscarDisponibles - duración 0 invalida");
+        ResponseEntity<?> resp = pistaController.buscarDisponibles(
+                TipoDeporte.PADEL, LocalDate.now().plusDays(1), LocalTime.of(10, 0), 0);
+
+        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+        Map<String, Object> body = (Map<String, Object>) resp.getBody();
+        assertTrue(body.get("error").toString().contains("duración"));
+        log.info("[TEST] Error duración inválida: {}", body.get("error"));
+    }
+
+    @Test
+    void buscarDisponibles_duracionExcesiva_devuelveBadRequest() {
+        log.info("[TEST] PistaController.buscarDisponibles - duración 500 excede límite");
+        ResponseEntity<?> resp = pistaController.buscarDisponibles(
+                TipoDeporte.PADEL, LocalDate.now().plusDays(1), LocalTime.of(10, 0), 500);
+
+        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+        log.info("[TEST] Error duración excesiva controlado");
+    }
+
+    @Test
+    void buscarDisponibles_servicioLanzaExcepcion_devuelveBadRequest() {
+        log.info("[TEST] PistaController.buscarDisponibles - servicio lanza excepción");
+        when(pistaService.buscarPistasDisponibles(any(), any(), any(), any()))
+                .thenThrow(new IllegalArgumentException("La hora de fin debe ser posterior a la hora de inicio."));
+
+        ResponseEntity<?> resp = pistaController.buscarDisponibles(
+                TipoDeporte.PADEL, LocalDate.now().plusDays(1), LocalTime.of(10, 0), 60);
+
+        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+        log.info("[TEST] Error de servicio propagado correctamente");
     }
 }

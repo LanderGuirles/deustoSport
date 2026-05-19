@@ -2,16 +2,19 @@ package com.deustosport.my_app.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.deustosport.my_app.dto.PistaDisponibleDTO;
 import com.deustosport.my_app.dto.PistaRequest;
 import com.deustosport.my_app.dto.PistaResponse;
 import com.deustosport.my_app.entity.Polideportivo;
 import com.deustosport.my_app.entity.Pista;
+import com.deustosport.my_app.enums.TipoDeporte;
 import com.deustosport.my_app.repository.PolideportivoRepository;
 import com.deustosport.my_app.repository.PistaRepository;
 import com.deustosport.my_app.repository.ReservaRepository;
 import com.deustosport.my_app.entity.Reserva;
 import org.springframework.context.annotation.Lazy;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -150,6 +153,55 @@ public class PistaService {
         }
     }
 
+
+    @Transactional(readOnly = true)
+    public List<PistaDisponibleDTO> buscarPistasDisponibles(TipoDeporte tipoDeporte,
+                                                            LocalDate fecha,
+                                                            LocalTime horaInicio,
+                                                            LocalTime horaFin) {
+        Objects.requireNonNull(tipoDeporte, "tipoDeporte no puede ser null");
+        Objects.requireNonNull(fecha, "fecha no puede ser null");
+        Objects.requireNonNull(horaInicio, "horaInicio no puede ser null");
+        Objects.requireNonNull(horaFin, "horaFin no puede ser null");
+
+        if (!horaFin.isAfter(horaInicio)) {
+            throw new IllegalArgumentException("La hora de fin debe ser posterior a la hora de inicio.");
+        }
+
+        return pistaRepository.findByTipoDeporte(tipoDeporte).stream()
+                .filter(Pista::isActiva)
+                .filter(pista -> dentroDeHorarioPolideportivo(pista, horaInicio, horaFin))
+                .filter(pista -> reservaRepository
+                        .findConflictingReservations(pista.getId(), fecha, horaInicio, horaFin)
+                        .isEmpty())
+                .map(this::toDisponibleDto)
+                .collect(Collectors.toList());
+    }
+
+    private boolean dentroDeHorarioPolideportivo(Pista pista, LocalTime horaInicio, LocalTime horaFin) {
+        Polideportivo poli = pista.getPolideportivo();
+        if (poli == null || poli.getHoraApertura() == null || poli.getHoraCierre() == null) {
+            return true;
+        }
+        return !horaInicio.isBefore(poli.getHoraApertura()) && !horaFin.isAfter(poli.getHoraCierre());
+    }
+
+    private PistaDisponibleDTO toDisponibleDto(Pista pista) {
+        PistaDisponibleDTO dto = new PistaDisponibleDTO();
+        dto.setPistaId(pista.getId());
+        dto.setPistaNombre(pista.getNombre());
+        dto.setTipoDeporte(pista.getTipoDeporte());
+        dto.setMaxJugadores(pista.getMaxJugadores());
+        if (pista.getPolideportivo() != null) {
+            Polideportivo poli = pista.getPolideportivo();
+            dto.setPolideportivoId(poli.getId());
+            dto.setPolideportivoNombre(poli.getNombre());
+            dto.setPolideportivoDireccion(poli.getDireccion());
+            dto.setHoraApertura(poli.getHoraApertura() != null ? poli.getHoraApertura().toString() : null);
+            dto.setHoraCierre(poli.getHoraCierre() != null ? poli.getHoraCierre().toString() : null);
+        }
+        return dto;
+    }
 
     @Transactional
     public PistaResponse bloquearPista(Long id) {
