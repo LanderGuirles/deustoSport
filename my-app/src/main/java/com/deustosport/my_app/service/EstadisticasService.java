@@ -9,6 +9,7 @@ import com.deustosport.my_app.entity.Reserva;
 import com.deustosport.my_app.entity.Pista;
 import com.deustosport.my_app.enums.EstadoReserva;
 import com.deustosport.my_app.enums.MetodoPago;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -103,28 +105,57 @@ public class EstadisticasService {
     }
 
     /**
-     * Estadísticas de uso de pistas
+     * Estadísticas de uso de pistas: reservas y porcentaje por pista
      */
     public Map<String, Object> obtenerEstadisticasUsoPistas() {
-        Map<String, Object> stats = new HashMap<>();
+        Map<String, Object> stats = new LinkedHashMap<>();
 
-        // Aquí irían consultas para estadísticas de pistas
-        // Por simplicidad, devolvemos un mapa vacío por ahora
-        stats.put("mensaje", "Estadísticas de uso de pistas - Implementación pendiente");
+        List<Object[]> filas = reservaRepository.countReservasPorPista();
+        List<Map<String, Object>> pistas = new ArrayList<>();
 
+        long totalReservas = reservaRepository.count();
+
+        for (Object[] fila : filas) {
+            Map<String, Object> entrada = new LinkedHashMap<>();
+            entrada.put("pistaId", fila[0]);
+            entrada.put("pistaNombre", fila[1]);
+            entrada.put("tipoDeporte", fila[2] != null ? fila[2].toString() : "DESCONOCIDO");
+            long count = fila[3] != null ? ((Number) fila[3]).longValue() : 0L;
+            entrada.put("totalReservas", count);
+            double porcentaje = totalReservas > 0
+                    ? Math.round((double) count / totalReservas * 10000.0) / 100.0
+                    : 0.0;
+            entrada.put("porcentajeUso", porcentaje);
+            pistas.add(entrada);
+        }
+
+        stats.put("pistasConReservas", pistas.size());
+        stats.put("totalReservasContabilizadas", totalReservas);
+        stats.put("pistas", pistas);
         return stats;
     }
 
     /**
-     * Top usuarios por número de reservas
+     * Top usuarios por número de reservas confirmadas o completadas
      */
     public Map<String, Object> obtenerTopUsuariosReservas(int limit) {
-        Map<String, Object> stats = new HashMap<>();
+        Map<String, Object> stats = new LinkedHashMap<>();
 
-        // Implementación simplificada
-        stats.put("mensaje", "Top usuarios por reservas - Implementación pendiente");
-        stats.put("limit", limit);
+        int safeLimit = Math.max(1, Math.min(limit, 100));
+        List<Object[]> filas = reservaRepository.findTopUsuariosPorReservas(PageRequest.of(0, safeLimit));
 
+        List<Map<String, Object>> topUsuarios = new ArrayList<>();
+        for (Object[] fila : filas) {
+            Map<String, Object> entrada = new LinkedHashMap<>();
+            entrada.put("usuarioId", fila[0]);
+            entrada.put("nombreCompleto", fila[1]);
+            long count = fila[2] != null ? ((Number) fila[2]).longValue() : 0L;
+            entrada.put("totalReservas", count);
+            topUsuarios.add(entrada);
+        }
+
+        stats.put("limit", safeLimit);
+        stats.put("topUsuarios", topUsuarios);
         return stats;
     }
 
@@ -222,14 +253,33 @@ public class EstadisticasService {
     }
 
     /**
-     * Estadísticas de reservas por tipo de deporte
+     * Estadísticas de reservas por tipo de deporte con porcentaje relativo
      */
     public Map<String, Object> obtenerEstadisticasPorDeporte() {
-        Map<String, Object> stats = new HashMap<>();
+        Map<String, Object> stats = new LinkedHashMap<>();
 
-        // Implementación simplificada
-        stats.put("mensaje", "Estadísticas por deporte - Implementación pendiente");
+        List<Object[]> filas = reservaRepository.countReservasPorTipoDeporte();
+        List<Map<String, Object>> deportes = new ArrayList<>();
 
+        long totalReservas = filas.stream()
+                .mapToLong(f -> f[1] != null ? ((Number) f[1]).longValue() : 0L)
+                .sum();
+
+        for (Object[] fila : filas) {
+            Map<String, Object> entrada = new LinkedHashMap<>();
+            String deporte = fila[0] != null ? fila[0].toString() : "DESCONOCIDO";
+            long count = fila[1] != null ? ((Number) fila[1]).longValue() : 0L;
+            double porcentaje = totalReservas > 0
+                    ? Math.round((double) count / totalReservas * 10000.0) / 100.0
+                    : 0.0;
+            entrada.put("tipoDeporte", deporte);
+            entrada.put("totalReservas", count);
+            entrada.put("porcentaje", porcentaje);
+            deportes.add(entrada);
+        }
+
+        stats.put("totalReservas", totalReservas);
+        stats.put("deportes", deportes);
         return stats;
     }
 
