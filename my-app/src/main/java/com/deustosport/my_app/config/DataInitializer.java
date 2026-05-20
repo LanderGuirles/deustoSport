@@ -121,6 +121,17 @@ public class DataInitializer implements CommandLineRunner {
 
         log.info("Datos de prueba inicializados correctamente");
         log.info("Usuarios: juan@deustosport.com / password123 | Pistas: 5");
+
+        // ── Bonos ──────────────────────────────────────────────────
+        jdbcTemplate.update(
+            "INSERT INTO bonos (nombre, creditos_incluidos, precio, validez_dias, activo) VALUES (?,?,?,?,?)",
+            "Bono Básico", 5, 20.00, 30, true);
+        jdbcTemplate.update(
+            "INSERT INTO bonos (nombre, creditos_incluidos, precio, validez_dias, activo) VALUES (?,?,?,?,?)",
+            "Bono Familiar", 15, 50.00, 90, true);
+        jdbcTemplate.update(
+            "INSERT INTO bonos (nombre, creditos_incluidos, precio, validez_dias, activo) VALUES (?,?,?,?,?)",
+            "Bono Pro", 30, 90.00, 180, true);
     }
 
     private void asegurarCuentaMantenimiento() {

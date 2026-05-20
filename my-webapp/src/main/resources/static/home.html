@@ -558,7 +558,9 @@
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('tarifas',this)">Tarifas</button>
       <button class="tab-btn" onclick="switchTab('pistas',this)">Reservar</button>
+      <button class="tab-btn" onclick="switchTab('polideportivos',this)">Polideportivos</button>
 	  <button class="tab-btn" id="tab-abonos-btn" onclick="switchTab('abonos',this)">Abonos</button>
+      <button class="tab-btn" onclick="switchTab('bonos',this)">Bonos</button>
       <button class="tab-btn" id="tab-misreservas-btn"
 			  onclick="switchTab('misreservas',this)">Mis reservas</button>
 	  <button class="tab-btn" onclick="switchTab('mapa',this)">🗺️ Mapa del Club</button>
@@ -579,6 +581,13 @@
       </div>
     </div>
 
+    <div id="tab-polideportivos" class="tab-content">
+      <div class="section-header"><h3>Nuestros Centros</h3></div>
+      <div id="polideportivos-container" class="planes-grid">
+        <div class="empty"><div class="spinner"></div></div>
+      </div>
+    </div>
+
     <div id="tab-abonos" class="tab-content">
 	<div class="section-header"><h3>Planes de abono disponibles</h3></div>
       <div id="abono-actual-container" class="abono-actual-card">
@@ -593,10 +602,18 @@
       </div>
     </div>
 
+    <div id="tab-bonos" class="tab-content">
+      <div class="section-header"><h3>Bonos de Sesiones</h3></div>
+      <div id="bonos-container" class="planes-grid">
+        <div class="empty"><div class="spinner"></div></div>
+      </div>
+    </div>
+
     <div id="tab-pistas" class="tab-content">
       <div class="section-header">
-        <h3>Pistas disponibles</h3>
-        <span class="badge" id="pistas-count">—</span>
+        <h3 id="pistas-titulo">Selecciona un Polideportivo</h3>
+        <span class="badge" id="pistas-count" style="display:none;">—</span>
+        <button id="btn-volver-polis" class="btn-ghost" onclick="loadPistas()" style="display:none; margin-left:auto;">← Volver</button>
       </div>
       <div id="pistas-container" class="pistas-grid">
         <div class="empty"><div class="spinner"></div></div>
@@ -947,6 +964,18 @@
 		</div>
 		<button class="btn-primary" id="btn-guardar-perfil" onclick="saveProfile()">Guardar cambios</button>
 		<div id="perfil-alert" class="form-alert"></div>
+
+		<!-- Opción de Darse de Baja -->
+		<div style="margin-top: 25px; padding-top: 20px; border-top: 1px dashed var(--border);">
+			<p style="font-size: 13px; color: var(--muted); margin-bottom: 10px;">
+				¿Deseas dejar de formar parte de DeustoSport? 
+			</p>
+			<button class="btn-ghost" 
+					onclick="window.location.href='eliminar-cuenta.html'" 
+					style="color: #ff4d4d; border: 1px solid #ff4d4d44; width: 100%; justify-content: center; display: flex; align-items: center; gap: 8px;">
+				Solicitar baja de cuenta
+			</button>
+		</div>
 
 		<div class="recarga-section">
 			<h4>Billetera — Saldo actual: <strong id="perfil-saldo">0.00</strong>€</h4>
@@ -1377,7 +1406,10 @@
 			  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 			  btn.classList.add('active');
 			  document.getElementById('tab-' + name).classList.add('active');
+			  if (name === 'pistas') loadPistas();
 			  if (name === 'misreservas') loadMisReservas();
+			  if (name === 'polideportivos') loadPolideportivos();
+			  if (name === 'bonos') loadBonos();
 			}
 
 			function openModal(id)  { document.getElementById(id).classList.add('open'); }
@@ -1426,6 +1458,58 @@
 			    .replaceAll('>', '&gt;')
 			    .replaceAll('"', '&quot;')
 			    .replaceAll("'", '&#39;');
+			}
+
+			async function loadPolideportivos() {
+				const container = document.getElementById('polideportivos-container');
+				try {
+					const res = await fetch(`${API}/api/polideportivos`);
+					const data = await res.json();
+					if (!data.length) {
+						container.innerHTML = '<div class="empty"><p>No hay polideportivos registrados.</p></div>';
+						return;
+					}
+					container.innerHTML = data.map(p => `
+						<div class="plan-card">
+							<div class="plan-title">${p.nombre}</div>
+							<p class="plan-desc">${p.direccion}</p>
+							<ul class="plan-features">
+								<li>Horario: <strong>${(p.horaApertura||'').substring(0,5)} - ${(p.horaCierre||'').substring(0,5)}</strong></li>
+								<li>Servicios: <strong>Pistas, Vestuarios, Bar</strong></li>
+							</ul>
+							<button class="btn-suscribirse" onclick="switchTab('mapa', document.querySelector('[onclick*=\"mapa\"]'))">Ver en mapa</button>
+						</div>
+					`).join('');
+				} catch (e) {
+					container.innerHTML = '<div class="empty"><p>Error al cargar polideportivos.</p></div>';
+				}
+			}
+
+			async function loadBonos() {
+				const container = document.getElementById('bonos-container');
+				try {
+					const res = await fetch(`${API}/api/bonos`);
+					const data = await res.json();
+					if (!data.length) {
+						container.innerHTML = '<div class="empty"><p>No hay bonos disponibles en este momento.</p></div>';
+						return;
+					}
+					container.innerHTML = data.map(b => `
+						<div class="plan-card">
+							<div class="plan-title">${b.nombre}</div>
+							<div class="plan-price">${fmtEur(b.precio)}</div>
+							<p class="plan-desc">Pack de sesiones prepago para reservar cualquier pista del club.</p>
+							<ul class="plan-features">
+								<li>Sesiones incluidas: <strong>${b.creditosIncluidos}</strong></li>
+								<li>Validez: <strong>${b.validezDias} días</strong></li>
+								<li>Ahorro: <strong>~15% dto.</strong></li>
+							</ul>
+							<button class="btn-suscribirse" onclick="toast('La compra de bonos estará disponible próximamente', 'ok')">Adquirir Bono</button>
+						</div>
+					`).join('');
+				} catch (e) {
+					container.innerHTML = '<div class="empty"><p>Error al cargar bonos.</p></div>';
+				}
 			}
 
 			function toggleNotificationPanel() {
@@ -1670,45 +1754,88 @@
 			// ═══════════════════════════════════════════
 			//  PISTAS
 			// ═══════════════════════════════════════════
-			async function loadPistas() {
+			async function loadPistas(polideportivoId = null) {
 			  const container = document.getElementById('pistas-container');
+			  const titulo    = document.getElementById('pistas-titulo');
+			  const count     = document.getElementById('pistas-count');
+			  const btnVolver = document.getElementById('btn-volver-polis');
+
 			  container.innerHTML = '<div class="empty"><div class="spinner"></div></div>';
+
 			  try {
-			    const res   = await fetch(API + '/api/pistas');
-			    const pistas = await res.json();
-			    pistasGlobal = pistas.filter(p => p.activa);
-			    document.getElementById('pistas-count').textContent = pistasGlobal.length + ' pistas';
+			    // 1. Si no hay polideportivoId, mostramos centros
+			    if (!polideportivoId) {
+			      titulo.textContent = 'Selecciona un Polideportivo';
+			      count.style.display = 'none';
+			      btnVolver.style.display = 'none';
 
-			    // poblar select de tarifas
-			    const sel = document.getElementById('select-pista-tarifa');
-			    pistasGlobal.forEach(p => {
-			      const opt = document.createElement('option');
-			      opt.value       = p.id;
-			      opt.textContent = p.nombre + ' (' + p.tipoDeporte + ')';
-			      sel.appendChild(opt);
-			    });
+			      const res = await fetch(`${API}/api/polideportivos`);
+			      const data = await res.json();
+			      
+			      if (!data.length) {
+			        container.innerHTML = '<div class="empty"><p>No hay polideportivos disponibles.</p></div>';
+			        return;
+			      }
 
-			    if (!pistasGlobal.length) {
-			      container.innerHTML =
-			        '<div class="empty"><div class="icon"></div><p>No hay pistas registradas</p></div>';
+			      container.innerHTML = data.map(p => `
+			        <div class="plan-card">
+			          <div class="plan-title">${p.nombre}</div>
+			          <p class="plan-desc">📍 ${p.direccion}</p>
+			          <ul class="plan-features">
+			            <li>Apertura: <strong>${(p.horaApertura||'').substring(0,5)}</strong></li>
+			            <li>Cierre: <strong>${(p.horaCierre||'').substring(0,5)}</strong></li>
+			          </ul>
+			          <button class="btn-suscribirse" onclick="loadPistas(${p.id})">Ver pistas y reservar</button>
+			        </div>
+			      `).join('');
+
+			      // Aprovechamos para cargar pistasGlobal si no lo está (para el select de tarifas)
+			      const rPistas = await fetch(API + '/api/pistas');
+			      const allPistas = await rPistas.json();
+			      pistasGlobal = allPistas.filter(p => p.activa);
+			      
+			      const sel = document.getElementById('select-pista-tarifa');
+			      if (sel) {
+			        sel.innerHTML = '<option value="">— Selecciona una pista —</option>';
+			        pistasGlobal.forEach(p => {
+			          const opt = document.createElement('option');
+			          opt.value       = p.id;
+			          opt.textContent = p.nombre + ' (' + p.tipoDeporte + ')';
+			          sel.appendChild(opt);
+			        });
+			      }
 			      return;
 			    }
 
-			    container.innerHTML = pistasGlobal.map(p => `
+			    // 2. Si hay polideportivoId, mostramos sus pistas
+			    const res = await fetch(API + '/api/pistas');
+			    const allPistas = await res.json();
+			    const filtered = allPistas.filter(p => p.activa && p.polideportivoId == polideportivoId);
+			    
+			    titulo.textContent = filtered.length > 0 ? `Pistas en ${filtered[0].polideportivoNombre}` : 'Pistas disponibles';
+			    count.textContent = filtered.length + ' pistas';
+			    count.style.display = 'inline-block';
+			    btnVolver.style.display = 'block';
+
+			    if (!filtered.length) {
+			      container.innerHTML = '<div class="empty"><p>No hay pistas disponibles en este centro.</p></div>';
+			      return;
+			    }
+
+			    container.innerHTML = filtered.map(p => `
 			      <div class="pista-card">
 			        <div class="pista-sport-tag ${sportClass(p.tipoDeporte)}">${p.tipoDeporte}</div>
 			        <div class="pista-name">${p.nombre}</div>
 			        <div class="pista-meta">
-			          ${p.polideportivoNombre || '—'} &nbsp;|&nbsp;
 			          Max <span>${p.maxJugadores}</span> jugadores
 			        </div>
 			        <button class="btn-reservar" onclick="abrirCalendario(${p.id})">
 			          Ver disponibilidad y reservar →
 			        </button>
 			      </div>`).join('');
-			  } catch {
-			    container.innerHTML =
-			      '<div class="empty"><div class="icon"></div><p>Error al cargar pistas.</p></div>';
+
+			  } catch (e) {
+			    container.innerHTML = '<div class="empty"><p>Error al cargar la información.</p></div>';
 			  }
 			}
 

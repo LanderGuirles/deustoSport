@@ -6,11 +6,21 @@ Nota: se añadió un enlace de QR visible en las reservas confirmadas para facil
 
 ---
 
+## Metodología SCRUM y Organización
+
+Este proyecto sigue la metodología ágil SCRUM. Los detalles sobre los roles, el Product Backlog y el Sprint Backlog se encuentran en la carpeta `docs/`:
+
+- [**Roles SCRUM**](docs/ROLES.md): Definición de responsabilidades del equipo.
+- [**Backlog del Proyecto**](docs/BACKLOG.md): Historias de usuario, estimaciones (Story Points) y seguimiento de tareas.
+
+---
+
 ## Prerrequisitos
 
 | Herramienta | Versión mínima |
 |-------------|----------------|
 | Java (JDK)  | 21             |
+| Maven       | 3.9+           |
 | Gradle      | Incluido (wrapper `gradlew`) |
 | PostgreSQL  | 14+ (solo para ejecución real; los tests usan H2 en memoria) |
 
@@ -18,9 +28,16 @@ Nota: se añadió un enlace de QR visible en las reservas confirmadas para facil
 
 ## Construcción
 
+El proyecto soporta tanto **Gradle** (recomendado) como **Maven** para cumplir con los criterios de evaluación.
+
+### Usando Gradle
 ```bash
-# Compilar ambos módulos sin ejecutar tests
 ./gradlew build -x test
+```
+
+### Usando Maven
+```bash
+mvn clean install -DskipTests
 ```
 
 ---
@@ -41,114 +58,49 @@ export DB_PASSWORD="postgres"
 ### Arrancar el backend (API REST)
 
 ```bash
+# Gradle
 ./gradlew :my-app:bootRun
+
+# Maven
+mvn spring-boot:run -pl my-app
 ```
 
 ### Arrancar el frontend (Thymeleaf)
 
 ```bash
+# Gradle
 ./gradlew :my-webapp:bootRun
-```
 
-**Windows (PowerShell):**
-
-```powershell
-$env:DB_URL="jdbc:postgresql://localhost:5432/deustosport"
-$env:DB_DRIVER="org.postgresql.Driver"
-$env:DB_USER="postgres"
-$env:DB_PASSWORD="postgres"
-.\gradlew.bat :my-app:bootRun
+# Maven
+mvn spring-boot:run -pl my-webapp
 ```
 
 ---
 
-## Tests
+## Tests y Cobertura
 
-El proyecto divide las pruebas en tres fases independientes.
-
-### 1. Tests unitarios
-
-Pruebas aisladas con Mockito. No requieren servidor ni base de datos externa.
+### Ejecución de tests
 
 ```bash
-./gradlew :my-app:test
+# Gradle
+./gradlew test
+
+# Maven
+mvn test
 ```
 
-Genera reporte de cobertura JaCoCo en:
-`my-app/build/reports/jacoco/test/html/index.html`
+### Reportes de Cobertura (JaCoCo)
 
-### 2. Tests de integración
-
-Arrancan el contexto completo de Spring Boot con H2 en memoria y realizan llamadas HTTP reales al servidor embebido.
-
-```bash
-./gradlew :my-app:integrationTest
-```
-
-### 3. Tests de rendimiento (ContiPerf)
-
-Requieren el servidor arrancado en `localhost:8080`. Ejecutar en una terminal separada:
-
-```bash
-# Terminal 1 — arrancar servidor
-./gradlew :my-app:bootRun
-
-# Terminal 2 — ejecutar tests de rendimiento
-./gradlew :my-app:performanceTest
-```
-
-Genera reporte en: `my-app/build/reports/tests/performanceTest/index.html`
-
-### Ejecutar todas las fases de una vez
-
-```bash
-./gradlew :my-app:test :my-app:integrationTest
-```
+La cobertura de código se genera automáticamente tras ejecutar los tests:
+- **Gradle:** `my-app/build/reports/jacoco/test/html/index.html`
+- **Maven:** `my-app/target/site/jacoco/index.html`
 
 ---
 
-## Cobertura de código
+## Documentación Automática
 
-El plugin **JaCoCo** genera el informe automáticamente al ejecutar `test`. Abre el informe HTML:
+El proyecto genera y publica documentación de forma automatizada:
 
-```
-my-app/build/reports/jacoco/test/html/index.html
-```
+1.  **API REST (Swagger/OpenAPI):** Disponible en `/swagger-ui.html` cuando la aplicación está en ejecución.
+2.  **Reportes de Calidad:** Los reportes de JaCoCo se generan en cada build de CI y se adjuntan como artefactos en GitHub Actions.
 
----
-
-## API y Swagger UI
-
-Con el servidor arrancado, la documentación interactiva está disponible en:
-
-```
-http://localhost:8080/swagger-ui.html
-```
-
----
-
-## Principales endpoints
-
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| `POST` | `/api/auth/registro` | Registro de usuario |
-| `POST` | `/api/auth/login` | Autenticación |
-| `GET`  | `/api/pistas` | Listado de pistas |
-| `GET`  | `/api/polideportivos` | Listado de polideportivos |
-| `GET`  | `/api/tarifas` | Listado de tarifas |
-| `POST` | `/api/reservas` | Crear reserva |
-| `PUT`  | `/api/polideportivos/{id}/horario-general` | Configurar horario |
-| `GET`  | `/api/secretaria/usuarios` | Búsqueda por DNI (secretaría) |
-
----
-
-## Módulos del proyecto
-
-```
-deustoSport/
-├── my-app/          # Backend REST (Spring Boot 3.4.3, Java 21)
-│   ├── controller/  # Capa de presentación (REST controllers)
-│   ├── service/     # Capa de negocio
-│   └── repository/  # Capa de persistencia (Spring Data JPA)
-└── my-webapp/       # Frontend web (Thymeleaf + HTML/JS/CSS)
-```

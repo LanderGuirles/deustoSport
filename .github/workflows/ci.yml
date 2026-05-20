@@ -44,7 +44,10 @@ jobs:
           path: my-app/build/reports/tests/test
           if-no-files-found: ignore
 
-      - name: Upload JaCoCo coverage report
+      - name: Generate JaCoCo coverage report
+        run: ./gradlew :my-app:jacocoTestReport --no-daemon
+
+      - name: Upload JaCoCo coverage report (Documentation)
         if: always()
         uses: actions/upload-artifact@v4
         with:
