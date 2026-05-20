@@ -1,0 +1,189 @@
+name: Documentation
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-docs:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      # ── JavaDoc ────────────────────────────────────────────────────────────────
+      - name: Generate JavaDoc
+        run: ./gradlew :my-app:javadoc --no-daemon
+        continue-on-error: false
+
+      # ── OpenAPI spec ───────────────────────────────────────────────────────────
+      - name: Build application JAR
+        run: ./gradlew :my-app:bootJar --no-daemon
+
+      - name: Start application (CI profile)
+        run: |
+          java -jar my-app/build/libs/my-app-0.0.1-SNAPSHOT.jar \
+            --spring.profiles.active=ci \
+            --spring.jpa.hibernate.ddl-auto=create-drop \
+            --logging.level.root=WARN &
+          echo $! > /tmp/app.pid
+
+      - name: Wait for application to start
+        run: |
+          echo "Waiting for application..."
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8080/v3/api-docs > /dev/null 2>&1; then
+              echo "Application ready after ${i}s"
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Download OpenAPI spec
+        run: |
+          mkdir -p site/api
+          curl -s http://localhost:8080/v3/api-docs | python3 -m json.tool > site/api/openapi.json
+          echo "OpenAPI spec downloaded ($(wc -c < site/api/openapi.json) bytes)"
+
+      - name: Stop application
+        if: always()
+        run: |
+          if [ -f /tmp/app.pid ]; then
+            kill $(cat /tmp/app.pid) 2>/dev/null || true
+          fi
+
+      # ── Assemble site ──────────────────────────────────────────────────────────
+      - name: Copy JavaDoc to site
+        run: cp -r my-app/build/docs/javadoc site/javadoc
+
+      - name: Create Swagger UI page
+        run: |
+          cat > site/api/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="es">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>DeustoSport – API Reference</title>
+            <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+            <style>
+              body { margin: 0; }
+              #topbar { background: #1a1a2e; padding: 12px 24px; display: flex; align-items: center; gap: 16px; }
+              #topbar a { color: #a0c4ff; font-size: 13px; text-decoration: none; }
+              #topbar a:hover { text-decoration: underline; }
+              #topbar h1 { color: white; font-size: 18px; margin: 0; flex: 1; }
+            </style>
+          </head>
+          <body>
+            <div id="topbar">
+              <h1>⚡ DeustoSport API</h1>
+              <a href="../index.html">← Inicio</a>
+              <a href="../javadoc/index.html">JavaDoc →</a>
+            </div>
+            <div id="swagger-ui"></div>
+            <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+            <script>
+              SwaggerUIBundle({
+                url: './openapi.json',
+                dom_id: '#swagger-ui',
+                presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
+                layout: 'BaseLayout',
+                deepLinking: true,
+                tryItOutEnabled: false
+              });
+            </script>
+          </body>
+          </html>
+          EOF
+
+      - name: Create main index page
+        run: |
+          cat > site/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="es">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>DeustoSport – Documentación</title>
+            <style>
+              *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+              body { font-family: system-ui, sans-serif; background: #0d1117; color: #e6edf3; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 48px; padding: 32px; }
+              h1 { font-size: 2.4rem; font-weight: 700; letter-spacing: -1px; }
+              h1 span { color: #58a6ff; }
+              .subtitle { color: #8b949e; font-size: 1rem; margin-top: 8px; text-align: center; }
+              .cards { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+              .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 32px 40px; text-align: center; text-decoration: none; color: inherit; width: 240px; transition: border-color .2s, transform .2s; }
+              .card:hover { border-color: #58a6ff; transform: translateY(-4px); }
+              .card .icon { font-size: 3rem; margin-bottom: 16px; }
+              .card h2 { font-size: 1.1rem; margin-bottom: 8px; }
+              .card p { color: #8b949e; font-size: 0.85rem; line-height: 1.5; }
+              footer { color: #484f58; font-size: 0.8rem; }
+            </style>
+          </head>
+          <body>
+            <div style="text-align:center">
+              <h1>Deusto<span>Sport</span></h1>
+              <p class="subtitle">Documentación del proyecto · Sprint 3</p>
+            </div>
+            <div class="cards">
+              <a class="card" href="api/index.html">
+                <div class="icon">⚡</div>
+                <h2>API REST</h2>
+                <p>Documentación interactiva de todos los endpoints generada con Swagger / OpenAPI 3.</p>
+              </a>
+              <a class="card" href="javadoc/index.html">
+                <div class="icon">📚</div>
+                <h2>JavaDoc</h2>
+                <p>Referencia del código fuente Java generada automáticamente a partir de los comentarios.</p>
+              </a>
+            </div>
+            <footer>Generado automáticamente en cada push a main · DeustoSport Team</footer>
+          </body>
+          </html>
+          EOF
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build-docs
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

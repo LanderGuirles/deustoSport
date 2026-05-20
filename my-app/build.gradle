@@ -126,6 +126,16 @@ tasks.register('performanceTest', Test) {
 
 tasks.withType(JavaCompile).configureEach {
 	options.compilerArgs += '-parameters'
+	options.encoding = 'UTF-8'
+}
+
+javadoc {
+	options.encoding = 'UTF-8'
+	options.memberLevel = JavadocMemberLevel.PROTECTED
+	options.addStringOption('Xdoclint:none', '-quiet')
+	options.windowTitle = 'DeustoSport API'
+	options.docTitle = 'DeustoSport API'
+	failOnError = false
 }
 
 springBoot {
