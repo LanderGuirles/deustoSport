@@ -59,6 +59,10 @@ public class DataInitializer implements CommandLineRunner {
             "INSERT INTO polideportivos (nombre, direccion, hora_apertura, hora_cierre, ayuntamiento_id) VALUES (?,?,?,?,?)",
             "Polideportivo Deusto", "Calle Agirre, 1, Bilbao", "08:00:00", "22:00:00", 1
         );
+        jdbcTemplate.update(
+            "INSERT INTO polideportivos (nombre, direccion, hora_apertura, hora_cierre, ayuntamiento_id) VALUES (?,?,?,?,?)",
+            "Polideportivo San Mames", "Calle Felipe Serrate, s/n, Bilbao", "09:00:00", "21:00:00", 1
+        );
 
         // ── Pistas (polideportivo_id = 1) ──────────────────────────────
         jdbcTemplate.update(
@@ -76,6 +80,20 @@ public class DataInitializer implements CommandLineRunner {
         jdbcTemplate.update(
             "INSERT INTO pistas (nombre, tipo_deporte, polideportivo_id, max_jugadores, activa) VALUES (?,?,?,?,?)",
             "Pista Fútbol 1", "FUTBOL", 1, 22, true);
+
+        // ── Pistas (polideportivo_id = 2) ──────────────────────────────
+        jdbcTemplate.update(
+            "INSERT INTO pistas (nombre, tipo_deporte, polideportivo_id, max_jugadores, activa) VALUES (?,?,?,?,?)",
+            "San Mames Fútbol", "FUTBOL", 2, 22, true);
+        jdbcTemplate.update(
+            "INSERT INTO pistas (nombre, tipo_deporte, polideportivo_id, max_jugadores, activa) VALUES (?,?,?,?,?)",
+            "San Mames Tenis", "TENIS", 2, 4, true);
+        jdbcTemplate.update(
+            "INSERT INTO pistas (nombre, tipo_deporte, polideportivo_id, max_jugadores, activa) VALUES (?,?,?,?,?)",
+            "San Mames Pádel 1", "PADEL", 2, 4, true);
+        jdbcTemplate.update(
+            "INSERT INTO pistas (nombre, tipo_deporte, polideportivo_id, max_jugadores, activa) VALUES (?,?,?,?,?)",
+            "San Mames Pádel 2", "PADEL", 2, 4, true);
 
         // ── Usuarios ─────────────────────────────────────────────────
         jdbcTemplate.update(
@@ -104,6 +122,12 @@ public class DataInitializer implements CommandLineRunner {
             "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol, ayuntamiento_id) VALUES (?,?,?,?,?,?,?,?,?)",
             "Ayuntamiento de Bilbao", "ayuntamiento.bilbao@deustosport.com",
             "77777777G", "944204200", true, false, 0.00, "AYUNTAMIENTO", 1);
+        jdbcTemplate.update(
+            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol, polideportivo_id) VALUES (?,?,?,?,?,?,?,?,?)",
+            "Ana San Mames", "ana@sanmames.com", "99999999S", "666111333", true, true, 0.00, "SECRETARIA", 2);
+        jdbcTemplate.update(
+            "INSERT INTO usuarios (nombre_completo, email, dni, telefono, activo, es_socio, billetera, rol, polideportivo_id) VALUES (?,?,?,?,?,?,?,?,?)",
+            "Pepe San Mames", "pepe@sanmames.com", "88888888C", "666111444", true, false, 0.00, "COORDINADOR", 2);
 
         // ── Credenciales ─────────────────────────────────────────────
         LocalDateTime ahora = LocalDateTime.now();
@@ -118,6 +142,12 @@ public class DataInitializer implements CommandLineRunner {
         jdbcTemplate.update(
             "INSERT INTO credenciales (usuario_id, password_hash, activo, fecha_creacion) VALUES (?,?,?,?)",
             8, hashBilbao, true, ahora);
+        jdbcTemplate.update(
+            "INSERT INTO credenciales (usuario_id, password_hash, activo, fecha_creacion) VALUES (?,?,?,?)",
+            9, hash, true, ahora);
+        jdbcTemplate.update(
+            "INSERT INTO credenciales (usuario_id, password_hash, activo, fecha_creacion) VALUES (?,?,?,?)",
+            10, hash, true, ahora);
 
         log.info("Datos de prueba inicializados correctamente");
         log.info("Usuarios: juan@deustosport.com / password123 | Pistas: 5");
