@@ -95,7 +95,7 @@ public class IluminacionService {
                 LocalTime apagarHasta = r.getHoraFin().plusMinutes(MINUTOS_GRACIA_APAGADO);
 
                 // ¿Estamos en la ventana de esta reserva?
-                if (!horaActual.isBefore(encenderDesde) && horaActual.isBefore(apagarHasta)) {
+                if (isTimeInRange(horaActual, encenderDesde, apagarHasta, false)) {
                     debeEstarEncendida = true;
                     motivoEncendido = "Reserva activa/próxima en " + pista.getNombre()
                             + " (" + r.getHoraInicio() + " - " + r.getHoraFin() + ")";
@@ -110,7 +110,7 @@ public class IluminacionService {
                     LocalTime finGracia = r.getHoraFin().plusMinutes(MINUTOS_GRACIA_APAGADO);
 
                     // Estamos en los 5 min de gracia post-reserva (inclusive el borde)
-                    if (!horaActual.isBefore(r.getHoraFin()) && !horaActual.isAfter(finGracia)) {
+                    if (isTimeInRange(horaActual, r.getHoraFin(), finGracia, true)) {
                         // Verificar si hay reserva consecutiva
                         boolean consecutiva = tieneReservaConsecutiva(pista.getId(), hoy, r.getHoraFin(), confirmadas);
                         if (consecutiva) {
@@ -234,4 +234,29 @@ public class IluminacionService {
                     return estadoRepo.save(nuevo);
                 });
     }
+
+    /**
+     * Comprueba si una hora determinada está dentro de un rango [inicio, fin).
+     * Soporta rangos que cruzan la medianoche.
+     */
+    private boolean isTimeInRange(LocalTime time, LocalTime start, LocalTime end, boolean inclusiveEnd) {
+        if (start.equals(end)) {
+            return time.equals(start);
+        }
+        if (start.isBefore(end)) {
+            if (inclusiveEnd) {
+                return !time.isBefore(start) && !time.isAfter(end);
+            } else {
+                return !time.isBefore(start) && time.isBefore(end);
+            }
+        } else {
+            // El rango cruza la medianoche (ej: 23:00 - 01:00)
+            if (inclusiveEnd) {
+                return !time.isBefore(start) || !time.isAfter(end);
+            } else {
+                return !time.isBefore(start) || time.isBefore(end);
+            }
+        }
+    }
 }
+
