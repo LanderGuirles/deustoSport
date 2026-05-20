@@ -556,31 +556,34 @@
 
   <div class="container">
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('tarifas',this)">Tarifas</button>
-      <button class="tab-btn" onclick="switchTab('pistas',this)">Reservar</button>
-	  <button class="tab-btn" id="tab-abonos-btn" onclick="switchTab('abonos',this)">Abonos</button>
+      <button class="tab-btn active" onclick="switchTab('tarifas',this)">Inicio</button>
+      <button class="tab-btn" id="tab-abonos-btn" onclick="switchTab('abonos',this)">Suscripción</button>
       <button class="tab-btn" id="tab-misreservas-btn"
 			  onclick="switchTab('misreservas',this)">Mis reservas</button>
 	  <button class="tab-btn" onclick="switchTab('mapa',this)">Mapa del Club</button>
     </div>
 
     <div id="tab-tarifas" class="tab-content active">
-      <div class="section-header"><h3>Consultar tarifas por pista</h3></div>
-      <div class="pista-selector">
-        <select id="select-pista-tarifa" onchange="cargarTarifasPorPista(this.value)">
-          <option value="">— Selecciona una pista —</option>
-        </select>
+      <div id="vista-polideportivos">
+        <div class="section-header"><h3>Nuestros Polideportivos</h3></div>
+        <div id="polideportivos-container" class="pistas-grid">
+          <div class="empty"><div class="spinner"></div></div>
+        </div>
       </div>
-      <div id="tarifas-container">
-        <div class="empty">
-          <div class="icon"></div>
-          <p>Selecciona una pista para ver sus tarifas</p>
+      <div id="vista-pistas" style="display:none;">
+        <div class="section-header">
+          <h3 id="titulo-pistas-polideportivo">Pistas disponibles</h3>
+          <span class="badge" id="pistas-count">—</span>
+          <button class="btn-ghost" onclick="volverAPolideportivos()" style="margin-left:auto;font-size:12px">← Volver a polideportivos</button>
+        </div>
+        <div id="pistas-container" class="pistas-grid">
+          <div class="empty"><div class="spinner"></div></div>
         </div>
       </div>
     </div>
 
     <div id="tab-abonos" class="tab-content">
-	<div class="section-header"><h3>Planes de abono disponibles</h3></div>
+	<div class="section-header"><h3>Planes de suscripción disponibles</h3></div>
       <div id="abono-actual-container" class="abono-actual-card">
           <h4>Tienes una suscripción activa</h4>
           <p>Plan: <strong id="abono-actual-nombre">...</strong></p>
@@ -589,16 +592,6 @@
       </div>
       <hr id="abono-sep-line" class="abonos-separator" style="display:none;">
       <div id="planes-container" class="planes-grid">
-        <div class="empty"><div class="spinner"></div></div>
-      </div>
-    </div>
-
-    <div id="tab-pistas" class="tab-content">
-      <div class="section-header">
-        <h3>Pistas disponibles</h3>
-        <span class="badge" id="pistas-count">—</span>
-      </div>
-      <div id="pistas-container" class="pistas-grid">
         <div class="empty"><div class="spinner"></div></div>
       </div>
     </div>
@@ -1257,20 +1250,20 @@
 			    document.getElementById('nav-socio-badge').style.display = 'inline-block';
 			  }
 
-			  // === NO SOCIO: Ocultar billetera y abonos (perfil y baja siempre visibles) ===
+			  // === NO SOCIO: Ocultar billetera (perfil y baja siempre visibles) ===
 			  if (!esSocio) {
 			    document.getElementById('nav-billetera-badge').style.display = 'none';
-			    document.getElementById('tab-abonos-btn').style.display = 'none';
 			    document.getElementById('perfil-recarga-section').style.display = 'none';
 			  }
 
 			  // Mostrar saldo (solo si socio)
 			  actualizarSaldoNav();
+			  loadPolideportivos();
 			  loadPistas();
-			  if (esSocio) {
-			    checkAbonoActivo();
-			    loadPlanesAbono();
-			  }
+			  
+			  checkAbonoActivo();
+			  loadPlanesAbono();
+			  
 			  loadNotificaciones();
 			  notificationsRefreshTimer = setInterval(loadNotificaciones, 60000);
 			  // Cargar aviso del día (publicado por secretaría)
@@ -1668,47 +1661,77 @@
 			}
 
 			// ═══════════════════════════════════════════
-			//  PISTAS
+			//  POLIDEPORTIVOS Y PISTAS
 			// ═══════════════════════════════════════════
-			async function loadPistas() {
-			  const container = document.getElementById('pistas-container');
+			let polideportivosGlobal = [];
+
+			async function loadPolideportivos() {
+			  const container = document.getElementById('polideportivos-container');
 			  container.innerHTML = '<div class="empty"><div class="spinner"></div></div>';
 			  try {
-			    const res   = await fetch(API + '/api/pistas');
-			    const pistas = await res.json();
-			    pistasGlobal = pistas.filter(p => p.activa);
-			    document.getElementById('pistas-count').textContent = pistasGlobal.length + ' pistas';
+			    const res = await fetch(API + '/api/polideportivos');
+			    const polideportivos = await res.json();
+			    polideportivosGlobal = polideportivos;
 
-			    // poblar select de tarifas
-			    const sel = document.getElementById('select-pista-tarifa');
-			    pistasGlobal.forEach(p => {
-			      const opt = document.createElement('option');
-			      opt.value       = p.id;
-			      opt.textContent = p.nombre + ' (' + p.tipoDeporte + ')';
-			      sel.appendChild(opt);
-			    });
-
-			    if (!pistasGlobal.length) {
+			    if (!polideportivos.length) {
 			      container.innerHTML =
-			        '<div class="empty"><div class="icon"></div><p>No hay pistas registradas</p></div>';
+			        '<div class="empty"><div class="icon"></div><p>No hay polideportivos registrados</p></div>';
 			      return;
 			    }
 
-			    container.innerHTML = pistasGlobal.map(p => `
+			    container.innerHTML = polideportivos.map(p => `
+			      <div class="pista-card" onclick="mostrarPistasPolideportivo(${p.id}, '${escHtml(p.nombre)}')">
+			        <div class="pista-name" style="font-size:20px; margin-bottom:10px;">${escHtml(p.nombre)}</div>
+			        <div class="pista-meta" style="font-size:14px;">
+			          📍 ${escHtml(p.direccion || 'Sin dirección')}
+			        </div>
+			      </div>`).join('');
+			  } catch (e) {
+			    container.innerHTML =
+			      '<div class="empty"><div class="icon"></div><p>Error al cargar polideportivos.</p></div>';
+			  }
+			}
+
+			function mostrarPistasPolideportivo(poliId, nombre) {
+			  document.getElementById('vista-polideportivos').style.display = 'none';
+			  document.getElementById('vista-pistas').style.display = 'block';
+			  document.getElementById('titulo-pistas-polideportivo').textContent = 'Pistas en ' + nombre;
+			  
+			  const container = document.getElementById('pistas-container');
+			  const pistasDelPoli = pistasGlobal.filter(p => p.polideportivoId === poliId);
+			  
+			  document.getElementById('pistas-count').textContent = pistasDelPoli.length + ' pistas';
+
+			  if (!pistasDelPoli.length) {
+			    container.innerHTML = '<div class="empty"><div class="icon"></div><p>No hay pistas en este polideportivo.</p></div>';
+			    return;
+			  }
+
+			  container.innerHTML = pistasDelPoli.map(p => `
 			      <div class="pista-card">
 			        <div class="pista-sport-tag ${sportClass(p.tipoDeporte)}">${p.tipoDeporte}</div>
 			        <div class="pista-name">${p.nombre}</div>
 			        <div class="pista-meta">
-			          ${p.polideportivoNombre || '—'} &nbsp;|&nbsp;
 			          Max <span>${p.maxJugadores}</span> jugadores
 			        </div>
 			        <button class="btn-reservar" onclick="abrirCalendario(${p.id})">
 			          Ver disponibilidad y reservar →
 			        </button>
 			      </div>`).join('');
+			}
+
+			function volverAPolideportivos() {
+			  document.getElementById('vista-pistas').style.display = 'none';
+			  document.getElementById('vista-polideportivos').style.display = 'block';
+			}
+
+			async function loadPistas() {
+			  try {
+			    const res   = await fetch(API + '/api/pistas');
+			    const pistas = await res.json();
+			    pistasGlobal = pistas.filter(p => p.activa);
 			  } catch {
-			    container.innerHTML =
-			      '<div class="empty"><div class="icon"></div><p>Error al cargar pistas.</p></div>';
+			    pistasGlobal = [];
 			  }
 			}
 
@@ -2137,7 +2160,17 @@
 			  document.querySelectorAll('.pago-fields').forEach(f => f.classList.remove('active'));
 			  const fields = document.getElementById('cal-f-' + metodo);
 			  if (fields) fields.classList.add('active');
-			  document.getElementById('btn-confirmar-pago-cal').disabled = false;
+			  
+			  const btnConfirmar = document.getElementById('btn-confirmar-pago-cal');
+			  const saldoInsufEl = document.getElementById('cal-saldo-insuficiente');
+			  
+			  if (metodo === 'BILLETERA' && saldoInsufEl.style.display === 'flex') {
+			    btnConfirmar.disabled = true;
+			    btnConfirmar.textContent = 'Saldo insuficiente';
+			  } else {
+			    btnConfirmar.disabled = false;
+			    btnConfirmar.textContent = 'Pagar y confirmar';
+			  }
 			}
 
 			async function confirmarPagoCal() {
@@ -2479,13 +2512,6 @@
 			let metodoAbonoSeleccionado = null;
 
 			function abrirSuscripcionAbono(planId) {
-				// Bloquear para NO SOCIOS
-				const esSocioAbono = localStorage.getItem('esSocio') === 'true';
-				if (!esSocioAbono) {
-					toast('Los usuarios NO SOCIOS no pueden comprar planes de abono. Debes ser socio del club.', 'err');
-					return;
-				}
-
 				planAbonoSeleccionado = planesAbonoGlobal.find(p => (p.planAbonoId || p.id) === planId);
 				if (!planAbonoSeleccionado) return;
 

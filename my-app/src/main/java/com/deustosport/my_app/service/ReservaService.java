@@ -35,7 +35,7 @@ public class ReservaService {
     private static final Pattern PATRON_TARJETA  = Pattern.compile("^\\d{16}$");
     private static final Pattern PATRON_CADUCIDAD = Pattern.compile("^(0[1-9]|1[0-2])/[0-9]{2}$");
     private static final Pattern PATRON_CVV       = Pattern.compile("^\\d{3,4}$");
-    private static final Pattern PATRON_BIZUM     = Pattern.compile("^(\\+34)?[6789]\\d{8}$");
+    private static final Pattern PATRON_BIZUM     = Pattern.compile("^(\\+?34)?[6789]\\d{8}$");
 
     private final ReservaRepository  reservaRepository;
     private final PistaRepository    pistaRepository;
@@ -578,7 +578,7 @@ public class ReservaService {
             return;
         }
         if (metodoPago == MetodoPago.TARJETA) {
-            String num = limpiar(numeroTarjeta).replace(" ", "");
+            String num = limpiar(numeroTarjeta).replaceAll("\\D", "");
             if (!PATRON_TARJETA.matcher(num).matches())
                 throw new IllegalArgumentException("Número de tarjeta inválido. Debe tener 16 dígitos.");
             if (limpiar(titularTarjeta).length() < 3)
@@ -589,7 +589,7 @@ public class ReservaService {
                 throw new IllegalArgumentException("El CVV es inválido.");
         }
         if (metodoPago == MetodoPago.BIZUM) {
-            String tel = limpiar(telefonoBizum).replace(" ", "");
+            String tel = limpiar(telefonoBizum).replaceAll("[^+\\d]", "");
             if (!PATRON_BIZUM.matcher(tel).matches())
                 throw new IllegalArgumentException("Teléfono Bizum inválido.");
         }
