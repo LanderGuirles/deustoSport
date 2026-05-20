@@ -563,7 +563,7 @@
       <button class="tab-btn" onclick="switchTab('bonos',this)">Bonos</button>
       <button class="tab-btn" id="tab-misreservas-btn"
 			  onclick="switchTab('misreservas',this)">Mis reservas</button>
-	  <button class="tab-btn" onclick="switchTab('mapa',this)">🗺️ Mapa del Club</button>
+	  <button class="tab-btn" onclick="switchTab('mapa',this)">Mapa del Club</button>
     </div>
 
     <div id="tab-tarifas" class="tab-content active">
@@ -631,7 +631,7 @@
 
     <div id="tab-mapa" class="tab-content">
       <div class="section-header">
-        <h3>🗺️ Mapa Interactivo del Polideportivo DeustoSport</h3>
+        <h3>Mapa Interactivo del Polideportivo DeustoSport</h3>
       </div>
       <div class="mapa-container-principal">
         <div class="mapa-titulo-principal">
@@ -965,6 +965,7 @@
 		<button class="btn-primary" id="btn-guardar-perfil" onclick="saveProfile()">Guardar cambios</button>
 		<div id="perfil-alert" class="form-alert"></div>
 
+<<<<<<< HEAD
 		<!-- Opción de Darse de Baja -->
 		<div style="margin-top: 25px; padding-top: 20px; border-top: 1px dashed var(--border);">
 			<p style="font-size: 13px; color: var(--muted); margin-bottom: 10px;">
@@ -978,6 +979,9 @@
 		</div>
 
 		<div class="recarga-section">
+=======
+		<div class="recarga-section" id="perfil-recarga-section">
+>>>>>>> b6064769826672adf93405ff026bf4e92b3d0db7
 			<h4>Billetera — Saldo actual: <strong id="perfil-saldo">0.00</strong>€</h4>
 			<div class="recarga-row">
 				<input type="number" id="recarga-cantidad" min="1" step="0.01" placeholder="Cantidad a recargar (€)">
@@ -989,7 +993,7 @@
 		<div style="margin-top:30px; padding-top:20px; border-top:1px solid var(--border);">
 			<h4 style="color:var(--danger); margin-bottom:12px;">⚠️ Zona de Peligro</h4>
 			<p style="font-size:13px; color:var(--muted); margin-bottom:12px;">Una vez elimines tu cuenta, todos tus datos serán borrados permanentemente.</p>
-			<button onclick="openModal('modal-eliminar-cuenta')" class="btn-danger" style="display:inline-block; padding:10px 16px; background:var(--danger); color:white; border:none; border-radius:8px; text-decoration:none; font-size:14px; font-weight:600; transition:all .2s; text-align:center; cursor:pointer;">
+			<button onclick="abrirModalEliminacion()" class="btn-danger" style="display:inline-block; padding:10px 16px; background:var(--danger); color:white; border:none; border-radius:8px; text-decoration:none; font-size:14px; font-weight:600; transition:all .2s; text-align:center; cursor:pointer;">
 				Eliminar mi cuenta
 			</button>
 		</div>
@@ -1286,11 +1290,11 @@
 			    document.getElementById('nav-socio-badge').style.display = 'inline-block';
 			  }
 
-			  // === NO SOCIO: Ocultar billetera, perfil y abonos ===
+			  // === NO SOCIO: Ocultar billetera y abonos (perfil y baja siempre visibles) ===
 			  if (!esSocio) {
 			    document.getElementById('nav-billetera-badge').style.display = 'none';
-			    document.getElementById('btn-mi-perfil').style.display = 'none';
 			    document.getElementById('tab-abonos-btn').style.display = 'none';
+			    document.getElementById('perfil-recarga-section').style.display = 'none';
 			  }
 
 			  // Mostrar saldo (solo si socio)
