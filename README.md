@@ -97,6 +97,23 @@ La cobertura de código se genera automáticamente tras ejecutar los tests:
 
 ---
 
+## Demo / Datos de Prueba
+
+Para probar la funcionalidad completa del sistema sin registrar nuevos datos, se han pre-cargado los siguientes usuarios de demo:
+
+| Rol | Email | Password |
+|-----|-------|----------|
+| **Cliente** | `juan@deustosport.com` | `password123` |
+| **Cliente** | `laura@deustosport.com` | `password123` |
+| **Secretaría** | `maria@deustosport.com` | `password123` |
+| **Coordinador** | `carlos@deustosport.com` | `password123` |
+| **Mantenimiento** | `iker.mantenimiento@gmail.com` | `mantenimiento` |
+| **Ayuntamiento** | `ayuntamiento.bilbao@deustosport.com` | `bilbao` |
+
+> **Nota:** La base de datos H2 se reinicia en cada arranque si no se configura una persistencia externa.
+
+---
+
 ## Documentación Automática
 
 El proyecto genera y publica documentación de forma automatizada:
