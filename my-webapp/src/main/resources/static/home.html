@@ -948,7 +948,7 @@
 		<button class="btn-primary" id="btn-guardar-perfil" onclick="saveProfile()">Guardar cambios</button>
 		<div id="perfil-alert" class="form-alert"></div>
 
-		<div class="recarga-section">
+		<div class="recarga-section" id="perfil-recarga-section">
 			<h4>Billetera — Saldo actual: <strong id="perfil-saldo">0.00</strong>€</h4>
 			<div class="recarga-row">
 				<input type="number" id="recarga-cantidad" min="1" step="0.01" placeholder="Cantidad a recargar (€)">
@@ -960,7 +960,7 @@
 		<div style="margin-top:30px; padding-top:20px; border-top:1px solid var(--border);">
 			<h4 style="color:var(--danger); margin-bottom:12px;">⚠️ Zona de Peligro</h4>
 			<p style="font-size:13px; color:var(--muted); margin-bottom:12px;">Una vez elimines tu cuenta, todos tus datos serán borrados permanentemente.</p>
-			<button onclick="openModal('modal-eliminar-cuenta')" class="btn-danger" style="display:inline-block; padding:10px 16px; background:var(--danger); color:white; border:none; border-radius:8px; text-decoration:none; font-size:14px; font-weight:600; transition:all .2s; text-align:center; cursor:pointer;">
+			<button onclick="abrirModalEliminacion()" class="btn-danger" style="display:inline-block; padding:10px 16px; background:var(--danger); color:white; border:none; border-radius:8px; text-decoration:none; font-size:14px; font-weight:600; transition:all .2s; text-align:center; cursor:pointer;">
 				Eliminar mi cuenta
 			</button>
 		</div>
@@ -1257,11 +1257,11 @@
 			    document.getElementById('nav-socio-badge').style.display = 'inline-block';
 			  }
 
-			  // === NO SOCIO: Ocultar billetera, perfil y abonos ===
+			  // === NO SOCIO: Ocultar billetera y abonos (perfil y baja siempre visibles) ===
 			  if (!esSocio) {
 			    document.getElementById('nav-billetera-badge').style.display = 'none';
-			    document.getElementById('btn-mi-perfil').style.display = 'none';
 			    document.getElementById('tab-abonos-btn').style.display = 'none';
+			    document.getElementById('perfil-recarga-section').style.display = 'none';
 			  }
 
 			  // Mostrar saldo (solo si socio)
